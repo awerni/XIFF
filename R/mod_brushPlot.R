@@ -72,6 +72,7 @@ getPanelPositions <- function(p, fVar, res = 72){
   )
 }
 
+#' @export
 brushPlot <- function(input, output, session, plotExpr, checkExpr,
                       textCallback = defaultTextCallback,
                       defaultCutoff_x = NULL, step_x = 0.1, dx = 0.5, sorted_x = "no",
@@ -82,7 +83,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
   PlotData <- shiny::reactiveVal()
   progressOpts <- list(...)
 
-  colname <- getOption("xiff.colname")
+  colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
 
   output$plot <- shiny::renderPlot({
@@ -418,6 +419,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
 registerAxisObserver <- function(input, output, ns, axis, defaultCutoff, step){
   outputId <- paste0("score_options_", axis)
   scoreMethodId <- paste0("score_method_", axis)
+  label <- getOption("xiff.label")
 
   getCutoffContent <- function(value){
     shiny::tagList(

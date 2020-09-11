@@ -89,6 +89,7 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
   )
 }
 
+#' @export
 tabLayout <- function(input, output, session, plotFun, TableData){
   varDict <- list()
 

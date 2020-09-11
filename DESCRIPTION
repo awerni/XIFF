@@ -35,5 +35,6 @@ Imports:
       umap,
       DESeq2,
       fpc,
-      purrr
+      purrr,
+      RPostgres
 RoxygenNote: 7.1.1

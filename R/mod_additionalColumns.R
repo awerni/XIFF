@@ -1,3 +1,4 @@
+#' @export
 additionalColumnsUI_main <- function(id, style = "font-size:80%"){
   ns <- shiny::NS(id)
   shiny::div(
@@ -6,6 +7,7 @@ additionalColumnsUI_main <- function(id, style = "font-size:80%"){
   )
 }
 
+#' @export
 additionalColumnsUI_sidebar <- function(id){
   ns <- NS(id)
 
@@ -15,6 +17,7 @@ additionalColumnsUI_sidebar <- function(id){
   )
 }
 
+#' @export
 additionalColumns <- function(input, output, session, Table, defaultCols, maxAdditionalCols = 5, ...){
   ns <- session$ns
 

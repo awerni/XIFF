@@ -69,7 +69,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
     pV <- data$percentVar
     xlabel <- paste0("PC1: ", pV[1],"% variance")
     ylabel <- paste0("PC2: ", pV[2],"% variance")
-    title <- glue::glue("PCA plot\n#{getOption('xiff.label)}={nItems}")
+    title <- glue::glue("PCA plot\n#{getOption('xiff.label')}={nItems}")
 
   } else if (progressText == "plot t-SNE") {
     mapping <- ggplot2::aes(
