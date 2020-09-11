@@ -4,6 +4,11 @@ invalid <- function(x){
 }
 
 #' @export
+dropNulls <- function(x){
+  x[!vapply(x, is.null, FUN.VALUE = logical(1))]
+}
+
+#' @export
 stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE) {
   colname <- getOption("xiff.column")
 

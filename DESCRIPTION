@@ -25,5 +25,14 @@ Imports:
       utils,
       FutureManager,
       ggtips,
-      shinyjs
+      shinyjs,
+      ggrepel,
+      DT,
+      glue,
+      shinyWidgets,
+      jsonlite,
+      Rtsne,
+      umap,
+      DESeq2,
+      fpc
 RoxygenNote: 7.1.1
