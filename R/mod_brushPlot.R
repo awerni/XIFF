@@ -41,7 +41,7 @@ defaultTextCallback <- function(n, rx, ry){
     sprintf("Y range: (%s, %s);", signif(ry[1], 4), signif(ry[2], 4))
   }
 
-  glue::glue("{n} {getOption('xiff.label')} selected in {xText} {yText}")
+  glue::glue("{n} {getOption('xiff.label')}s selected in {xText} {yText}")
 }
 
 getPanelPositions <- function(p, fVar, res = 72){
@@ -352,7 +352,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
     )
   }
 
-  label <- getOption("xiff.label")
+  label <- paste0(getOption("xiff.label"), "s")
 
   choices <- c(
     "score cutoff" = "cutoff",
@@ -419,7 +419,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
 registerAxisObserver <- function(input, output, ns, axis, defaultCutoff, step){
   outputId <- paste0("score_options_", axis)
   scoreMethodId <- paste0("score_method_", axis)
-  label <- getOption("xiff.label")
+  label <- paste0(getOption("xiff.label"), "s")
 
   getCutoffContent <- function(value){
     shiny::tagList(

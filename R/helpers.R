@@ -58,3 +58,34 @@ fmButtonBothClasses <- function(inputId, fm, cs, defaultValue = FALSE){
     blocked = condition
   )
 }
+
+#' @export
+getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2){
+  focusLevels <- as.character(unique(annotationFocus[[prop1]]))
+
+  available <- data %>%
+    dplyr::mutate(prop1 = as.character(prop1)) %>%
+    dplyr::group_by(class, prop1, prop2) %>%
+    dplyr::summarize(n = dplyr::n())
+  notOthers <- setdiff(available[["prop1"]], "other")
+
+  annotation %>%
+    dplyr::select(prop1 = !!prop1) %>%
+    dplyr::filter(prop1 %in% focusLevels) %>%
+    dplyr::mutate(
+      prop1 = as.character(prop1),
+      prop1 = ifelse(is.na(prop1), "NA", prop1),
+      prop1 = ifelse(prop1 %in% notOthers, prop1, "other")
+    ) %>%
+    dplyr::group_by(prop1) %>%
+    dplyr::summarize(nTotal = dplyr::n()) %>%
+    dplyr::left_join(available, ., by = "prop1") %>%
+    dplyr::filter(!is.na(class)) %>%
+    dplyr::mutate(percent = n/nTotal * 100) %>%
+    dplyr::select(class, prop1, prop2, percent)
+}
+
+#' @export
+get_label <- function(n) {
+  paste0(n, " ", getOption("xiff.label"), ifelse(n != 1, "s", ""))
+}

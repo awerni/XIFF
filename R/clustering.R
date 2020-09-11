@@ -115,7 +115,7 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
 
   perp <- min(50, round(0.5 + ncol(data.cross)/10))
   res <- Rtsne::Rtsne(t(data.cross), perplexity = perp, inital_dims = min(50, numGenes))
-  myTitle <- glue::glue("perplexity={res$perplexity}  #{getOption('xiff.label')}={res$N}  #genes={nrow(data.cross)}")
+  myTitle <- glue::glue("perplexity={res$perplexity}  #{getOption('xiff.label')}s={res$N}  #genes={nrow(data.cross)}")
 
   res <- list(
     data = cbind(data.frame(res$Y), TSNEData[["assignment"]]),
@@ -147,7 +147,7 @@ calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = 
   colname <- getOption("xiff.column")
   umapdata <- res$layout %>% as.data.frame() %>% dplyr::rename(X1 = 1, X2 = 2) %>% tibble::rownames_to_column(colname)
   cl_genes <- dim(res$data)
-  myTitle <- glue::glue("perplexity={perp}  #{getOption('xiff.label')}={cl_genes[[1]]}  #genes={cl_genes[[2]]}")
+  myTitle <- glue::glue("perplexity={perp}  #{getOption('xiff.label')}s={cl_genes[[1]]}  #genes={cl_genes[[2]]}")
 
   res <- list(
     data = dplyr::left_join(umapdata, UMAPData[["assignment"]], by = colname),

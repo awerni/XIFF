@@ -36,5 +36,10 @@ Imports:
       DESeq2,
       fpc,
       purrr,
-      RPostgres
+      RPostgres,
+      forcats,
+      shinyBS,
+      readxl,
+      readr,
+      scales
 RoxygenNote: 7.1.1
