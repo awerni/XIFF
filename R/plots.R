@@ -53,19 +53,23 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
     progress$set(message = progressText, value = 0.5)
   }
 
+  colname <- getOption("xiff.column")
+  colname <- rlang::sym(colname)
+  nItems <- data[[getOption('xiff.name')]]
+
   if (progressText == "plot PCA") {
     mapping <- ggplot2::aes(
       x = PC1,
       y = PC2,
       color = class,
       label = plotlabel,
-      dummy = tissuename
+      dummy = !!colname
     )
 
     pV <- data$percentVar
     xlabel <- paste0("PC1: ", pV[1],"% variance")
     ylabel <- paste0("PC2: ", pV[2],"% variance")
-    title <- paste0("PCA plot\n#tissues=", data$tissues)
+    title <- glue::glue("PCA plot\n#{getOption('xiff.label)}={nItems}")
 
   } else if (progressText == "plot t-SNE") {
     mapping <- ggplot2::aes(
@@ -73,7 +77,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
       y = X2,
       color = class,
       label = plotlabel,
-      dummy = tissuename
+      dummy = !!colname
     )
 
     xlabel <- "t-SNE-1"
@@ -87,7 +91,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
       y = X2,
       color = class,
       label = plotlabel,
-      dummy = tissuename
+      dummy = !!colname
     )
 
     xlabel <- "umap-1"
@@ -117,7 +121,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
   }
 
   if (show.labels) {
-    if (data$tissues > 400) {
+    if (nItems > 400) {
       ret$status <- "Can not display labels for more than 400 samples"
     } else {
       pl <- pl + ggrepel::geom_text_repel(

@@ -20,8 +20,11 @@ addClustering <- function(df, cluster_method, p = TRUE) {
     }
   } else if (cluster_method == "affinity propagation") {
     apres <- apcluster::apcluster(apcluster::negDistMat(data, r = 2))
-    df$cluster <- apres@clusters %>% map_dfr(as.tibble, .id = "cluster") %>% arrange(value) %>%
-      mutate(cluster = as.factor(cluster)) %>% .$cluster
+    df$cluster <- apres@clusters %>%
+      purrr::map_dfr(as.tibble, .id = "cluster") %>%
+      dplyr::arrange(value) %>%
+      dplyr::mutate(cluster = as.factor(cluster)) %>%
+      .$cluster
   } else if (grepl("pam", cluster_method)) {
     if (grepl("automatic", cluster_method)) {
       df$cluster <- as.factor(fpc::pamk(data, krange = 2:mc)$pamobject$clustering)

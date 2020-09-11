@@ -55,14 +55,14 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
   }
 
   leftId <- ns("type_left")
-  leftSelected <- (isolate(input[[leftId]]) %||% defaults$left) %||% choices[[1]]
+  leftSelected <- (shiny::isolate(input[[leftId]]) %||% defaults$left) %||% choices[[1]]
 
   rightId <- ns("type_right")
-  rightSelected <- (isolate(input[[rightId]]) %||% defaults$right) %||% choices[[3]]
+  rightSelected <- (shiny::isolate(input[[rightId]]) %||% defaults$right) %||% choices[[3]]
 
   middlePlotInput <- if (useMiddlePlot){
     middleId <- ns("type_middle")
-    middleSelected <- (isolate(input[[middleId]]) %||% defaults$middle) %||% choices[[2]]
+    middleSelected <- (shiny::isolate(input[[middleId]]) %||% defaults$middle) %||% choices[[2]]
 
     shiny::selectInput(
       inputId = middleId,

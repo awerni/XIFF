@@ -15,7 +15,7 @@ tooltipPlotUI <- function(id, width = "100%", height = "400px"){
 tooltipPlot <- function(input, output, session, plotExpr, varDict, callback = callbackFun, ...){
   id <- paste0("output_", session$ns("plot"))
 
-  Width <- reactive({
+  Width <- shiny::reactive({
     w <- session$clientData[[paste0(id, "_width")]]
 
     if (is.null(w)){
@@ -25,7 +25,7 @@ tooltipPlot <- function(input, output, session, plotExpr, varDict, callback = ca
     }
   })
 
-  Height <- reactive({
+  Height <- shiny::reactive({
     h <- session$clientData[[paste0(id, "_height")]]
 
     if (is.null(h)){
@@ -38,7 +38,7 @@ tooltipPlot <- function(input, output, session, plotExpr, varDict, callback = ca
   output$plot <- ggtips::renderWithTooltips(
     plot = {
       p <- plotExpr()
-      req(Width(), p) # re-render on resize
+      shiny::req(Width(), p) # re-render on resize
       p
     },
     varDict = varDict,

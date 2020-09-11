@@ -34,5 +34,6 @@ Imports:
       Rtsne,
       umap,
       DESeq2,
-      fpc
+      fpc,
+      purrr
 RoxygenNote: 7.1.1

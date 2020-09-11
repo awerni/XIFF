@@ -27,7 +27,7 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
   sizeId <- shiny::reactiveVal()
 
   output$plot_normal <- shiny::renderPlot({
-    req(!PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
+    shiny::req(!PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
     PlotExpr()
   }, ...)
 

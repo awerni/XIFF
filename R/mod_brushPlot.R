@@ -120,7 +120,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
     p
   })
 
-  output$dropdown <- renderUI({
+  output$dropdown <- shiny::renderUI({
     pd <- PlotData()
     if (is.null(pd) || pd$xVar == "NULL" || pd$yVar == "NULL"){
       return()
@@ -351,11 +351,14 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
     )
   }
 
+  label <- getOption("xiff.label")
+
   choices <- c(
     "score cutoff" = "cutoff",
-    "number of tissues" = "number",
+    "dummy" = "number",
     "percentile" = "percentile"
   )
+  names(choices)[2] <- paste("number of", label)
 
   choices <- Filter(
     f = function(x) x %in% availableChoices,
@@ -365,7 +368,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
   if (!is.null(defaultCutoff_x)){
     xSelector <- shiny::selectInput(
       inputId = ns("score_method_x"),
-      label = "Select tissues using",
+      label = paste("Select", label, "using"),
       choices = choices,
       selected = choices[[1]]
     )
@@ -383,7 +386,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
   if (!is.null(defaultCutoff_y)){
     ySelector <- shiny::selectInput(
       inputId = ns("score_method_y"),
-      label = "Select tissues using",
+      label = paste("Select", label, "using"),
       choices = choices,
       selected = choices[[1]]
     )
@@ -444,7 +447,7 @@ registerAxisObserver <- function(input, output, ns, axis, defaultCutoff, step){
     ),
     shiny::selectInput(
       inputId = ns(paste0("number_action_", axis)),
-      label = "tissues with",
+      label = paste(label, "with"),
       choices = c(
         "the lowest score values" = "lowest",
         "the highest score values" = "highest"
@@ -461,7 +464,7 @@ registerAxisObserver <- function(input, output, ns, axis, defaultCutoff, step){
     ),
     shiny::selectInput(
       inputId = ns(paste0("percentile_action_", axis)),
-      label = "% of tissues with",
+      label = paste("% of", label, "with"),
       choices = c(
         "the lowest score values" = "lowest",
         "the highest score values" = "highest"
@@ -532,7 +535,7 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
   filtered <- df %>% dplyr::filter(xVar > xlim$min, xVar < xlim$max, yVar > ylim$min, yVar < ylim$max)
 
   if (nrow(filtered) == 0 && (xlim$shouldAdjust || ylim$shouldAdjust)){
-    # 1d case; no tissues found (condition outside of the plot range)
+    # 1d case; no items found (condition outside of the plot range)
     return()
   }
 
