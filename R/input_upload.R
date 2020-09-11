@@ -206,7 +206,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     plotExpr = UploadPlot,
     checkExpr = UploadPlotCheck,
     textCallback = function(n, rx, ry){
-      myT <- paste(cl_label(n), "selected.")
+      myT <- paste(get_label(n), "selected.")
       if (all(!is.na(ry))) myT <- paste(myT, " Score from", signif(ry[1], 4), "to", signif(ry[2], 4))
       return(myT)
     },
@@ -217,7 +217,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
 
   output$upload_stat <- shiny::renderText({
     shiny::req(fileUploadIDs()$df)
-    paste(cl_label(nrow(fileUploadIDs()$df)), "found")
+    paste(get_label(nrow(fileUploadIDs()$df)), "found")
   })
 
   shiny::observeEvent(input$upload, {

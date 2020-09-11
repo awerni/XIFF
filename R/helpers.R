@@ -89,3 +89,8 @@ getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2
 get_label <- function(n) {
   paste0(n, " ", getOption("xiff.label"), ifelse(n != 1, "s", ""))
 }
+
+#' @export
+isDifferent <- function(x, y){
+  !isTRUE(all.equal(x, y))
+}
