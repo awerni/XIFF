@@ -1,0 +1,29 @@
+Package: xiff
+Type: Package
+Title: Common Modules And Functions For xIFF Apps 
+Version: 0.1.0
+Author: Michal Jakubczak
+Maintainer: Michal Jakubczak <michal.jakubczak@ardigen.com>
+Description: Common modules and functions for xIFF apps
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Depends:
+      R (>= 3.6.0)
+Imports:
+      shiny,
+      magrittr,
+      dplyr,
+      tools,
+      htmltools,
+      tidyr,
+      rlang,
+      ggplot2,
+      grDevices,
+      pheatmap,
+      tibble,
+      utils,
+      FutureManager,
+      ggtips,
+      shinyjs
+RoxygenNote: 7.1.1
