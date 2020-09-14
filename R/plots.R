@@ -165,14 +165,14 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
         fill = prop2
       )
 
-      generateClassSelectionBarPlot(x, mapping, paste("% of respective", prop1), n_rows, "identity")
+      generateClassSelectionBarPlot(x, mapping, paste("% of respective", prop1), n_rows, prop2, "identity")
     } else {
       mapping <- ggplot2::aes(
         x = prop1,
         fill = prop2
       )
 
-      generateClassSelectionBarPlot(data, mapping, paste0("# ", getOption("xiff.label"), "s"), n_rows)
+      generateClassSelectionBarPlot(data, mapping, paste0("# ", getOption("xiff.label"), "s"), n_rows, prop2)
     }
   } else if (plot_type == "pie") {
     data_sum <- if (prop1 != prop2) {
@@ -207,7 +207,7 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
   }
 }
 
-generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, stat = "count"){
+generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, prop2, stat = "count"){
   ggplot2::ggplot(
     data = data,
     mapping = mapping
