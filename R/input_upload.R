@@ -240,7 +240,7 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
   choices_facet <- df %>%
     dplyr::select_if(~ is.character(.x) || is.factor(.x)) %>%
     sapply(dplyr::n_distinct) %>%
-    Filter(f = function(x) x > 1 && x < 4) %>%
+    Filter(f = function(x) x > 1 && x < 5) %>%
     names() %>%
     setdiff(selected)
 
