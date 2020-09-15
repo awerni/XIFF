@@ -1,4 +1,4 @@
-Package: xiff
+Package: XIFF
 Type: Package
 Title: Common Modules And Functions For xIFF Apps 
 Version: 0.1.0
@@ -41,5 +41,6 @@ Imports:
       shinyBS,
       readxl,
       readr,
-      scales
+      scales,
+      tidyselect
 RoxygenNote: 7.1.1

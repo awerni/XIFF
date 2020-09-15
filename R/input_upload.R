@@ -27,17 +27,17 @@ uploadInputModeUI <- function(id){
             "application/vnd.ms-excel", ".xlsx"
           )
         ),
-        shiny::textOutput(ns("upload_stat"))
+        shiny::textOutput(ns("stat"))
       ),
       shiny::column(
         width = 4,
         shiny::selectInput(
-          inputId = ns("upload_column"),
+          inputId = ns("column"),
           label = "select file column",
           choices = NULL
         ),
         shiny::checkboxInput(
-          inputId = ns("upload_display_bar"),
+          inputId = ns("display_bar"),
           label = "stack numeric values",
           value = FALSE
         )
@@ -45,14 +45,14 @@ uploadInputModeUI <- function(id){
       shiny::column(
         width = 4,
         shiny::selectizeInput(
-          inputId = ns("upload_column_facet"),
+          inputId = ns("column_facet"),
           label = "split view by",
           choices = NULL
         )
       )
     ),
     brushPlotUI(
-      id = ns("upload_barplot"),
+      id = ns("barplot"),
       shinyBS::bsAlert(ns("unknown_items"))
     )
   )
@@ -122,15 +122,15 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     shiny::req(df)
 
     d <- df %>% dplyr::select(-!!colname)
-    updateSplitChoices("upload_column", "upload_column_facet", d, input, session)
+    updateSplitChoices("column", "column_facet", d, input, session)
   })
 
   fileUploadIDs <- shiny::reactive({
     file_data <- fileUploadRaw()
     shiny::req(file_data)
 
-    sel_col <- input$upload_column
-    facet_col <- input$upload_column_facet
+    sel_col <- input$column
+    facet_col <- input$column_facet
     shiny::req(sel_col)
     shiny::req(facet_col)
     shiny::req(sel_col != facet_col)
@@ -152,14 +152,14 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
       dplyr::rename(x_score = !!sel_col) %>%
       dplyr::filter(!is.na(x_score), !is.na(facet_var)) %>%
       dplyr::arrange(dplyr::desc(x_score), as.character(!!colname)) %>%
-      dplyr::mutate(!!colname := as_factor(as.character(!!colname)))
+      dplyr::mutate(!!colname := forcats::as_factor(as.character(!!colname)))
 
     if (sel_type == "numeric" && length(unique(d$x_score)) <= 10) {
-      shinyjs::show("upload_display_bar")
+      shinyjs::show("display_bar")
       bar_possible <- TRUE
     } else {
-      #updateCheckboxInput(session, "upload_display_bar", value = FALSE)
-      shinyjs::hide("upload_display_bar")
+      #updateCheckboxInput(session, "display_bar", value = FALSE)
+      shinyjs::hide("display_bar")
       bar_possible <- FALSE
     }
 
@@ -180,7 +180,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     d <- file_data$df
     if (is.null(d)) return()
 
-    if (file_data$col_type_selected != "numeric" || (file_data$bar_possible && input$upload_display_bar)){
+    if (file_data$col_type_selected != "numeric" || (file_data$bar_possible && input$display_bar)){
       g <- generateScoreBarPlot(d, file_data$sel_col)
     } else {
       my_scale <- "norm"
@@ -198,12 +198,12 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     return(g)
   })
   UploadPlotCheck <- shiny::reactive({
-    !is.null(fileUploadIDs()) && !is.null(input$upload_display_bar)
+    !is.null(fileUploadIDs()) && !is.null(input$display_bar)
   })
 
   Upload_items <- shiny::callModule(
     module = brushPlot,
-    id = "upload_barplot",
+    id = "barplot",
     plotExpr = UploadPlot,
     checkExpr = UploadPlotCheck,
     textCallback = function(n, rx, ry){
@@ -216,13 +216,13 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     value = 0.3
   )
 
-  output$upload_stat <- shiny::renderText({
+  output$stat <- shiny::renderText({
     shiny::req(fileUploadIDs()$df)
     paste(get_label(nrow(fileUploadIDs()$df)), "found")
   })
 
   shiny::observeEvent(input$upload, {
-    session$resetBrush("upload_plot_brush")
+    session$resetBrush("plot_brush")
   })
 
   Upload_items
