@@ -150,6 +150,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     sel_type <- file_data$col_type[[sel_col]]
     d <- d %>%
       dplyr::rename(x_score = !!sel_col) %>%
+      dplyr::filter(!is.na(x_score), !is.na(facet_var)) %>%
       dplyr::arrange(dplyr::desc(x_score), as.character(!!colname)) %>%
       dplyr::mutate(!!colname := as_factor(as.character(!!colname)))
 
@@ -239,7 +240,7 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
 
   choices_facet <- df %>%
     dplyr::select_if(~ is.character(.x) || is.factor(.x)) %>%
-    sapply(dplyr::n_distinct) %>%
+    sapply(dplyr::n_distinct, na.rm = TRUE) %>%
     Filter(f = function(x) x > 1 && x < 5) %>%
     names() %>%
     setdiff(selected)
