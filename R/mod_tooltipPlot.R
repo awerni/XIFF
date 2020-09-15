@@ -12,7 +12,8 @@ tooltipPlotUI <- function(id, width = "100%", height = "400px"){
 }
 
 #' @export
-tooltipPlot <- function(input, output, session, plotExpr, varDict, callback = callbackFun, ...){
+tooltipPlot <- function(input, output, session, plotExpr, varDict,
+                        callback = getOption("xiff.tooltipCallbackFun"), ...){
   id <- paste0("output_", session$ns("plot"))
 
   Width <- shiny::reactive({
@@ -49,6 +50,6 @@ tooltipPlot <- function(input, output, session, plotExpr, varDict, callback = ca
   )
 }
 
-callbackFun <- function(x){
+tooltipCallbackFun <- function(x){
   x[[getOption("xiff.column")]]
 }
