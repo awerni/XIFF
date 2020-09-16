@@ -198,6 +198,7 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
       ggplot2::facet_grid(facets = . ~ class) +
       ggplot2::coord_polar(theta = "y") +
       ggplot2::xlab("") +
+      ggplot2::labs(fill = "") +
       ggplot2::theme(
         axis.text = ggplot2::element_blank(),
         axis.ticks = ggplot2::element_blank(),
