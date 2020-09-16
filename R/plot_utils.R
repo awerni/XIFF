@@ -19,3 +19,16 @@ getPheatmap <- function(..., silent = TRUE){
   if (old_dev > 1) grDevices::dev.set(old_dev)
   x
 }
+
+#' @export
+guessAxisScale <- function(values){
+  myScale <- "norm"
+  rng <- range(values, na.rm = TRUE)
+  if (min(rng) > 0) {
+    if ((rng[[2]] / rng[[1]]) >= 1000) {
+      myScale <- "log10"
+    }
+  }
+
+  myScale
+}

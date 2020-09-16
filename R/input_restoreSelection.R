@@ -92,11 +92,7 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
       g <- generateScoreBarPlot(d, sel_col)
 
     } else {
-      my_scale = "norm"
-      x_range <- range(d$x_score, na.rm = TRUE)
-      if (min(x_range) > 0) {
-        if ((x_range[[2]]/x_range[[1]]) >= 1000) my_scale = "log10"
-      }
+      my_scale <- guessAxisScale(d$x_score)
       g <- generateScoreWaterfallPlot(d, sel_col, my_scale)
     }
 
