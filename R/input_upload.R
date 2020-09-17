@@ -235,9 +235,7 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
   }
 
   choices_facet <- df %>%
-    dplyr::select_if(~ is.character(.x) || is.factor(.x) || is.logical(.x)) %>%
-    sapply(dplyr::n_distinct, na.rm = TRUE) %>%
-    Filter(f = function(x) x > 1 && x < 5) %>%
+    filterSplitChoices() %>%
     names() %>%
     setdiff(selected)
 
@@ -253,4 +251,21 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
     choices = choices,
     selected = selected
   )
+}
+
+filterSplitChoices <- function(df, min_number = 10, min_percent = 5, min_distinct = 2, max_distinct = 4){
+  filterFun <- function(x){
+    n_dist <- dplyr::n_distinct(x, na.rm = TRUE)
+    if (n_dist < min_distinct || n_dist > max_distinct) return(FALSE)
+
+    n_available <- sum(!is.na(x))
+    n_total <- length(x)
+    n_required <- min(min_number, min_percent / 100 * n_total)
+
+    n_available >= n_required
+  }
+
+  df %>%
+    dplyr::select_if(~ is.character(.x) || is.factor(.x) || is.logical(.x)) %>%
+    Filter(f = filterFun)
 }
