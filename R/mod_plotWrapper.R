@@ -133,7 +133,7 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
       paste(input$filename, input$format, sep = ".")
     },
     content = function(file) {
-      ggplot2::ggsave(
+      args <- list(
         filename = file,
         plot = PlotExpr(),
         width = input$width,
@@ -141,6 +141,11 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
         units = "in"
       )
 
+      if (input$format == "png"){
+        args$type <- "cairo-png"
+      }
+
+      do.call(ggplot2::ggsave, args)
       shiny::removeModal()
     }
   )
