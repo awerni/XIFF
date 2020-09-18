@@ -10,7 +10,7 @@ dimensionReductionUI <- function(id, width = "100%", height = "800px"){
 
 #' @export
 dimensionReduction <- function(input, output, session,
-                               InputData, AnalysisParams, PlotParams,
+                               InputData, AnalysisParams, PlotParams, classLabel,
                                funTSNE = calcTSNE, funPCA = calcPCA_expression, funUMAP = calcUMAP){
   Results <- shiny::reactive({
     inputData <- InputData()
@@ -48,8 +48,7 @@ dimensionReduction <- function(input, output, session,
     d$progressText <- progressText
 
     cs <- inputData$cs
-    cl <- inputData$cl
-    assignment <- stackClasses(cs, cl)
+    assignment <- stackClasses(cs)
     d$data <- d$data %>% select(-class) %>% dplyr::left_join(assignment, by = getOption("xiff.column"))
 
     #d$data <- replaceClassLabels(d$data, cl)
@@ -64,6 +63,18 @@ dimensionReduction <- function(input, output, session,
 
     res <- Results()
     if (is.null(res)) return()
+
+    cl <- reactiveValuesToList(classLabel)
+    labels <- c(cl$class1_name, cl$class2_name)
+
+    res$d$data$class <- factor(
+      x = ifelse(
+        test = res$d$data$class == "class1",
+        yes = labels[1],
+        no = labels[2]
+      ),
+      levels = labels
+    )
 
     p <- plotDimRed(res$d, params, res$annotationFocus)
     shiny::validate(shiny::need(p, "nothing to show yet..."))

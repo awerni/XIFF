@@ -117,12 +117,12 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
   res <- Rtsne::Rtsne(t(data.cross), perplexity = perp, inital_dims = min(50, numGenes))
   myTitle <- glue::glue("perplexity={res$perplexity}  #{getOption('xiff.label')}s={res$N}  #genes={nrow(data.cross)}")
 
-  res <- list(
+  final_res <- list(
     data = cbind(data.frame(res$Y), TSNEData[["assignment"]]),
     title = myTitle
   )
-  res[[getOption("xiff.name")]] <- res$N
-  res
+  final_res[[getOption("xiff.name")]] <- res$N
+  final_res
 }
 
 #' @export
