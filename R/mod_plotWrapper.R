@@ -23,7 +23,8 @@ plotWrapperUI <- function(id, width = "100%", height = "400px", center = FALSE){
 #' @export
 plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
                         filename = "image", varDict = list(class = "Class"),
-                        allowedTooltipTypes = c("point", "comparison", "scatterplot"), ...){
+                        allowedTooltipTypes = c("point", "comparison", "scatterplot"),
+                        tooltipCallback = getOption("xiff.tooltipCallbackFun"), ...){
   ns <- session$ns
   sizeId <- shiny::reactiveVal()
 
@@ -54,7 +55,8 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
       module = tooltipPlot,
       id = "plot_tooltip",
       plotExpr = TooltipPlotExpr,
-      varDict = varDict
+      varDict = varDict,
+      callback = tooltipCallback
     )
   }
 
