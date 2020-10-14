@@ -75,6 +75,11 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
       sizeId(id)
       plotOutput(id, width = "100%", height = height)
     }
+
+    list(
+      plotContainer,
+      shiny::div(class = "loader")
+    )
   })
 
   # Download ------------------------------------------------------------------

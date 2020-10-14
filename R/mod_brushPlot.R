@@ -21,7 +21,8 @@ brushPlotUI <- function(id, ..., direction = "x", height = "600px"){
             direction = direction
           ),
           height = height
-        )
+        ),
+        shiny::div(class = "loader")
       )
     ),
     ...
