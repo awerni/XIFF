@@ -93,6 +93,8 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
       return()
     }
 
+    shinyjs::addClass(id = "plot", class = "recalculating") # shiny is not adding this class on plot init
+
     p <- if (length(progressOpts) > 0){
       shiny::withProgress(shiny::isolate(plotExpr()), ...)
     } else {
