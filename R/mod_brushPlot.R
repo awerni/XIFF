@@ -21,7 +21,8 @@ brushPlotUI <- function(id, ..., direction = "x", height = "600px"){
             direction = direction
           ),
           height = height
-        )
+        ),
+        shiny::div(class = "loader")
       )
     ),
     ...
@@ -91,6 +92,8 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
       PlotData(NULL)
       return()
     }
+
+    shinyjs::addClass(id = "plot", class = "recalculating") # shiny is not adding this class on plot init
 
     p <- if (length(progressOpts) > 0){
       shiny::withProgress(shiny::isolate(plotExpr()), ...)

@@ -12,6 +12,8 @@ dimensionReductionUI <- function(id, width = "100%", height = "800px"){
 dimensionReduction <- function(input, output, session,
                                InputData, AnalysisParams, PlotParams, classLabel,
                                funTSNE = calcTSNE, funPCA = calcPCA_expression, funUMAP = calcUMAP){
+  colname <- getOption("xiff.column")
+
   Results <- shiny::reactive({
     inputData <- InputData()
     FutureManager::fmValidate(inputData)
@@ -49,13 +51,22 @@ dimensionReduction <- function(input, output, session,
 
     cs <- inputData$cs
     assignment <- stackClasses(cs)
-    d$data <- d$data %>% select(-class) %>% dplyr::left_join(assignment, by = getOption("xiff.column"))
+    d$data <- d$data %>% select(-class) %>% dplyr::left_join(assignment, by = colname)
 
     #d$data <- replaceClassLabels(d$data, cl)
     d$data <- addClustering(d$data, clusterMethod)
 
     return(list(d = d, annotationFocus = annotationFocus))
   })
+
+  colorTooltip <- FALSE
+  callback <- function(x){
+    if (colorTooltip){
+      paste0(x[[colname]], "\n", x[["class"]])
+    } else {
+      tooltipCallbackFun(x)
+    }
+  }
 
   PlotExpr <- shiny::reactive({
     params <- PlotParams()
@@ -77,15 +88,17 @@ dimensionReduction <- function(input, output, session,
     )
 
     p <- plotDimRed(res$d, params, res$annotationFocus)
-    shiny::validate(shiny::need(p, "nothing to show yet..."))
-    p
+    shiny::validate(shiny::need(p$plot, "nothing to show yet..."))
+    colorTooltip <<- p$colorTooltip
+    p$plot
   })
   shiny::callModule(
     module = plotWrapper,
     id = "plot",
     PlotExpr = PlotExpr,
     varDict = list(),
-    PlotType = TRUE
+    PlotType = TRUE,
+    tooltipCallback = callback
   )
 
   Results
@@ -114,12 +127,19 @@ plotDimRed <- function(d, params, annotationFocus) {
   d$data$plotlabel <- NA
   if (showLabels) d$data <- d$data %>% dplyr::mutate(plotlabel = d$data[, il])
 
+  colorTooltip <- FALSE
   colorCol <- "class"
   if (changeColor) {
     d$data <- d$data %>% dplyr::mutate(class = d$data[, ic])
     colorCol <- ic
+
+    colorTooltip <- dplyr::n_distinct(d$data[["class"]]) > 5
   }
 
   p <- generateDimRedPlot(d, d$progressText, showLabels, colorCol, fs)
-  p$pl
+
+  list(
+    plot = p$pl,
+    colorTooltip = colorTooltip
+  )
 }

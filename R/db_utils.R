@@ -76,3 +76,15 @@ getPostgresql <- function(sql) {
 
   return(data)
 }
+
+#' @export
+getSQL_filter <- function(filter_col, filter_options) {
+  #if (typeof(filter_options) == "character") {
+  #sql <- paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")
+  #sql <- paste0(filter_col, " = ANY('{", paste(filter_options, collapse = ","), "}'::text[])")
+  #} else {
+  #sql <- paste0(filter_col, " IN (", paste(filter_options, collapse = ","), ")")
+  #}
+  #return(sql)
+  paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")
+}

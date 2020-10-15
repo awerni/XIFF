@@ -131,21 +131,32 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
 }
 
 #' @export
-saveProperties <- function(res, classSelection, classStack, Annotation, msg = ""){
+saveProperties <- function(res, classSelection, classLabel, classStack, Annotation, msg = ""){
   n_cl1 <- length(classSelection$class1)
   n_cl2 <- length(classSelection$class2)
 
   colname <- getOption("xiff.column")
   label <- getOption("xiff.label")
 
-  if (nrow(res) > 0) {
+  cs <- shiny::reactiveValuesToList(classSelection)
+  cl <- shiny::reactiveValuesToList(classLabel)
+  assignment <- stackClasses(cs, cl, return_factor = TRUE)
+
+  if (nrow(assignment) > 0) {
     dialog_text <- paste0(
-      "Saving ", msg, " of ", nrow(res), " ", label, "s.\n",
+      "Saving ", msg, " of ", nrow(assignment), " ", label, "s.\n",
       "Goto 'input' and select 'restore selection' to use these properties",
       "for a new ", label, " classification "
     )
 
-    df <- res %>%
+    if (is.data.frame(res) && nrow(res) > 0 && colname %in% names(res)){
+      if ("class" %in% names(res)){
+        res <- res %>% dplyr::select(-class)
+      }
+      assignment <- assignment %>% dplyr::left_join(res, by = colname)
+    }
+
+    df <- assignment %>%
       dplyr::left_join(Annotation(), by = colname) %>%
       dplyr::select(!!colname, tidyselect::everything())
 
