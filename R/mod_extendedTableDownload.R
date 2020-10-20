@@ -33,7 +33,7 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
   colname <- getOption("xiff.column")
 
   output$downloadData <- downloadHandler (
-    filename = function() { paste0(input$filename, ".txt") },
+    filename = function() { paste0(input$filename, ".csv") },
     content = function(file) {
       tab <- tryCatch(
         expr = Table(),
@@ -67,8 +67,8 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
 
         res <- df[nameOrder] %>% arrange_at(c("class", tabSpecificNames))
       }
-
-      write.table(res, file, row.names = FALSE, sep = "\t", na = "", quote = FALSE)
+      
+      readr::write_excel_csv(res, file, na = "")
     }
   )
 }
