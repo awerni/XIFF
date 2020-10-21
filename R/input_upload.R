@@ -92,7 +92,9 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     anno <- AnnotationFull() %>% dplyr::select(!!colname, tumortype)
     if ("tumortype" %in% colnames(df)) df <- df %>% dplyr::select(-tumortype)
     ret <- translationFun(df, anno)
-
+    
+    if ("tumortype" %in% colnames(ret)) ret <- ret %>% relocate(tumortype, .after = 1)
+    
     if (is.null(ret)) {
       shinyBS::createAlert(
         session = session,
