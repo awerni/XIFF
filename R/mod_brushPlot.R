@@ -117,7 +117,9 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
         data = p$data,
         xVar = rlang::quo_name(p$mapping$x),
         yVar = rlang::quo_name(p$mapping$y),
-        facetInfo = facetInfo
+        facetInfo = facetInfo,
+        xScale = p$scales$scales[[1]]$trans$name,
+        yScale = p$scales$scales[[2]]$trans$name
       ))
     }
 
@@ -240,7 +242,8 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
         number_action = input$number_action_x,
         number = input$number_x,
         percentile_action = input$percentile_action_x,
-        percentile = input$percentile_x
+        percentile = input$percentile_x,
+        scale = pd$xScale
       )
 
       y_options <- list(
@@ -250,7 +253,8 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
         number_action = input$number_action_y,
         number = input$number_y,
         percentile_action = input$percentile_action_y,
-        percentile = input$percentile_y
+        percentile = input$percentile_y,
+        scale = pd$yScale
       )
 
       if (is.null(method_x) && sorted_y != "no" && method_y != "cutoff"){
@@ -523,7 +527,8 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
     number_action = x_options$number_action,
     number = x_options$number,
     percentile_action = x_options$percentile_action,
-    percentile = x_options$percentile
+    percentile = x_options$percentile,
+    scale = x_options$scale
   )
 
   ylim <- getAxisRange(
@@ -534,7 +539,8 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
     number_action = y_options$number_action,
     number = y_options$number,
     percentile_action = y_options$percentile_action,
-    percentile = y_options$percentile
+    percentile = y_options$percentile,
+    scale = y_options$scale
   )
 
   filtered <- df %>% dplyr::filter(xVar > xlim$min, xVar < xlim$max, yVar > ylim$min, yVar < ylim$max)
@@ -571,7 +577,7 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
   )
 }
 
-getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, number, percentile_action, percentile){
+getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, number, percentile_action, percentile, scale){
   minVal <- -Inf
   maxVal <- Inf
 
@@ -602,6 +608,12 @@ getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, n
         }
       }
     }
+  }
+
+  if (scale == "sqrt"){
+    # Shiny doesn't translate sqrt scale at all
+    if (minVal >= 0) minVal <- sqrt(minVal)
+    if (maxVal >= 0) maxVal <- sqrt(maxVal)
   }
 
   list(
