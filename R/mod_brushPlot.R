@@ -112,23 +112,23 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
           panelPositions = getPanelPositions(p, fVar[1])
         )
       }
-      
-      xScale <- p$scales$get_scales("x")$trans$name
-      if (is.null(xScale)){
-        xScale <- "continuous"
+
+      xTrans <- p$scales$get_scales("x")$trans$name
+      if (is.null(xTrans)){
+        xTrans <- "identity"
       }
-      yScale <- p$scales$get_scales("y")$trans$name
-      if (is.null(yScale)){
-        yScale <- "continuous"
+      yTrans <- p$scales$get_scales("y")$trans$name
+      if (is.null(yTrans)){
+        yTrans <- "identity"
       }
-      
+
       PlotData(list(
         data = p$data,
         xVar = rlang::quo_name(p$mapping$x),
         yVar = rlang::quo_name(p$mapping$y),
         facetInfo = facetInfo,
-        xScale = xScale,
-        yScale = yScale
+        xTrans = xTrans,
+        yTrans = yTrans
       ))
     }
 
@@ -162,8 +162,11 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
 
   Selected_items <- shiny::reactive({
     d <- PlotData()
-    if (is.null(d)) return()
-    ti <- brushedPoints(d$data, input$plot_brush, allRows = FALSE) %>%
+    pb <- input$plot_brush
+    if (is.null(d) || is.null(pb)) return()
+
+    pb <- reverseTrans(pb, d)
+    ti <- brushedPoints(d$data, pb, allRows = FALSE) %>%
       .[[colname]] %>%
       as.character() %>%
       sort()
@@ -252,7 +255,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
         number = input$number_x,
         percentile_action = input$percentile_action_x,
         percentile = input$percentile_x,
-        scale = pd$xScale
+        trans = pd$xTrans
       )
 
       y_options <- list(
@@ -263,7 +266,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
         number = input$number_y,
         percentile_action = input$percentile_action_y,
         percentile = input$percentile_y,
-        scale = pd$yScale
+        trans = pd$yTrans
       )
 
       if (is.null(method_x) && sorted_y != "no" && method_y != "cutoff"){
@@ -537,7 +540,7 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
     number = x_options$number,
     percentile_action = x_options$percentile_action,
     percentile = x_options$percentile,
-    scale = x_options$scale
+    trans = x_options$trans
   )
 
   ylim <- getAxisRange(
@@ -549,7 +552,7 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
     number = y_options$number,
     percentile_action = y_options$percentile_action,
     percentile = y_options$percentile,
-    scale = y_options$scale
+    trans = y_options$trans
   )
 
   filtered <- df %>% dplyr::filter(xVar > xlim$min, xVar < xlim$max, yVar > ylim$min, yVar < ylim$max)
@@ -586,7 +589,7 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
   )
 }
 
-getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, number, percentile_action, percentile, scale){
+getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, number, percentile_action, percentile, trans){
   minVal <- -Inf
   maxVal <- Inf
 
@@ -619,7 +622,7 @@ getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, n
     }
   }
 
-  if (scale == "sqrt"){
+  if (trans == "sqrt"){
     # Shiny doesn't translate sqrt scale at all
     if (minVal >= 0) minVal <- sqrt(minVal)
     if (maxVal >= 0) maxVal <- sqrt(maxVal)
@@ -630,4 +633,20 @@ getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, n
     max = maxVal,
     shouldAdjust = is.null(method)
   )
+}
+
+reverseTrans <- function(brushInfo, plotInfo){
+  if (is.null(brushInfo)) return()
+
+  if (plotInfo$xTrans == "sqrt"){
+    brushInfo$xmin <- brushInfo$xmin ^ 2
+    brushInfo$xmax <- brushInfo$xmax ^ 2
+  }
+
+  if (plotInfo$yTrans == "sqrt"){
+    brushInfo$ymin <- brushInfo$ymin ^ 2
+    brushInfo$ymax <- brushInfo$ymax ^ 2
+  }
+
+  brushInfo
 }
