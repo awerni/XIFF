@@ -112,14 +112,23 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
           panelPositions = getPanelPositions(p, fVar[1])
         )
       }
-
+      
+      xScale <- p$scales$get_scales("x")$trans$name
+      if (is.null(xScale)){
+        xScale <- "continuous"
+      }
+      yScale <- p$scales$get_scales("y")$trans$name
+      if (is.null(yScale)){
+        yScale <- "continuous"
+      }
+      
       PlotData(list(
         data = p$data,
         xVar = rlang::quo_name(p$mapping$x),
         yVar = rlang::quo_name(p$mapping$y),
         facetInfo = facetInfo,
-        xScale = p$scales$scales[[1]]$trans$name,
-        yScale = p$scales$scales[[2]]$trans$name
+        xScale = xScale,
+        yScale = yScale
       ))
     }
 
