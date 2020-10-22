@@ -14,3 +14,16 @@ getGSEACollection <- function(species = "human") {
   names(ret) <- res$collection
   ret
 }
+
+#' @export
+getAntibodyInformation <- function(antibody = NA) {
+  if (is.na(antibody)) {
+    sql <- "SELECT antibody, validation_status, vendor, catalog_number FROM antibody"
+    getPostgresql(sql) %>% mutate_at(vars(validation_status, vendor), as_factor)
+  } else {
+    sql <- paste0("SELECT validation_status, vendor, catalog_number FROM antibody WHERE antibody = '", antibody, "'")
+    ret <- getPostgresql(sql)
+    sql <- paste0("SELECT coalesce(symbol, g2a.ensg) AS gene FROM gene2antibody g2a JOIN gene g ON g.ensg = g2a.ensg WHERE antibody = '", antibody, "'")
+    ret <- ret %>% mutate(genes = getPostgresql(sql)$gene %>% paste(collapse = ", "))
+  }
+}
