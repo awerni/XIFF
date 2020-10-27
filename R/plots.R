@@ -2,6 +2,116 @@
 plotColors <- c("#d73027", "#4575b4", "#fc8d59", "#91bfdb", "#A8840D", "#24BF43", "#000000")
 
 #' @export
+generatePlotByType <- function(item, data, sampleClasses, classLabel, plotType, rocPlotFun, diffPlotFun, dataCol, ...) {
+  switch(
+    EXPR = plotType,
+    roc = rocPlotFun(item, data, sampleClasses, ...),
+    point = diffPlotFun(item, data, sampleClasses, classLabel, geom_jitter, width = 0.25, height = 0, mapping = aes(colour = class), ...),
+    violin = diffPlotFun(item, data, sampleClasses, classLabel, geom_violin, ...),
+    box = diffPlotFun(item, data, sampleClasses, classLabel, geom_boxplot, ...),
+    coverage = generateDataCoveragePlot(data, dataCol, sampleClasses, classLabel)
+  )
+}
+
+#' @export
+generateROCPlot <- function(data, sampleClasses, dataCol, title = "ROC plot") {
+  if (is.null(data) || is.null(sampleClasses) || is.null(dataCol)) return()
+
+  colname <- getOption("xiff.column")
+  assignment <- stackClasses(sampleClasses)
+  data <- data %>% dplyr::inner_join(assignment, by = colname)
+
+  ordering <- 0:1
+  names(ordering) <- names(sort(sapply(split(data[[dataCol]], data[["class"]]), mean, na.rm = TRUE)))
+  data[["d"]] <- ordering[as.character(data[["class"]])]
+
+  dataCol <- rlang::sym(dataCol)
+  p <- ggplot2::ggplot(data, ggplot2::aes(d = d, m = !!dataCol)) +
+    plotROC::geom_roc() +
+    ggplot2::theme(
+      text = ggplot2::element_text(size = 16),
+      plot.title = ggplot2::element_text(hjust = 0.5)
+    ) +
+    ggplot2::ggtitle(title) +
+    ggplot2::xlab("False positive rate") +
+    ggplot2::ylab("True positive rate")
+  # scale_fill_viridis(discrete = TRUE, option = "plasma")
+
+  auc <- plotROC::calc_auc(p)$AUC
+  p + ggplot2::annotate("text", x = .75, y = .25, label = paste("AUC =", round(auc, 2)))
+}
+
+#' @export
+generateDiffPlot <- function(data, sampleClasses, classLabel, dataCol, title, plotFunc,
+                             xlabel = "", ylabel = "", trans = "identity", ...) {
+  if (is.null(data) || is.null(dataCol) || is.null(sampleClasses)) return()
+
+  colname <- getOption("xiff.column")
+  coldata <- stackClasses(sampleClasses, classLabel, return_factor = TRUE) %>%
+    dplyr::inner_join(data, by = colname)
+
+  dataCol <- rlang::sym(dataCol)
+  mapping <- tooltipAes(class, !!dataCol, fill = class, plotFunc = plotFunc)
+
+  ggplot2::ggplot(coldata, mapping) +
+    plotFunc(...) +
+    ggplot2::scale_y_continuous(
+      trans = trans,
+      breaks = scales::pretty_breaks(n = 5)
+    ) +
+    ggplot2::theme(
+      text = ggplot2::element_text(size = 16),
+      legend.position = "none",
+      plot.title = ggplot2::element_text(hjust = 0.5)
+    ) +
+    ggplot2::scale_fill_manual(values = plotColors) +
+    ggplot2::scale_color_manual(values = plotColors) +
+    # + scale_fill_viridis(discrete = TRUE, option = "plasma") +
+    ggplot2::ggtitle(title) +
+    ggplot2::xlab(xlabel) +
+    ggplot2::ylab(ylabel)
+}
+
+#' @export
+generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"), ylabel = "score",
+                                  trans = "identity", limits = NULL, fill = "tumortype") {
+  if (is.null(data)) return()
+
+  colname <- getOption("xiff.column")
+  colname <- rlang::sym(colname)
+
+  dataCol <- rlang::sym(dataCol)
+  fill <- rlang::sym(fill)
+  p <- ggplot2::ggplot(data, aes(x = !!colname, y = !!dataCol, fill = !!fill)) +
+    ggplot2::geom_bar(stat = "identity", width = 1) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      legend.position = "bottom",
+      text = ggplot2::element_text(size = 15),
+      axis.text.x = ggplot2::element_blank(),
+      panel.grid.major = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank()
+    ) +
+    ggplot2::scale_y_continuous(trans = trans) +
+    ggplot2::coord_cartesian(ylim = limits) +
+    ggplot2::xlab(xlabel) +
+    ggplot2::ylab(ylabel)
+
+  nItems <- nrow(data)
+  if (nItems > 100){
+    p
+  } else {
+    p + ggplot2::theme(axis.text.x = ggplot2::element_text(
+      angle = -90,
+      hjust = 0,
+      size = dplyr::if_else(nItems <= 50, 15, 10)
+    ))
+  }
+}
+
+#' @export
 generateDataCoveragePlot <- function(data, col, sampleClasses, classLabel) {
   if (is.null(data) | is.null(col) | is.null(sampleClasses)) return(NULL)
   colname <- getOption("xiff.column")
@@ -265,51 +375,14 @@ generateScoreBarPlot <- function(data, score_desc) {
 }
 
 #' @export
-generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "norm") {
+generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
   if (nrow(data) == 0) return()
-  colname <- getOption("xiff.column")
-  colname <- rlang::sym(colname)
 
-  g <- ggplot2::ggplot(
+  generateWaterfallPlot(
     data = data,
-    mapping = ggplot2::aes(
-      x = !!colname,
-      y = x_score,
-      fill = tumortype
-    )
-  ) +
-    ggplot2::geom_bar(
-      stat = "identity",
-      width = 1
-    ) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(
-      legend.position = "bottom",
-      text = ggplot2::element_text(size = 15)
-    ) +
-    ggplot2::theme(
-      panel.grid.major = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.background = ggplot2::element_blank(),
-      axis.ticks.x = ggplot2::element_blank()
-    ) +
-    ggplot2::xlab(getOption("xiff.label")) +
-    ggplot2::ylab(score_desc)
-
-  if (y_scale == "log10") {
-    g <- g + ggplot2::scale_y_continuous(trans = scales::log10_trans())
-  }
-
-  nCL <- nrow(data)
-  if (nCL > 100) {
-    g + ggplot2::theme(axis.text.x = ggplot2::element_blank())
-  } else {
-    g + ggplot2::theme(
-      axis.text.x = ggplot2::element_text(
-        angle = -90,
-        hjust = 0,
-        size = dplyr::if_else(nCL <= 50, 15, 10)
-      )
-    )
-  }
+    dataCol = "x_score",
+    ylabel = score_desc,
+    trans = y_scale,
+    fill = "tumortype"
+  )
 }

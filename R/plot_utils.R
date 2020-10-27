@@ -14,9 +14,9 @@ tooltipAes <- function(..., plotFunc){
 
 #' @export
 getPheatmap <- function(..., silent = TRUE){
-  old_dev <- grDevices::dev.cur()
+  oldDev <- grDevices::dev.cur()
   x <- pheatmap::pheatmap(..., silent = silent)
-  if (old_dev > 1) grDevices::dev.set(old_dev)
+  if (oldDev > 1) grDevices::dev.set(oldDev)
   x
 }
 
