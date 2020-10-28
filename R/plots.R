@@ -6,7 +6,8 @@ generatePlotByType <- function(item, data, sampleClasses, classLabel, plotType, 
   switch(
     EXPR = plotType,
     roc = rocPlotFun(item, data, sampleClasses, ...),
-    point = diffPlotFun(item, data, sampleClasses, classLabel, geom_jitter, width = 0.25, height = 0, mapping = aes(colour = class), ...),
+    point = diffPlotFun(item, data, sampleClasses, classLabel, geom_jitter,
+                        width = 0.25, height = 0, mapping = ggplot2::aes(colour = class), ...),
     violin = diffPlotFun(item, data, sampleClasses, classLabel, geom_violin, ...),
     box = diffPlotFun(item, data, sampleClasses, classLabel, geom_boxplot, ...),
     coverage = generateDataCoveragePlot(data, dataCol, sampleClasses, classLabel)
@@ -82,7 +83,7 @@ generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"
 
   dataCol <- rlang::sym(dataCol)
   fill <- rlang::sym(fill)
-  p <- ggplot2::ggplot(data, aes(x = !!colname, y = !!dataCol, fill = !!fill)) +
+  p <- ggplot2::ggplot(data, ggplot2::aes(x = !!colname, y = !!dataCol, fill = !!fill)) +
     ggplot2::geom_bar(stat = "identity", width = 1) +
     ggplot2::theme_bw() +
     ggplot2::theme(

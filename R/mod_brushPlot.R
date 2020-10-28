@@ -78,7 +78,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
                       textCallback = defaultTextCallback,
                       defaultCutoff_x = NULL, step_x = 0.1, dx = 0.5, sorted_x = "no",
                       defaultCutoff_y = -1, step_y = 0.1, dy = 0, sorted_y = "desc",
-                      availableChoices = c("cutoff", "number", "percentile"),
+                      availableChoices = c("cutoff", "number", "percentile"), test = FALSE,
                       ...){
   ns <- session$ns
   PlotData <- shiny::reactiveVal()
@@ -276,6 +276,10 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
           dx <- 0
         }
 
+        transBuffer <- x_options$trans
+        x_options$trans <- y_options$trans
+        y_options$trans <- transBuffer
+
         buffer <- x_options
         x_options <- y_options
         y_options <- buffer
@@ -324,6 +328,8 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
       ))
     }
   )
+
+  if (test) shiny::exportTestValues(pd = PlotData())
 
   return(Selected_items)
 }
