@@ -1,4 +1,11 @@
 #' @export
+`%||%` <- function(x, y){
+  if (rlang::is_null(x) || length(x) == 0)
+    y
+  else x
+}
+
+#' @export
 invalid <- function(x){
   is.null(x) || is.na(x) || !nzchar(x)
 }
@@ -93,4 +100,30 @@ get_label <- function(n) {
 #' @export
 isDifferent <- function(x, y){
   !isTRUE(all.equal(x, y))
+}
+
+#' @export
+replaceClassLabels <- function(df, cl) {
+  names(cl) <- gsub("_name", "", names(cl))
+  myLabel <- stack(cl) %>% rename(class = values, classold = ind) %>%
+    mutate(class = as.factor(class), classold = as.character(classold))
+  suppressWarnings(df <- df %>% rename(classold = class) %>% left_join(myLabel, by = "classold") %>% dplyr::select(-classold))
+  return(df)
+}
+
+#' @export
+textAreaContentToVector <- function(content){
+  ret <- if (stringr::str_length(content) > 0) as.vector(sapply(strsplit(content,'\n'), stringr::str_trim)) else c()
+  if (any(ret == "")) ret <- ret[ret != ""]
+  return(ret)
+}
+
+#' @export
+checkClassSelection <- function(cs) {
+  (length(cs$class1) > 0 && length(cs$class1)) > 0
+}
+
+#' @export
+n_common <- function(x, y){
+  length(intersect(x, y))
 }
