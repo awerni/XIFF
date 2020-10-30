@@ -89,6 +89,8 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
       error = function(e) stop(shiny::safeError(e))
     )
 
+    df <- df[colSums(!is.na(df)) > 0] # remove empty columns
+    
     anno <- AnnotationFull() %>% dplyr::select(!!colname, tumortype)
     if ("tumortype" %in% colnames(df)) df <- df %>% dplyr::select(-tumortype)
     ret <- translationFun(df, anno)
