@@ -89,7 +89,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
       error = function(e) stop(shiny::safeError(e))
     )
 
-    df <- df[colSums(!is.na(df)) > 0] # remove empty columns
+    df <- removeEmptyColumns(df)
     
     anno <- AnnotationFull() %>% dplyr::select(!!colname, tumortype)
     if ("tumortype" %in% colnames(df)) df <- df %>% dplyr::select(-tumortype)
@@ -272,4 +272,15 @@ filterSplitChoices <- function(df, min_number = 10, min_percent = 5, min_distinc
   df %>%
     dplyr::select_if(~ is.character(.x) || is.factor(.x) || is.logical(.x)) %>%
     Filter(f = filterFun)
+}
+
+removeEmptyColumns <- function(df){
+  validCols <- sapply(
+    X = df,
+    FUN = function(x){
+      any(nzchar(as.character(x)) & !is.na(x))
+    }
+  )
+  
+  df[validCols]
 }
