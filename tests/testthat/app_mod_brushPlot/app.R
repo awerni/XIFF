@@ -4,7 +4,7 @@ library(XIFF)
 
 df <- iris %>%
   mutate(celllinename = paste(Species, seq_along(Species), sep = "_")) %>%
-  select(celllinename, score = Petal.Width, tumortype = Species) %>%
+  select(celllinename, score = Sepal.Length, tumortype = Species) %>%
   mutate(celllinename = forcats::fct_reorder(celllinename, score, .desc = TRUE))
 
 plotObj <- generateWaterfallPlot(

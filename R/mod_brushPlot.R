@@ -536,6 +536,8 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
       xVar = as.numeric(xVar),
       yVar = as.numeric(yVar)
     )
+  
+  is2d <- !is.null(x_options$method) && !is.null(y_options$method)
 
   xlim <- getAxisRange(
     values = df$xVar,
@@ -546,7 +548,8 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
     number = x_options$number,
     percentile_action = x_options$percentile_action,
     percentile = x_options$percentile,
-    trans = x_options$trans
+    trans = x_options$trans,
+    is2d = is2d
   )
 
   ylim <- getAxisRange(
@@ -558,7 +561,8 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
     number = y_options$number,
     percentile_action = y_options$percentile_action,
     percentile = y_options$percentile,
-    trans = y_options$trans
+    trans = y_options$trans,
+    is2d = is2d
   )
 
   filtered <- df %>% dplyr::filter(xVar > xlim$min, xVar < xlim$max, yVar > ylim$min, yVar < ylim$max)
@@ -595,7 +599,7 @@ getDomainRange <- function(df, facetInfo, panel, x_options, y_options, xVar, yVa
   )
 }
 
-getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, number, percentile_action, percentile, trans){
+getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, number, percentile_action, percentile, trans, is2d){
   minVal <- -Inf
   maxVal <- Inf
 
@@ -628,8 +632,8 @@ getAxisRange <- function(values, method, cutoff_action, cutoff, number_action, n
     }
   }
 
-  if (trans == "sqrt"){
-    # Shiny doesn't translate sqrt scale at all
+  if (is2d && trans == "sqrt"){
+    # Shiny doesn't translate sqrt scale at all when in 2d mode
     if (minVal >= 0) minVal <- sqrt(minVal)
     if (maxVal >= 0) maxVal <- sqrt(maxVal)
   }
