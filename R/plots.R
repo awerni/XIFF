@@ -54,11 +54,17 @@ generateDiffPlot <- function(data, sampleClasses, classLabel, dataCol, title, pl
   dataCol <- rlang::sym(dataCol)
   mapping <- tooltipAes(class, !!dataCol, fill = class, plotFunc = plotFunc)
 
+  breaks <- if (trans == "identity"){
+    scales::breaks_pretty(n = 5)
+  } else {
+    ggplot2::waiver()
+  }
+  
   ggplot2::ggplot(coldata, mapping) +
     plotFunc(...) +
     ggplot2::scale_y_continuous(
       trans = trans,
-      breaks = scales::pretty_breaks(n = 5)
+      breaks = breaks
     ) +
     ggplot2::theme(
       text = ggplot2::element_text(size = 16),
