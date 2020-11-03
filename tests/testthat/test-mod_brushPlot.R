@@ -1,4 +1,3 @@
-library(dplyr)
 library(shinytest)
 
 test_that(
@@ -27,7 +26,7 @@ test_that(
     )
 
     # app$setInputs("test-cutoff_action_y" = "lt")
-    app$setInputs("test-cutoff_y" = 1)
+    app$setInputs("test-cutoff_y" = 6)
 
     app$findElement("#test-brush_button")$click()
     app$waitForValue(
@@ -40,12 +39,12 @@ test_that(
     res <- appState$export$res
     expect_equal(res$source, "test-plot_brush")
     expect_equal(res$range_x, c(NA, NA))
-    expect_equal(res$range_y, c(0.1, 0.6))
+    expect_equal(res$range_y, c(4.3, 5.9))
     expect_is(res$celllinename, "character")
-    expect_length(res$celllinename, 50)
+    expect_length(res$celllinename, 83)
 
     label <- appState$output[["test-selectionStat"]]
-    expect_equal(label, "50 cell lines selected in  Y range: (0.1, 0.6);")
+    expect_equal(label, "83 cell lines selected in  Y range: (4.3, 5.9);")
 
     # Number check
     app$setInputs("test-score_method_y" = "number")
@@ -68,12 +67,12 @@ test_that(
     res <- appState$export$res
     expect_equal(res$source, "test-plot_brush")
     expect_equal(res$range_x, c(NA, NA))
-    expect_equal(res$range_y, c(2.1, 2.5))
+    expect_equal(res$range_y, c(6.8, 7.9))
     expect_is(res$celllinename, "character")
     expect_length(res$celllinename, 19)
 
     label <- appState$output[["test-selectionStat"]]
-    expect_equal(label, "19 cell lines selected in  Y range: (2.1, 2.5);")
+    expect_equal(label, "19 cell lines selected in  Y range: (6.8, 7.9);")
 
     # Percentile check
     app$setInputs("test-score_method_y" = "percentile")
@@ -96,11 +95,11 @@ test_that(
     res <- appState$export$res
     expect_equal(res$source, "test-plot_brush")
     expect_equal(res$range_x, c(NA, NA))
-    expect_equal(res$range_y, c(1.8, 2.5))
+    expect_equal(res$range_y, c(6.3, 7.9))
     expect_is(res$celllinename, "character")
     expect_length(res$celllinename, 45)
 
     label <- appState$output[["test-selectionStat"]]
-    expect_equal(label, "45 cell lines selected in  Y range: (1.8, 2.5);")
+    expect_equal(label, "45 cell lines selected in  Y range: (6.3, 7.9);")
   }
 )
