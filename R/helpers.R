@@ -127,3 +127,8 @@ checkClassSelection <- function(cs) {
 n_common <- function(x, y){
   length(intersect(x, y))
 }
+
+#' @export
+getHallmarkGeneSetChoices <- function(geneSets){
+  structure(geneSets, names = gsub("^HALLMARK_", "", geneSets))
+}
