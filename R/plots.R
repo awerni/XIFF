@@ -258,16 +258,37 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
   colname <- getOption("xiff.column")
 
   data <- stackClasses(sampleClasses, classLabel, return_factor = TRUE) %>%
-    inner_join(annotationFocus, by = colname) %>%
-    mutate(prop1 = .data[[prop1]], prop2 = .data[[prop2]]) %>%
-    mutate(prop1 = ifelse(is.na(prop1) & !is.numeric(prop1), "NA", as.character(prop1)),
-           prop2 = ifelse(is.na(prop2) & !is.numeric(prop2), "NA", as.character(prop2))) %>%
-    mutate(prop1 = forcats::fct_lump(prop1, n = n_classes, other_level = "other"),
-           prop2 = forcats::fct_lump(prop2, n = n_classes, other_level = "other"))
+    inner_join(annotationFocus, by = colname)
 
-  n_labels <- length(levels(data$prop2))
-  n_char <- max(nchar(levels(data$prop2)))
-  n_rows <- ceiling(n_labels/floor(100/n_char))
+  isProp2None = prop2 == "none"
+
+  data <- data %>%
+    mutate(
+      prop1 = .data[[prop1]],
+      prop1 = ifelse(is.na(prop1) & !is.numeric(prop1), "NA", as.character(prop1)),
+      prop1 = forcats::fct_lump(prop1, n = n_classes, other_level = "other")
+    )
+
+  if (isProp2None){
+    data <- data %>% mutate(prop2 = "none")
+    n_rows <- 0
+    colorProp <- "prop1"
+
+  } else {
+    data <- data %>%
+      mutate(
+        prop2 = .data[[prop2]],
+        prop2 = ifelse(is.na(prop2) & !is.numeric(prop2), "NA", as.character(prop2)),
+        prop2 = forcats::fct_lump(prop2, n = n_classes, other_level = "other")
+      )
+
+    n_labels <- length(levels(data$prop2))
+    n_char <- max(nchar(levels(data$prop2)))
+    n_rows <- ceiling(n_labels/floor(100/n_char))
+    colorProp <- "prop2"
+  }
+
+  colorProp <- rlang::sym(colorProp)
 
   if (plot_type == "bar") {
     if (n_classes < 16) {
@@ -279,20 +300,20 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
       mapping <- ggplot2::aes(
         x = prop1,
         y = percent,
-        fill = prop2
+        fill = !!colorProp
       )
 
       generateClassSelectionBarPlot(x, mapping, paste("% of respective", prop1), n_rows, prop2, "identity")
     } else {
       mapping <- ggplot2::aes(
         x = prop1,
-        fill = prop2
+        fill = !!colorProp
       )
 
       generateClassSelectionBarPlot(data, mapping, paste0("# ", getOption("xiff.label"), "s"), n_rows, prop2)
     }
   } else if (plot_type == "pie") {
-    data_sum <- if (prop1 != prop2) {
+    data_sum <- if (prop1 != prop2 && !isProp2None) {
       data %>% dplyr::mutate(prop = paste(prop1, prop2, sep = "-"))
     } else {
       data %>% dplyr::rename(prop = prop1)
@@ -327,24 +348,40 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
 }
 
 generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, prop2, stat = "count"){
-  ggplot2::ggplot(
+  isProp2None <- prop2 == "none"
+
+  if (isProp2None) {
+    legendPosition <- "none"
+    colorProp <- "prop1"
+  } else {
+    legendPosition <- "bottom"
+    colorProp <- "prop2"
+  }
+
+  p <- ggplot2::ggplot(
     data = data,
     mapping = mapping
   ) +
     ggplot2::geom_bar(stat = stat) +
     ggplot2::theme(
       text = ggplot2::element_text(size = 20),
-      legend.position = "bottom"
+      legend.position = legendPosition
     ) +
     ggplot2::xlab("") +
     ggplot2::ylab(ylabel) +
-    ggplot2::labs(fill = prop2) +
     ggplot2::coord_flip() +
-    ggplot2::guides(fill = ggplot2::guide_legend(
-      nrow = n_rows,
-      byrow = FALSE
-    )) +
     ggplot2::facet_wrap(~class, scales = "free_x")
+
+  if (isProp2None){
+    p
+  } else {
+    p +
+      ggplot2::labs(fill = prop2) +
+      ggplot2::guides(fill = ggplot2::guide_legend(
+        nrow = n_rows,
+        byrow = FALSE
+      ))
+  }
 }
 
 #' @export
