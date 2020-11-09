@@ -9,7 +9,7 @@ additionalColumnsUI_main <- function(id, style = "font-size:80%"){
 
 #' @export
 additionalColumnsUI_sidebar <- function(id){
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
   shiny::div(
     class = "column-picker",
@@ -18,12 +18,51 @@ additionalColumnsUI_sidebar <- function(id){
 }
 
 #' @export
-additionalColumns <- function(id, Table, defaultCols, maxAdditionalCols = 5, ...){
+additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols = 5, ...){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
-
+    
+    Defaults <- shiny::reactiveVal()
+    SelectedCols <- shiny::reactiveVal()
+    
+    shiny::observeEvent(
+      eventExpr = Table(),
+      handlerExpr = {
+        # Reset settings on table change
+        SelectedCols(NULL)
+        shinyWidgets::updatePickerInput(
+          session = session, 
+          inputId = "showCols",
+          selected = NULL
+        )
+      },
+      ignoreNULL = FALSE
+    )
+    
+    shiny::observeEvent(
+      eventExpr = input$showCols,
+      handlerExpr = {
+        old <- SelectedCols()
+        new <- input$showCols
+        
+        if (isDifferent(old, new)){
+          SelectedCols(input$showCols)
+        }
+      },
+      ignoreNULL = FALSE
+    )
+    
     Choices <- shiny::reactive({
-      setdiff(names(Table()), defaultCols)
+      tab <- Table()
+      tabNames <- names(tab)
+      
+      if (is.null(defaultCols)) {
+        Defaults(head(tabNames, 3))
+      } else {
+        Defaults(defaultCols)
+      }
+      
+      setdiff(tabNames, Defaults())
     })
 
     output$picker <- shiny::renderUI({
@@ -31,7 +70,7 @@ additionalColumns <- function(id, Table, defaultCols, maxAdditionalCols = 5, ...
         inputId = ns("showCols"),
         label = NULL,
         choices = Choices(),
-        selected = shiny::isolate(input$showCols),
+        selected = shiny::isolate(SelectedCols()),
         width = "100%",
         options = list(
           `actions-box` = FALSE,
@@ -44,8 +83,11 @@ additionalColumns <- function(id, Table, defaultCols, maxAdditionalCols = 5, ...
     })
 
     TableExpr <- shiny::reactive({
-      visibleCols <- c(defaultCols, input$showCols)
-      Table()[visibleCols]
+      tab <- Table()
+      visibleCols <- c(Defaults(), SelectedCols())
+      visibleCols <- intersect(names(tab), visibleCols)
+      
+      tab[visibleCols]
     })
 
     output$table <- DT::renderDataTable(
