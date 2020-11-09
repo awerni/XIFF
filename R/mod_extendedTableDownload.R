@@ -1,6 +1,6 @@
 #' @export
 extendedTableDownloadUI <- function(id, label, filename = label){
-  ns <- NS(id)
+  ns <- shiny::NS(id)
   colname <- getOption("xiff.column")
 
   choices <- structure(
@@ -8,19 +8,19 @@ extendedTableDownloadUI <- function(id, label, filename = label){
     names = c("result table", paste(label, "<->",  getOption("xiff.label")))
   )
 
-  tagList(
-    radioButtons(
+  shiny::tagList(
+    shiny::radioButtons(
       inputId = ns("downloadType"),
       label = "Download content",
       choices = choices,
       selected = "result_table"
     ),
-    textInput(
+    shiny::textInput(
       inputId = ns("filename"),
       label = "Choose file name",
       value = paste0(filename, "_result")
     ),
-    downloadButton(
+    shiny::downloadButton(
       outputId = ns("downloadData"),
       label = "Download"
     )
@@ -32,7 +32,7 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
                                   classSelection, classLabel, by, additional = NULL, stripCol = "higher"){
   colname <- getOption("xiff.column")
 
-  output$downloadData <- downloadHandler (
+  output$downloadData <- shiny::downloadHandler (
     filename = function() { paste0(input$filename, ".csv") },
     content = function(file) {
       tab <- tryCatch(
@@ -47,25 +47,25 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
 
         for (col in stripCol){
           if (col %in% names(res)){
-            col <- sym(col)
-            res <- res %>% mutate(!!col := stripHtml(!!col))
+            col <- rlang::sym(col)
+            res <- res %>% dplyr::mutate(!!col := stripHtml(!!col))
           }
         }
 
       } else {
-        cs <- reactiveValuesToList(classSelection)
-        cl <- reactiveValuesToList(classLabel)
+        cs <- shiny::reactiveValuesToList(classSelection)
+        cl <- shiny::reactiveValuesToList(classLabel)
         assignment <- stackClasses(cs, cl, return_factor = FALSE)
 
         df <- Subject() %>%
-          inner_join(as.data.frame(Item()), by = by) %>%
-          inner_join(assignment, by = colname)
+          dplyr::inner_join(tibble::as_tibble(Item()), by = by) %>%
+          dplyr::inner_join(assignment, by = colname)
 
         nameOrder <- c(colname, "class", by, additional)
-        tabSpecificNames <-  setdiff(names(df), nameOrder)
+        tabSpecificNames <- setdiff(names(df), nameOrder)
         nameOrder <- c(nameOrder, tabSpecificNames)
 
-        res <- df[nameOrder] %>% arrange_at(c("class", tabSpecificNames))
+        res <- df[nameOrder] %>% dplyr::arrange_at(c("class", tabSpecificNames))
       }
       
       readr::write_excel_csv(res, file, na = "")
