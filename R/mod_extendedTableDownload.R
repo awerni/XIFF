@@ -29,7 +29,7 @@ extendedTableDownloadUI <- function(id, label, filename = label){
 
 #' @export
 extendedTableDownload <- function(input, output, session, Table, Subject, Item,
-                                  classSelection, classLabel, by, additional = NULL, stripCol = "higher"){
+                                  classSelection, classLabel, by, additional = NULL, stripCol = c("higher", "location")){
   colname <- getOption("xiff.column")
 
   output$downloadData <- downloadHandler (

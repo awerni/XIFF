@@ -132,3 +132,15 @@ n_common <- function(x, y){
 getHallmarkGeneSetChoices <- function(geneSets){
   structure(geneSets, names = gsub("^HALLMARK_", "", geneSets))
 }
+
+#' @export
+getEnsemblLink <- function(location, species = "human"){
+  species <- switch(
+    EXPR = species,
+    human = "Homo_sapiens",
+    mouse = "Mus_musculus"
+  )
+  stopifnot(!is.null(species))
+
+  glue::glue('<a href="https://www.ensembl.org/{species}/Location/View?db=core;r={location}" target="_blank">{location}</a>')
+}
