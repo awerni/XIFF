@@ -22,7 +22,7 @@ getPheatmap <- function(..., silent = TRUE){
 
 #' @export
 guessAxisScale <- function(values){
-  myScale <- "norm"
+  myScale <- "identity"
   rng <- range(values, na.rm = TRUE)
   if (min(rng) > 0) {
     if ((rng[[2]] / rng[[1]]) >= 1000) {
