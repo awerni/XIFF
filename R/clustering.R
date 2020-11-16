@@ -44,13 +44,21 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = TRUE) {
     on.exit(progress$close())
     progress$set(message = "sorting genes by variance", value = 0.3)
   }
+  
   data.counts <- PCAData[["data.counts"]]
   maxVarRows <- order(apply(PCAData[["data.log2tpm"]], 1, var), decreasing = TRUE)
   if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
   data.counts <- data.counts[maxVarRows, ]
 
   if (p) progress$set(message = "transforming count matrix", value = 0.4)
-  dds <- DESeq2::DESeqDataSetFromMatrix(countData = data.counts, colData = PCAData[["assignment"]], design = ~ class)
+  assignment <- PCAData[["assignment"]]
+  design <- if (dplyr::n_distinct(assignment$class) > 1){
+    "~ class"
+  } else {
+    "~ 1"
+  }
+  
+  dds <- DESeq2::DESeqDataSetFromMatrix(countData = data.counts, colData = assignment, design = as.formula(design))
   if (p) progress$set(message = "variance stabilization", value = 0.6)
   vst <- DESeq2::varianceStabilizingTransformation(dds, fitType = "local")
   if (p) progress$set(message = "calculating PCA", value = 0.8)
