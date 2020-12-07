@@ -134,13 +134,29 @@ getHallmarkGeneSetChoices <- function(geneSets){
 }
 
 #' @export
-getEnsemblLink <- function(location, species = "human"){
+getEnsemblLocationLink <- function(location, species = "human"){
+  species <- getEnsemblSpecies(species)
+  glue::glue('<a href="https://www.ensembl.org/{species}/Location/View?db=core;r={location}" target="_blank">{location}</a>')
+}
+
+#' @export
+getEnsemblGeneLink <- function(gene, species = "human"){
+  species <- getEnsemblSpecies(species)
+  glue::glue('<a href="https://www.ensembl.org/{species}/Gene/Summary?db=core;g={gene}" target="_blank">{gene}</a>')
+}
+
+#' @export
+getEnsemblTranscriptLink <- function(transcript, species){
+  species <- getEnsemblSpecies(species)
+  glue::glue('<a href="https://www.ensembl.org/{species}/Transcript/Summary?db=core;t={transcript}" target="_blank">{transcript}</a>')
+}
+
+getEnsemblSpecies <- function(species){
   species <- switch(
     EXPR = species,
     human = "Homo_sapiens",
     mouse = "Mus_musculus"
   )
   stopifnot(!is.null(species))
-
-  glue::glue('<a href="https://www.ensembl.org/{species}/Location/View?db=core;r={location}" target="_blank">{location}</a>')
+  species
 }

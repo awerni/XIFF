@@ -29,7 +29,7 @@ extendedTableDownloadUI <- function(id, label, filename = label){
 
 #' @export
 extendedTableDownload <- function(input, output, session, Table, Subject, Item,
-                                  classSelection, classLabel, by, additional = NULL, stripCol = c("higher", "location")){
+                                  classSelection, classLabel, by, additional = NULL){
   colname <- getOption("xiff.column")
 
   output$downloadData <- shiny::downloadHandler (
@@ -43,15 +43,7 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
       if (is.null(tab)){ # no results available
         res <- data.frame()
       } else if (input$downloadType == "result_table") {
-        res <- tab
-
-        for (col in stripCol){
-          if (col %in% names(res)){
-            col <- rlang::sym(col)
-            res <- res %>% dplyr::mutate(!!col := stripHtml(!!col))
-          }
-        }
-
+        res <- tab %>% dplyr::mutate_all(stripHtml)
       } else {
         cs <- shiny::reactiveValuesToList(classSelection)
         cl <- shiny::reactiveValuesToList(classLabel)
@@ -67,7 +59,7 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
 
         res <- df[nameOrder] %>% dplyr::arrange_at(c("class", tabSpecificNames))
       }
-      
+
       readr::write_excel_csv(res, file, na = "")
     }
   )
