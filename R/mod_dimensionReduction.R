@@ -10,7 +10,7 @@ dimensionReductionUI <- function(id, width = "100%", height = "800px"){
 
 #' @export
 dimensionReduction <- function(input, output, session,
-                               InputData, AnalysisParams, PlotParams, classLabel,
+                               InputData, AnalysisParams, ClusterMethod, PlotParams, classLabel,
                                funTSNE = calcTSNE, funPCA = calcPCA_expression, funUMAP = calcUMAP){
   colname <- getOption("xiff.column")
 
@@ -54,9 +54,17 @@ dimensionReduction <- function(input, output, session,
     d$data <- d$data %>% select(-class) %>% dplyr::left_join(assignment, by = colname)
 
     #d$data <- replaceClassLabels(d$data, cl)
-    d$data <- addClustering(d$data, clusterMethod)
 
     return(list(d = d, annotationFocus = annotationFocus))
+  })
+
+  ClusterResults <- reactive({
+    res <- Results()
+    req(res)
+
+    cm <- ClusterMethod()
+    res$d$data <- addClustering(res$d$data, cm)
+    res
   })
 
   colorTooltip <- FALSE
@@ -72,7 +80,7 @@ dimensionReduction <- function(input, output, session,
     params <- PlotParams()
     if (length(dropNulls(params)) < length(params)) return()
 
-    res <- Results()
+    res <- ClusterResults()
     if (is.null(res)) return()
 
     cl <- reactiveValuesToList(classLabel)
@@ -92,6 +100,7 @@ dimensionReduction <- function(input, output, session,
     colorTooltip <<- p$colorTooltip
     p$plot
   })
+
   shiny::callModule(
     module = plotWrapper,
     id = "plot",
@@ -101,7 +110,7 @@ dimensionReduction <- function(input, output, session,
     tooltipCallback = callback
   )
 
-  Results
+  ClusterResults
 }
 
 plotDimRed <- function(d, params, annotationFocus) {
