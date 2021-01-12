@@ -55,3 +55,16 @@ registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, i
     ...
   )
 }
+
+#' @export
+inputWithHelp <- function(param, helpText = "help me Obi-Wan Kenobi"){
+  helpIcon <- icon("question-circle")
+  helpIcon$attribs[["data-toggle"]] <- "tooltip"
+  helpIcon$attribs[["title"]] <- helpText
+
+  param$children[[1]]$children[[1]] <- div(
+    param$children[[1]]$children[[1]],
+    helpIcon
+  )
+  param
+}
