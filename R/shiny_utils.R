@@ -22,3 +22,36 @@ errorScreen <- function(reason){
     )
   )
 }
+
+#' @export
+registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, initValue = NULL, debug = FALSE, ignoreInit = TRUE, ...){
+  id <- inputId # prevent lazy load
+  f <- callback
+
+  if (!is.null(initValue)){
+    rv[[id]] <- initValue
+  }
+
+  observeEvent(
+    eventExpr = input[[id]],
+    handlerExpr = {
+      old <- rv[[id]]
+      new <- input[[id]]
+
+      if (isDifferent(old, new)){
+        if (debug){
+          print(paste("new value:", id))
+          print(all.equal(old, new))
+          cat("\t", old, "->", new, "\n")
+        }
+
+        if (is.function(f)){
+          f(old, new)
+        }
+        rv[[id]] <- new
+      }
+    },
+    ignoreInit = ignoreInit,
+    ...
+  )
+}

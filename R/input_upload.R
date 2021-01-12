@@ -52,7 +52,9 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     info <- input$upload
     shiny::req(info)
 
+    info[["isXlsx"]] <- grepl("xlsx$", info$datapath)
     info[["isRds"]] <- grepl("rds$", info$datapath)
+
     info
   })
 
@@ -127,8 +129,8 @@ classicUploadInputModeUI_options <- function(id){
     shiny::column(
       width = 6,
       shiny::selectInput(
-        inputId = ns("column"),
-        label = "select file column",
+        inputId = ns("sheet"),
+        label = "select sheet",
         choices = NULL
       ),
       shiny::checkboxInput(
@@ -139,6 +141,11 @@ classicUploadInputModeUI_options <- function(id){
     ),
     shiny::column(
       width = 6,
+      shiny::selectInput(
+        inputId = ns("column"),
+        label = "select file column",
+        choices = NULL
+      ),
       shiny::selectizeInput(
         inputId = ns("column_facet"),
         label = "split view by",
@@ -162,6 +169,36 @@ classicUploadInputMode <- function(input, output, session, FileInfo, AnnotationF
   colname <- rlang::sym(colname)
 
   ns <- session$ns
+  rv <- shiny::reactiveValues()
+
+  registerExtendedInputObserver(
+    input = input, rv = rv,
+    inputId = "sheet"
+  )
+
+  shiny::observeEvent(
+    eventExpr = FileInfo(),
+    handlerExpr = {
+      info <- FileInfo()
+
+      if (info[["isXlsx"]]){
+        sheets <- readxl::excel_sheets(info$datapath)
+
+        if (length(sheets) > 0){
+          rv[["sheet"]] <- sheets[1]
+          shiny::updateSelectInput(
+            session = session,
+            inputId = "sheet",
+            choices = sheets,
+            selected = sheets[1]
+          )
+        }
+        shinyjs::show("sheet")
+      } else {
+        shinyjs::hide("sheet")
+      }
+    }
+  )
 
   fileUploadRaw <- shiny::reactive({
     info <- FileInfo()
@@ -170,8 +207,16 @@ classicUploadInputMode <- function(input, output, session, FileInfo, AnnotationF
     tryCatch(
       expr = {
         file_name <- info$datapath
-        if (grepl("xlsx$", file_name)) {
-          df <- readxl::read_xlsx(file_name, na = c("", "NA"), guess_max = 200)
+        if (info[["isXlsx"]]) {
+          sheet <- rv[["sheet"]]
+          shiny::validate(shiny::need(sheet, "select sheet first"))
+
+          df <- readxl::read_xlsx(
+            path = file_name,
+            sheet = sheet,
+            na = c("", "NA"),
+            guess_max = 200
+          )
         } else {
           l <- readLines(file_name, n = 1)
           if (grepl("\t", l)) {
