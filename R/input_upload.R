@@ -1,6 +1,18 @@
 #' @export
-uploadInputModeUI <- function(id){
+uploadInputModeUI <- function(id, allowRds = FALSE){
   ns <- shiny::NS(id)
+
+  acceptExt <- c(
+    "text/csv", "text/comma-separated-values,text/plain", ".csv",
+    "text/tsv", "text/tab-separated-values,text/plain", ".tsv",
+    "text/txt", ".txt",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel", ".xlsx"
+  )
+
+  if (allowRds){
+    acceptExt <- c(acceptExt, ".rds")
+  }
 
   list(
     shiny::fluidRow(
@@ -19,58 +31,145 @@ uploadInputModeUI <- function(id){
           inputId = ns("upload"),
           label = "Choose File",
           multiple = FALSE,
-          accept = c(
-            "text/csv", "text/comma-separated-values,text/plain", ".csv",
-            "text/tsv", "text/tab-separated-values,text/plain", ".tsv",
-            "text/txt", ".txt",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/vnd.ms-excel", ".xlsx"
-          )
+          accept = acceptExt
         ),
-        shiny::textOutput(ns("stat"))
+        shiny::uiOutput(ns("stat"))
       ),
       shiny::column(
-        width = 4,
-        shiny::selectInput(
-          inputId = ns("column"),
-          label = "select file column",
-          choices = NULL
-        ),
-        shiny::checkboxInput(
-          inputId = ns("display_bar"),
-          label = "stack numeric values",
-          value = FALSE
-        )
-      ),
-      shiny::column(
-        width = 4,
-        shiny::selectizeInput(
-          inputId = ns("column_facet"),
-          label = "split view by",
-          choices = NULL
-        )
+        width = 8,
+        shiny::uiOutput(ns("options"))
       )
     ),
-    brushPlotUI(
-      id = ns("barplot"),
-      shinyBS::bsAlert(ns("unknown_items"))
-    )
+    shiny::uiOutput(ns("plot"))
   )
 }
 
 #' @export
-uploadInputMode <- function(input, output, session, AnnotationFull, translationFun){
+uploadInputMode <- function(input, output, session, AnnotationFull, translationFun, rdsCallback = NULL){
+  ns <- session$ns
+
+  FileInfo <- shiny::reactive({
+    info <- input$upload
+    shiny::req(info)
+
+    info[["isRds"]] <- grepl("rds$", info$datapath)
+    info
+  })
+
+  output$stat <- shiny::renderUI({
+    info <- FileInfo()
+
+    if (info[["isRds"]]){
+      rdsUploadInputModeUI_stat(ns("rds"))
+    } else {
+      classicUploadInputModeUI_stat(ns("classic"))
+    }
+  })
+
+  output$options <- shiny::renderUI({
+    info <- FileInfo()
+
+    if (info[["isRds"]]){
+      rdsUploadInputModeUI_options(ns("rds"))
+    } else {
+      classicUploadInputModeUI_options(ns("classic"))
+    }
+  })
+
+  output$plot <- shiny::renderUI({
+    info <- FileInfo()
+
+    if (info[["isRds"]]){
+      rdsUploadInputModeUI_plot(ns("rds"))
+    } else {
+      classicUploadInputModeUI_plot(ns("classic"))
+    }
+  })
+
+  ClassicCelllines <- shiny::callModule(
+    module = classicUploadInputMode,
+    id = "classic",
+    FileInfo = FileInfo,
+    AnnotationFull = AnnotationFull,
+    translationFun = translationFun
+  )
+
+  RdsCelllines <- shiny::callModule(
+    module = rdsUploadInputMode,
+    id = ns("rds"),
+    FileInfo = FileInfo,
+    rdsCallback = rdsCallback
+  )
+
+  UploadCelllines <- shiny::reactive({
+    info <- FileInfo()
+
+    if (info[["isRds"]]){
+      RdsCelllines()
+    } else {
+      ClassicCelllines()
+    }
+  })
+
+  UploadCelllines
+}
+
+# classic upload --------------------------------------------------------------
+classicUploadInputModeUI_stat <- function(id){
+  ns <- shiny::NS(id)
+  shiny::textOutput(ns("stat"))
+}
+
+classicUploadInputModeUI_options <- function(id){
+  ns <- shiny::NS(id)
+
+  shiny::fluidRow(
+    shiny::column(
+      width = 6,
+      shiny::selectInput(
+        inputId = ns("column"),
+        label = "select file column",
+        choices = NULL
+      ),
+      shiny::checkboxInput(
+        inputId = ns("display_bar"),
+        label = "stack numeric values",
+        value = FALSE
+      )
+    ),
+    shiny::column(
+      width = 6,
+      shiny::selectizeInput(
+        inputId = ns("column_facet"),
+        label = "split view by",
+        choices = NULL
+      )
+    )
+  )
+}
+
+classicUploadInputModeUI_plot <- function(id){
+  ns <- shiny::NS(id)
+
+  brushPlotUI(
+    id = ns("barplot"),
+    shinyBS::bsAlert(ns("unknown_items"))
+  )
+}
+
+classicUploadInputMode <- function(input, output, session, FileInfo, AnnotationFull, translationFun){
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
 
   ns <- session$ns
 
   fileUploadRaw <- shiny::reactive({
-    shiny::req(input$upload)
+    info <- FileInfo()
+    shiny::req(info)
 
     tryCatch(
       expr = {
-        file_name <- input$upload$datapath
+        file_name <- info$datapath
         if (grepl("xlsx$", file_name)) {
           df <- readxl::read_xlsx(file_name, na = c("", "NA"), guess_max = 200)
         } else {
@@ -90,13 +189,13 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     )
 
     df <- removeEmptyColumns(df)
-    
+
     anno <- AnnotationFull() %>% dplyr::select(!!colname, tumortype)
     if ("tumortype" %in% colnames(df)) df <- df %>% dplyr::select(-tumortype)
     ret <- translationFun(df, anno)
-    
+
     if ("tumortype" %in% colnames(ret$df)) ret$df <- ret$df %>% relocate(tumortype, .after = 1)
-    
+
     if (is.null(ret)) {
       shinyBS::createAlert(
         session = session,
@@ -281,6 +380,37 @@ removeEmptyColumns <- function(df){
       any(nzchar(as.character(x)) & !is.na(x))
     }
   )
-  
+
   df[validCols]
+}
+
+# RDS upload ------------------------------------------------------------------
+rdsUploadInputModeUI_stat <- function(id){
+  ns <- shiny::NS(id)
+
+  NULL
+}
+
+rdsUploadInputModeUI_options <- function(id){
+  ns <- shiny::NS(id)
+
+  NULL
+}
+
+rdsUploadInputModeUI_plot <- function(id){
+  ns <- shiny::NS(id)
+
+  NULL
+}
+
+rdsUploadInputMode <- function(input, output, session, FileInfo, rdsCallback = NULL){
+  rdsCelllines <- shiny::reactive({
+    info <- FileInfo()
+
+    if (is.function(rdsCallback)){
+      rdsCallback(info)
+    }
+  })
+
+  rdsCelllines
 }
