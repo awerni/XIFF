@@ -27,7 +27,7 @@ loadMachineLearningModel <- function(filepath, errorId, session){
   } else {
     errorMsg <- "Incorrect input file. Please provide a file downloaded from the machine learning tab"
   }
-  message("alert")
+
   shinyBS::createAlert(
     session = session,
     anchorId = errorId,
