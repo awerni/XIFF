@@ -39,7 +39,7 @@ generateROCPlot <- function(data, sampleClasses, dataCol, title = "ROC plot") {
   # scale_fill_viridis(discrete = TRUE, option = "plasma")
 
   auc <- plotROC::calc_auc(p)$AUC
-  p + ggplot2::annotate("text", x = .75, y = .25, label = paste("AUC =", round(auc, 2)))
+  p + ggplot2::annotate("text", x = .75, y = .25, label = paste("AUC =", signif(auc, 3)))
 }
 
 #' @export
