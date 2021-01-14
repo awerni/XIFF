@@ -50,7 +50,8 @@ uploadInputModeUI <- function(id, allowRds = FALSE){
 uploadInputMode <- function(input, output, session, AnnotationFull, translationFun, AllTumortype){
   ns <- session$ns
 
-  Dummy <- shiny::reactiveVal()
+  Dummy_rds <- shiny::reactiveVal()
+  Dummy_xlsx <- shiny::reactiveVal()
 
   FileInfo <- shiny::reactive({
     info <- input$upload
@@ -59,23 +60,25 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     info[["isXlsx"]] <- grepl("xlsx$", info$datapath)
     info[["isRds"]] <- grepl("rds$", info$datapath)
 
-    Dummy(info[["isRds"]])
+    Dummy_xlsx(info[["isXlsx"]])
+    Dummy_rds(info[["isRds"]])
     info
   })
 
   output$stat <- shiny::renderUI({
-    isRds <- Dummy()
-    shiny::req(is.logical(isRds))
+    isRds <- Dummy_rds()
+    isXlsx <- Dummy_xlsx()
+    shiny::req(is.logical(isRds) && is.logical(isXlsx))
 
     if (isRds){
       mlUploadInputModeUI_stat(ns("ml"))
     } else {
-      classicUploadInputModeUI_stat(ns("classic"))
+      classicUploadInputModeUI_stat(ns("classic"), isXlsx)
     }
   })
 
   output$options <- shiny::renderUI({
-    isRds <- Dummy()
+    isRds <- Dummy_rds()
     shiny::req(is.logical(isRds))
 
     if (isRds){
@@ -86,7 +89,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
   })
 
   output$plot <- shiny::renderUI({
-    isRds <- Dummy()
+    isRds <- Dummy_rds()
     shiny::req(is.logical(isRds))
 
     if (isRds){
@@ -133,9 +136,19 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
 }
 
 # classic upload --------------------------------------------------------------
-classicUploadInputModeUI_stat <- function(id){
+classicUploadInputModeUI_stat <- function(id, isXlsx){
   ns <- shiny::NS(id)
-  shiny::textOutput(ns("stat"))
+
+  sheetSelector <- shiny::selectInput(
+    inputId = ns("sheet"),
+    label = "select sheet",
+    choices = NULL
+  )
+
+  shiny::div(
+    `if`(isXlsx, sheetSelector),
+    shiny::textOutput(ns("stat"))
+  )
 }
 
 classicUploadInputModeUI_options <- function(id){
@@ -145,8 +158,8 @@ classicUploadInputModeUI_options <- function(id){
     shiny::column(
       width = 6,
       shiny::selectInput(
-        inputId = ns("sheet"),
-        label = "select sheet",
+        inputId = ns("column"),
+        label = "select file column",
         choices = NULL
       ),
       shiny::checkboxInput(
@@ -157,11 +170,6 @@ classicUploadInputModeUI_options <- function(id){
     ),
     shiny::column(
       width = 6,
-      shiny::selectInput(
-        inputId = ns("column"),
-        label = "select file column",
-        choices = NULL
-      ),
       shiny::selectizeInput(
         inputId = ns("column_facet"),
         label = "split view by",
@@ -207,9 +215,6 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
             selected = sheets[1]
           )
         }
-        shinyjs::show("sheet")
-      } else {
-        shinyjs::hide("sheet")
       }
     }
   )
@@ -392,7 +397,7 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
   if (length(choices) == 0) return()
 
   selected <- input[[basicId]]
-  if (is.null(selected) || !nzchar(selected)){
+  if (is.null(selected) || !nzchar(selected) || !selected %in% choices){
     selected <- choices[[1]]
   }
 
