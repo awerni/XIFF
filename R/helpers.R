@@ -161,6 +161,7 @@ getEnsemblSpecies <- function(species){
   species
 }
 
+#' @export
 packageInstalled <- function(name){
   is.character(name) && name %in% rownames(installed.packages())
 }

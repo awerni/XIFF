@@ -48,7 +48,7 @@ predictFromModel <- function(m, df, errorId, session){
   }
   assignment <- as.character(assignment)
 
-  if (length(assignment) == 0 || any(! assignment %in% c("class1", "class2"))){
+  if (length(assignment) == 0 || any(! assignment %in% c("class1", "class2", NA))){
     shinyBS::createAlert(
       session = session,
       anchorId = errorId,
