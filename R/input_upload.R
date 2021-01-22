@@ -1,5 +1,5 @@
 #' @export
-uploadInputModeUI <- function(id, allowRds = FALSE){
+uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   ns <- shiny::NS(id)
 
   acceptExt <- c(
@@ -10,18 +10,26 @@ uploadInputModeUI <- function(id, allowRds = FALSE){
     "application/vnd.ms-excel", ".xlsx"
   )
 
+  label <- "Provide a text- or MS-Excel-file"
+  
   if (allowRds){
+    label <- paste(label, "or a machine learning model file")
     acceptExt <- c(acceptExt, ".rds")
+  }
+  
+  helpLink <- if (!is.null(helpUrl)){
+    shiny::a(
+      href = helpUrl,
+      target = "_blank",
+      "[help]"
+    )
   }
 
   list(
     shiny::fluidRow(
       shiny::column(
         width = 12,
-        shiny::h3(paste(
-          "Provide a file with a header row, with", getOption("xiff.label"), "names and additional",
-          "columns with numeric values like IC50s or character values like classifications"
-        ))
+        shiny::h3(label, helpLink)
       )
     ),
     shinyBS::bsAlert(ns("top_error")),
