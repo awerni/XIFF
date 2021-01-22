@@ -1,7 +1,7 @@
 Package: XIFF
 Type: Package
 Title: Common Modules And Functions For xIFF Apps 
-Version: 0.1.5
+Version: 0.1.6
 Author: Michal Jakubczak
 Maintainer: Michal Jakubczak <michal.jakubczak@ardigen.com>
 Description: Common modules and functions for xIFF apps
