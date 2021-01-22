@@ -160,3 +160,7 @@ getEnsemblSpecies <- function(species){
   stopifnot(!is.null(species))
   species
 }
+
+packageInstalled <- function(name){
+  is.character(name) && name %in% rownames(installed.packages())
+}
