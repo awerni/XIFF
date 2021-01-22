@@ -130,8 +130,8 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
   )
 
   UploadItems <- shiny::reactive({
-    isRds <- Dummy()
-    shiny::req(isRds)
+    isRds <- Dummy_rds()
+    shiny::req(is.logical(isRds))
 
     if (isRds){
       MLItems()
