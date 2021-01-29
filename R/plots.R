@@ -59,7 +59,7 @@ generateDiffPlot <- function(data, sampleClasses, classLabel, dataCol, title, pl
   } else {
     ggplot2::waiver()
   }
-  
+
   ggplot2::ggplot(coldata, mapping) +
     plotFunc(...) +
     ggplot2::scale_y_continuous(
@@ -216,8 +216,10 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
     title <- paste0("UMAP plot\n", data$title)
   }
 
+  df <- data$data %>% dplyr::mutate(class = factor(class))
+
   pl <- ggplot2::ggplot(
-    data = data$data,
+    data = df,
     mapping = mapping
   ) +
     ggplot2::geom_point(size = 3) +
