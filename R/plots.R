@@ -6,10 +6,10 @@ generatePlotByType <- function(item, data, sampleClasses, classLabel, plotType, 
   switch(
     EXPR = plotType,
     roc = rocPlotFun(item, data, sampleClasses, ...),
-    point = diffPlotFun(item, data, sampleClasses, classLabel, geom_jitter,
+    point = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_jitter,
                         width = 0.25, height = 0, mapping = ggplot2::aes(colour = class), ...),
-    violin = diffPlotFun(item, data, sampleClasses, classLabel, geom_violin, ...),
-    box = diffPlotFun(item, data, sampleClasses, classLabel, geom_boxplot, ...),
+    violin = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_violin, ...),
+    box = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_boxplot, ...),
     coverage = generateDataCoveragePlot(data, dataCol, sampleClasses, classLabel)
   )
 }
