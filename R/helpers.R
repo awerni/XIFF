@@ -1,3 +1,4 @@
+#' Null default
 #' @export
 `%||%` <- function(x, y){
   if (rlang::is_null(x) || length(x) == 0)

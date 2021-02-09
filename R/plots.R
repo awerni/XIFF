@@ -294,7 +294,7 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
 
   if (plot_type == "bar") {
     if (n_classes < 16) {
-      data <- data %>% mutate(prop1 =  str_wrap(prop1, 30))
+      data <- data %>% mutate(prop1 = stringr::str_wrap(prop1, 30))
     }
 
     if (usePercent && (prop1 %in% names(annotation))){
