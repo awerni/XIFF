@@ -574,7 +574,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
     df <- df %>% tidyr::pivot_wider(names_from = ensg, values_from = score)
 
-    assignment <- predictFromModel(m, df %>% dplyr::select(- !!colname), topErrorId, session)
+    assignment <- predictFromModel(m, df, topErrorId, session)
     if (is.null(assignment)) return()
 
     cl <- m$classLabel
@@ -584,6 +584,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
       !!colname := df[[colname]],
       class = assignment
     ) %>%
+      dplyr::filter(!is.na(class)) %>%
       dplyr::mutate(
         class = ifelse(class == "class1", cl[1], cl[2]),
         class = factor(class, levels = cl)

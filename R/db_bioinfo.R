@@ -19,7 +19,7 @@ getGSEACollection <- function(species = "human") {
 getAntibodyInformation <- function(antibody = NA) {
   if (is.na(antibody)) {
     sql <- "SELECT antibody, validation_status, vendor, catalog_number FROM antibody"
-    getPostgresql(sql) %>% mutate_at(vars(validation_status, vendor), as_factor)
+    getPostgresql(sql) %>% mutate_at(vars(validation_status, vendor), forcats::as_factor)
   } else {
     sql <- paste0("SELECT validation_status, vendor, catalog_number FROM antibody WHERE antibody = '", antibody, "'")
     ret <- getPostgresql(sql)

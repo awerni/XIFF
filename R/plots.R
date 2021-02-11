@@ -6,10 +6,10 @@ generatePlotByType <- function(item, data, sampleClasses, classLabel, plotType, 
   switch(
     EXPR = plotType,
     roc = rocPlotFun(item, data, sampleClasses, ...),
-    point = diffPlotFun(item, data, sampleClasses, classLabel, geom_jitter,
+    point = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_jitter,
                         width = 0.25, height = 0, mapping = ggplot2::aes(colour = class), ...),
-    violin = diffPlotFun(item, data, sampleClasses, classLabel, geom_violin, ...),
-    box = diffPlotFun(item, data, sampleClasses, classLabel, geom_boxplot, ...),
+    violin = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_violin, ...),
+    box = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_boxplot, ...),
     coverage = generateDataCoveragePlot(data, dataCol, sampleClasses, classLabel)
   )
 }
@@ -294,7 +294,7 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
 
   if (plot_type == "bar") {
     if (n_classes < 16) {
-      data <- data %>% mutate(prop1 =  str_wrap(prop1, 30))
+      data <- data %>% mutate(prop1 = stringr::str_wrap(prop1, 30))
     }
 
     if (usePercent && (prop1 %in% names(annotation))){

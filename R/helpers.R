@@ -1,3 +1,4 @@
+#' Null default
 #' @export
 `%||%` <- function(x, y){
   if (rlang::is_null(x) || length(x) == 0)
@@ -161,6 +162,7 @@ getEnsemblSpecies <- function(species){
   species
 }
 
+#' @export
 packageInstalled <- function(name){
   is.character(name) && name %in% rownames(installed.packages())
 }
