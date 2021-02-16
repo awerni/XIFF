@@ -1,6 +1,10 @@
 #' @export
-loadMachineLearningModel <- function(filepath, errorId, session){
-  x <- readRDS(filepath)
+loadMachineLearningModel <- function(filepath, errorId, session, object = NULL){
+  x <- if (is.null(object)){
+    readRDS(filepath)
+  } else {
+    object
+  }
 
   if (is(x, "machineLearningResult")){
     modelLibrary <- x$library
