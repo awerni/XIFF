@@ -90,7 +90,14 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
 }
 
 #' @export
-tabLayout <- function(input, output, session, plotFun, TableData){
+tabLayout <- function(input, output, session, plotFun, TableData,
+                      jsRowCallback = htmlwidgets::JS("preventLinkSelections")){
+  rowCallback <- if (shiny::is.reactive(jsRowCallback)){
+    jsRowCallback
+  } else {
+    shiny::reactive({ jsRowCallback })
+  }
+
   varDict <- list()
 
   LeftPlotType <- shiny::reactive({ input$type_left })
@@ -123,23 +130,27 @@ tabLayout <- function(input, output, session, plotFun, TableData){
     varDict = varDict
   )
 
-  output$table <- DT::renderDataTable(
-    expr = {
-      TableData()
-    },
-    rownames = FALSE,
-    filter = "top",
-    options = list(
-      pageLength = 10,
-      search = list(regex = TRUE)
-    ),
-    escape = FALSE,
-    selection = list(
-      mode = "single",
-      selected = 1,
-      target = "row"
+  output$table <- DT::renderDataTable({
+    df <- TableData()
+    rc <- rowCallback()
+
+    DT::datatable(
+      data = df,
+      options = list(
+        pageLength = 10,
+        search = list(regex = TRUE),
+        createdRow = rc
+      ),
+      rownames = FALSE,
+      filter = "top",
+      escape = FALSE,
+      selection = list(
+        mode = "single",
+        selected = 1,
+        target = "row"
+      )
     )
-  )
+  })
 
   SelectedRow <- shiny::reactive({
     input$table_rows_selected
