@@ -7,20 +7,20 @@ $(document).on('click', '.set-brush', function(){
   var plotId = button.data('plot-id');
   var eventId = button.data('event-id');
   var panelId = button.data('panel-id');
-  
+
   if (plotId && eventId){ //both attributes must be present
     var plot = $('#' + plotId);
-    
+
     if (plot){
       var panelSelect = $('#' + panelId);
       var widthOffset = 0.5 * plot.width();
       var heightOffset = 0.5 * plot.height();
-      
+
       if (panelSelect.length){
         var positions = JSON.parse(panelSelect.closest('.panel-selection').children()[1].innerHTML);
         var panels = Object.keys(positions);
         var value = panelSelect.val();
-        
+
         if (panels.length && panels.includes(value)){
           var selected = positions[value];
           widthOffset = selected.x;
@@ -36,8 +36,8 @@ $(document).on('click', '.set-brush', function(){
         pageX: offset.left + widthOffset,
         pageY: offset.top + heightOffset
       });
-    
-      Shiny.onInputChange(eventId, new Date()); // trigger input 
+
+      Shiny.onInputChange(eventId, new Date()); // trigger input
     }
   }
 });
@@ -52,21 +52,21 @@ $(document).on('shiny:value', '.downloadable-plot:not(.ready) .tooltip-plot-outp
 function setPlotBrush(outputId, startX, endX, startY, endY){
   var plot = $('#' + outputId);
   var brushId = plot.data('brush-id');
-  
+
   if (brushId){
     Shiny.resetBrush(brushId);
-    
+
     if (startX < 0 || endX < 0 || startY < 0 || endY < 0){
       // requested coordinates are outside of the domain
       return;
     }
-    
+
     var offset = plot.offset();
     startX += offset.left;
     endX += offset.left;
     startY += offset.top;
     endY += offset.top;
-  
+
     plot.trigger({ // click in the start position
       type: 'mousedown.image_output',
       which: 1,
@@ -85,7 +85,35 @@ function setPlotBrush(outputId, startX, endX, startY, endY){
       pageX: endX,
       pageY: endY
     });
-    
+
     // shiny will send the brush area info to the backend
   }
+}
+
+// data tables
+function preventLinkSelections(row){
+  $(row).find('a').each(function(){
+    $(this).mousedown(function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    });
+  });
+}
+
+function buildDropdownLinkMenu(itemDefs, label){
+  var id = generateId();
+  var items = itemDefs.map(function(item){
+    return '<li role="presentation"><a role="menuitem" tabindex="-1" href="' + item.url + '" target="_blank">' + item.label + '</a></li>';
+  });
+
+  var a = '<span class="caret"></span>';
+  var l = '<a class="dropdown-toggle" type="button" id="' + id + '" data-toggle="dropdown">' + label + a + '</a>';
+  var u = '<ul class="dropdown-menu" role="menu" aria-labelledby="' + id + '">' + items.join('') + '</ul>';
+
+  return '<div class="dropdown">' + l + u + '<div>';
+}
+
+function generateId(){
+  return '_' + Math.random().toString(36).substr(2, 9);
 }
