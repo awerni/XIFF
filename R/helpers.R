@@ -152,6 +152,7 @@ getEnsemblTranscriptLink <- function(transcript, species){
   glue::glue('<a href="https://www.ensembl.org/{species}/Transcript/Summary?db=core;t={transcript}" target="_blank">{transcript}</a>')
 }
 
+#' @export
 getEnsemblSpecies <- function(species){
   species <- switch(
     EXPR = species,
