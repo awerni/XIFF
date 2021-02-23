@@ -46,6 +46,21 @@ loadMachineLearningModel <- function(filepath, errorId, session, object = NULL){
 predictFromModel <- function(m, df, errorId, session){
   predFun <- m[[".predFun"]]
 
+  showPredictError <- function(msg){
+    shinyBS::createAlert(
+      session = session,
+      anchorId = errorId,
+      content = msg,
+      style = "danger"
+    )
+  }
+
+  missingFeatures <- setdiff(m$bestFeatures, names(df))
+  if (length(missingFeatures) > 0){
+    showPredictError(paste("Missing features:", paste(missingFeatures, collapse = ", ")))
+    return()
+  }
+
   assignment <- predFun(m$model, df)
   if (is.list(assignment)){
     assignment <- unlist(assignment, use.names = FALSE)
@@ -53,12 +68,7 @@ predictFromModel <- function(m, df, errorId, session){
   assignment <- as.character(assignment)
 
   if (length(assignment) == 0 || any(! assignment %in% c("class1", "class2", NA))){
-    shinyBS::createAlert(
-      session = session,
-      anchorId = errorId,
-      content = "Incorrect prediction format. Did you use a custom model? Please contact the app author.",
-      style = "danger"
-    )
+    showPredictError("Incorrect prediction format. Did you use a custom model? Please contact the app author.")
     return()
   }
 

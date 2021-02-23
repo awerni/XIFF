@@ -11,12 +11,12 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   )
 
   label <- "Provide a text- or MS-Excel-file"
-  
+
   if (allowRds){
     label <- paste(label, "or a machine learning model file")
     acceptExt <- c(acceptExt, ".rds")
   }
-  
+
   helpLink <- if (!is.null(helpUrl)){
     shiny::a(
       href = helpUrl,
@@ -126,7 +126,8 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     FileInfo = FileInfo,
     topErrorId = topErrorId,
     bottomErrorId = bottomErrorId,
-    Annotation = AnnotationFull
+    Annotation = AnnotationFull,
+    translationFun = translationFun
   )
 
   UploadItems <- shiny::reactive({
@@ -496,7 +497,7 @@ mlUploadInputModeUI_plot <- function(id){
   brushPlotUI(ns("barplot"))
 }
 
-mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bottomErrorId, Annotation){
+mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bottomErrorId, Annotation, translationFun){
   ns <- session$ns
 
   colname <- getOption("xiff.column")
@@ -508,13 +509,23 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     loadMachineLearningModel(info$datapath, topErrorId, session)
   })
 
+  TrainingSet <- shiny::reactive({
+    m <- Model()
+    anno <- Annotation()
+    shiny::req(m, anno)
+
+    translated <- translationFun(tibble(!!colname := m$trainingSet), anno)
+    if (is.null(translated)) return()
+    translated$df[[colname]]
+  })
+
   shiny::observeEvent(
     eventExpr = Model(),
     handlerExpr = {
       m <- Model()
       shiny::req(m)
 
-      cl <- m$trainingSet
+      cl <- TrainingSet()
       shiny::req(length(cl) > 0)
 
       tt <- Annotation() %>%
@@ -542,7 +553,8 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
   Data <- shiny::reactive({
     d <- DB_Data()
     m <- Model()
-    shiny::req(d, m)
+    trainingSet <- TrainingSet()
+    shiny::req(d, m, trainingSet)
 
     tumortypes <- input$tumortype
     if (length(tumortypes) == 0) return()
@@ -565,7 +577,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     }
 
     if (!useTraining){
-      items <- setdiff(items, m$trainingSet)
+      items <- setdiff(items, trainingSet)
     }
 
     df <- d %>% dplyr::filter(!!colname %in% items)
@@ -593,7 +605,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     if (useFacets){
       df <- df %>% dplyr::mutate(
         type = factor(ifelse(
-          test = !!colname %in% m$trainingSet,
+          test = !!colname %in% trainingSet,
           yes = "training",
           no = "unseen"
         ))
