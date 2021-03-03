@@ -506,7 +506,12 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
   Model <- shiny::reactive({
     info <- FileInfo()
     shiny::req(!is.null(info) && info[["isRds"]])
-    loadMachineLearningModel(info$datapath, topErrorId, session)
+
+    withProgress(
+      expr = loadMachineLearningModel(info$datapath, topErrorId, session),
+      value = 0.2,
+      message = "loading ML model..."
+    )
   })
 
   TrainingSet <- shiny::reactive({
@@ -548,12 +553,18 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
     sql <- paste0("SELECT ", colname, ", ensg, log2tpm AS score FROM cellline.processedrnaseqview ",
                   "WHERE ", getSQL_filter("ensg", m$bestFeatures))
-    getPostgresql(sql)
+
+    withProgress(
+      expr = getPostgresql(sql),
+      value = 0.4,
+      message = "fetching DB data..."
+    )
   })
 
   Data <- shiny::reactive({
-    d <- DB_Data()
     m <- Model()
+    d <- DB_Data()
+
     trainingSet <- TrainingSet()
     shiny::req(d, m, trainingSet)
 
@@ -587,7 +598,14 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
     df <- df %>% tidyr::pivot_wider(names_from = ensg, values_from = score)
 
-    assignment <- predictFromModel(m, df, topErrorId, session)
+    withProgress(
+      expr = {
+        assignment <- predictFromModel(m, df, topErrorId, session)
+      },
+      value = 0.8,
+      message = "predicting..."
+    )
+
     if (is.null(assignment)) return()
 
     cl <- m$classLabel
@@ -642,7 +660,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     textCallback = function(n, rx, ry){
       paste(get_label(n), "selected")
     },
-    message = "Retrieving data",
+    message = "Recalculating plot",
     value = 0.3
   )
 
