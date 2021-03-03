@@ -131,7 +131,9 @@ n_common <- function(x, y){
 
 #' @export
 getHallmarkGeneSetChoices <- function(geneSets){
-  structure(geneSets, names = gsub("^HALLMARK_", "", geneSets))
+  if (length(geneSets) > 0){
+    structure(geneSets, names = gsub("^HALLMARK_", "", geneSets))
+  }
 }
 
 #' @export

@@ -530,7 +530,8 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
       tt <- Annotation() %>%
         dplyr::filter(!!colname %in% cl) %>%
-        dplyr::pull(tumortype)
+        dplyr::pull(tumortype) %>%
+        unique()
 
       shiny::updateSelectInput(
         session = session,
