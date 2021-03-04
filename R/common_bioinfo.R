@@ -61,7 +61,13 @@ predictFromModel <- function(m, df, errorId, session){
     return()
   }
 
-  assignment <- predFun(m$model, df)
+  df <- preparePredictionData(df)
+  assignment <- try(predFun(m$model, df))
+  if (is(assignment, "try-error")){
+    showPredictError("Error during prediction. Please contact the app author.")
+    return()
+  }
+
   if (is.list(assignment)){
     assignment <- unlist(assignment, use.names = FALSE)
   }
@@ -73,4 +79,15 @@ predictFromModel <- function(m, df, errorId, session){
   }
 
   assignment
+}
+
+preparePredictionData <- function(df){
+  colname <- getOption("xiff.column")
+
+  if (colname %in% names(df)){
+    attr(df, "mlItems") <- df[[colname]]
+    df[[colname]] <- NULL
+  }
+
+  df
 }

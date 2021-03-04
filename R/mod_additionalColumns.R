@@ -96,6 +96,7 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
 
     output$table <- DT::renderDataTable({
       tab <- Table()
+      req(tab)
       vc <- VisibleCols()
 
       currentColState <- shiny::isolate(ColumnState())
