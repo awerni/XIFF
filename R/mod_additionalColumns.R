@@ -60,6 +60,7 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
 
     Choices <- shiny::reactive({
       tab <- Table()
+      shiny::req(tab)
       tabNames <- names(tab)
 
       if (is.null(defaultCols)) {
@@ -90,13 +91,14 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
 
     VisibleCols <- shiny::reactive({
       tab <- Table()
+      shiny::req(tab)
       visibleCols <- c(Defaults(), SelectedCols())
       intersect(names(tab), visibleCols)
     })
 
     output$table <- DT::renderDataTable({
       tab <- Table()
-      req(tab)
+      shiny::validate(shiny::need(tab, "no data available"))
       vc <- VisibleCols()
 
       currentColState <- shiny::isolate(ColumnState())
