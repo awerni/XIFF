@@ -1,31 +1,31 @@
 #' @export
 tabLayoutUI_main <- function(id, useMiddlePlot = TRUE){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
 
   width <- if (useMiddlePlot) 4 else 6
 
-  shiny::div(
-    shiny::fluidRow(
-      shiny::column(
+  div(
+    fluidRow(
+      column(
         width = width,
         plotWrapperUI(ns("plot_left"))
       ),
       `if`(
         useMiddlePlot,
-        shiny::column(
+        column(
           width = width,
           plotWrapperUI(ns("plot_middle"))
         )
       ),
-      shiny::column(
+      column(
         width = width,
         plotWrapperUI(ns("plot_right"))
       )
     ),
-    shiny::fluidRow(
-      shiny::column(
+    fluidRow(
+      column(
         width = 12,
-        shiny::div(
+        div(
           style = "font-size:80%",
           DT::dataTableOutput(ns("table"))
         )
@@ -55,16 +55,16 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
   }
 
   leftId <- ns("type_left")
-  leftSelected <- (shiny::isolate(input[[leftId]]) %||% defaults$left) %||% choices[[1]]
+  leftSelected <- (isolate(input[[leftId]]) %||% defaults$left) %||% choices[[1]]
 
   rightId <- ns("type_right")
-  rightSelected <- (shiny::isolate(input[[rightId]]) %||% defaults$right) %||% choices[[3]]
+  rightSelected <- (isolate(input[[rightId]]) %||% defaults$right) %||% choices[[3]]
 
   middlePlotInput <- if (useMiddlePlot){
     middleId <- ns("type_middle")
-    middleSelected <- (shiny::isolate(input[[middleId]]) %||% defaults$middle) %||% choices[[2]]
+    middleSelected <- (isolate(input[[middleId]]) %||% defaults$middle) %||% choices[[2]]
 
-    shiny::selectInput(
+    selectInput(
       inputId = middleId,
       label = "Middle plot",
       choices = choices,
@@ -72,15 +72,15 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
     )
   }
 
-  shiny::div(
-    shiny::selectInput(
+  div(
+    selectInput(
       inputId = leftId,
       label = "Left plot",
       choices = choices,
       selected = leftSelected
     ),
     middlePlotInput,
-    shiny::selectInput(
+    selectInput(
       inputId = rightId,
       label = "Right plot",
       choices = choices,
@@ -92,17 +92,17 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
 #' @export
 tabLayout <- function(input, output, session, plotFun, TableData,
                       jsRowCallback = htmlwidgets::JS("preventLinkSelections")){
-  rowCallback <- if (shiny::is.reactive(jsRowCallback)){
+  rowCallback <- if (is.reactive(jsRowCallback)){
     jsRowCallback
   } else {
-    shiny::reactive({ jsRowCallback })
+    reactive({ jsRowCallback })
   }
 
   varDict <- list()
 
-  LeftPlotType <- shiny::reactive({ input$type_left })
-  LeftPlotExpr <- shiny::reactive({ plotFun(LeftPlotType()) })
-  shiny::callModule(
+  LeftPlotType <- reactive({ input$type_left })
+  LeftPlotExpr <- reactive({ plotFun(LeftPlotType()) })
+  callModule(
     module = plotWrapper,
     id = "plot_left",
     PlotExpr = LeftPlotExpr,
@@ -110,9 +110,9 @@ tabLayout <- function(input, output, session, plotFun, TableData,
     varDict = varDict
   )
 
-  MiddlePlotType <- shiny::reactive({ input$type_middle })
-  MiddlePlotExpr <- shiny::reactive({ plotFun(MiddlePlotType()) })
-  shiny::callModule(
+  MiddlePlotType <- reactive({ input$type_middle })
+  MiddlePlotExpr <- reactive({ plotFun(MiddlePlotType()) })
+  callModule(
     module = plotWrapper,
     id = "plot_middle",
     PlotExpr = MiddlePlotExpr,
@@ -120,9 +120,9 @@ tabLayout <- function(input, output, session, plotFun, TableData,
     varDict = varDict
   )
 
-  RightPlotType <- shiny::reactive({ input$type_right })
-  RightPlotExpr <- shiny::reactive({ plotFun(RightPlotType()) })
-  shiny::callModule(
+  RightPlotType <- reactive({ input$type_right })
+  RightPlotExpr <- reactive({ plotFun(RightPlotType()) })
+  callModule(
     module = plotWrapper,
     id = "plot_right",
     PlotExpr = RightPlotExpr,
@@ -152,11 +152,11 @@ tabLayout <- function(input, output, session, plotFun, TableData,
     )
   })
 
-  SelectedRow <- shiny::reactive({
+  SelectedRow <- reactive({
     input$table_rows_selected
   })
 
-  AllRows <- shiny::reactive({
+  AllRows <- reactive({
     input$table_rows_all
   })
 

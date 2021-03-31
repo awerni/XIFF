@@ -7,7 +7,7 @@ withHash <- function(filePath, wwwPath){
 #' @export
 useXIFF <- function(){
   list(
-    shiny::tags$link(
+    tags$link(
       rel = "stylesheet",
       type = "text/css",
       href = withHash(
@@ -15,7 +15,7 @@ useXIFF <- function(){
         wwwPath = "xiff/common.css"
       )
     ),
-    shiny::tags$script(src = withHash(
+    tags$script(src = withHash(
       filePath = system.file("www/common.js", package = "XIFF"),
       wwwPath = "xiff/common.js"
     ))

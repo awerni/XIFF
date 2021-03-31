@@ -1,28 +1,28 @@
 #' @export
 restoreSelectionInputModeUI <- function(id){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
 
   list(
-    shiny::fluidRow(
-      shiny::column(
+    fluidRow(
+      column(
         width = 4,
-        shiny::selectInput(
+        selectInput(
           inputId = ns("column"),
           label = "select table column",
           choices = NULL
         )
       ),
-      shiny::column(
+      column(
         width = 4,
-        shiny::selectizeInput(
+        selectizeInput(
           inputId = ns("column_facet"),
           label = "split view by",
           choices = NULL
         )
       ),
-      shiny::column(
+      column(
         width = 4,
-        shiny::checkboxInput(
+        checkboxInput(
           inputId = ns("display_bar"),
           label = "stack numeric values",
           value = FALSE)
@@ -39,43 +39,43 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
 
   ns <- session$ns
 
-  shiny::observe({
+  observe({
     df <- classStack()
-    shiny::req(df)
+    req(df)
 
-    d <- df %>% dplyr::select(-!!colname)
+    d <- df %>% select(-!!colname)
     updateSplitChoices("column", "column_facet", d, input, session)
   })
 
-  RestorePlot <- shiny::reactive({
+  RestorePlot <- reactive({
     df <- classStack()
-    shiny::req(nrow(df) > 0)
+    req(nrow(df) > 0)
 
     sel_col <- input$column
     facet_col <- input$column_facet
-    shiny::req(sel_col)
-    shiny::req(facet_col)
-    shiny::req(sel_col != facet_col)
-    shiny::req(!is.null(input$display_bar))
+    req(sel_col)
+    req(facet_col)
+    req(sel_col != facet_col)
+    req(!is.null(input$display_bar))
 
     shouldFacet <- facet_col != "-- none --"
 
     if (shouldFacet){
       facet_col <- rlang::sym(facet_col)
-      df <- df %>% dplyr::mutate(facet_var = !!facet_col)
+      df <- df %>% mutate(facet_var = !!facet_col)
     } else {
-      df <- df %>% dplyr::mutate(facet_var = "dummy")
+      df <- df %>% mutate(facet_var = "dummy")
     }
 
-    d <- df %>% dplyr::rename(x_score = !!sel_col)
+    d <- df %>% rename(x_score = !!sel_col)
 
-    if (sel_col == "tumortype") d <- d %>% dplyr::mutate(tumortype = x_score)
+    if (sel_col == "tumortype") d <- d %>% mutate(tumortype = x_score)
 
     d <- d %>%
-      dplyr::select(!!colname, x_score, facet_var, tumortype) %>%
-      dplyr::filter(!is.na(x_score), !is.na(facet_var)) %>%
-      dplyr::arrange(dplyr::desc(x_score), as.character(!!colname)) %>%
-      dplyr::mutate(!!colname := forcats::as_factor(as.character(!!colname)))
+      select(!!colname, x_score, facet_var, tumortype) %>%
+      filter(!is.na(x_score), !is.na(facet_var)) %>%
+      arrange(desc(x_score), as.character(!!colname)) %>%
+      mutate(!!colname := forcats::as_factor(as.character(!!colname)))
 
     if (is.null(d)) return()
 
@@ -97,20 +97,20 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
     }
 
     if (shouldFacet){
-      g <- g + ggplot2::facet_grid(. ~ facet_var, scales = "free_x", space = "free")
+      g <- g + facet_grid(. ~ facet_var, scales = "free_x", space = "free")
     }
 
     return(g)
   })
 
-  RestorePlotCheck <- shiny::reactive({
+  RestorePlotCheck <- reactive({
     !is.null(input$column) &&
       !is.null(input$column_facet) &&
       !is.null(input$display_bar) &&
       nrow(classStack()) > 0
   })
 
-  Restore_items <- shiny::callModule(
+  Restore_items <- callModule(
     module = brushPlot,
     id = "barplot",
     plotExpr = RestorePlot,
@@ -123,7 +123,7 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
     value = 0.3
   )
 
-  shiny::observeEvent(classStack(), {
+  observeEvent(classStack(), {
     session$resetBrush("plot_brush")
   })
 
@@ -138,8 +138,8 @@ saveProperties <- function(res, classSelection, classLabel, classStack, Annotati
   colname <- getOption("xiff.column")
   label <- getOption("xiff.label")
 
-  cs <- shiny::reactiveValuesToList(classSelection)
-  cl <- shiny::reactiveValuesToList(classLabel)
+  cs <- reactiveValuesToList(classSelection)
+  cl <- reactiveValuesToList(classLabel)
   assignment <- stackClasses(cs, cl, return_factor = TRUE)
 
   if (nrow(assignment) > 0) {
@@ -151,25 +151,25 @@ saveProperties <- function(res, classSelection, classLabel, classStack, Annotati
 
     if (is.data.frame(res) && nrow(res) > 0 && colname %in% names(res)){
       if ("class" %in% names(res)){
-        res <- res %>% dplyr::select(-class)
+        res <- res %>% select(-class)
       }
-      assignment <- assignment %>% dplyr::left_join(res, by = colname)
+      assignment <- assignment %>% left_join(res, by = colname)
     }
 
     df <- assignment %>%
-      dplyr::left_join(Annotation(), by = colname) %>%
-      dplyr::select(!!colname, tidyselect::everything())
+      left_join(Annotation(), by = colname) %>%
+      select(!!colname, tidyselect::everything())
 
     classStack(df)
   } else {
     dialog_text <- "Class selection is empty. Nothing saved."
   }
-  shiny::showModal(
-    shiny::modalDialog(
+  showModal(
+    modalDialog(
       title = paste0("Putting ", label, "s onto application stack"),
       dialog_text,
       easyClose = TRUE,
-      footer = shiny::modalButton("ok")
+      footer = modalButton("ok")
     )
   )
 }
