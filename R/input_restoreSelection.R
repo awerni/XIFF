@@ -4,24 +4,21 @@ restoreSelectionInputModeUI <- function(id){
 
   list(
     fluidRow(
-      column(
-        width = 4,
+      column_4(
         selectInput(
           inputId = ns("column"),
           label = "select table column",
           choices = NULL
         )
       ),
-      column(
-        width = 4,
+      column_4(
         selectizeInput(
           inputId = ns("column_facet"),
           label = "split view by",
           choices = NULL
         )
       ),
-      column(
-        width = 4,
+      column_4(
         checkboxInput(
           inputId = ns("display_bar"),
           label = "stack numeric values",

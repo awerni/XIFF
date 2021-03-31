@@ -22,15 +22,7 @@ tabLayoutUI_main <- function(id, useMiddlePlot = TRUE){
         plotWrapperUI(ns("plot_right"))
       )
     ),
-    fluidRow(
-      column(
-        width = 12,
-        div(
-          style = "font-size:80%",
-          DT::dataTableOutput(ns("table"))
-        )
-      )
-    )
+    fluidRow_12(containerDT(ns("table")))
   )
 }
 

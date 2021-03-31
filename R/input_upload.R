@@ -26,16 +26,10 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   }
 
   list(
-    fluidRow(
-      column(
-        width = 12,
-        h3(label, helpLink)
-      )
-    ),
+    fluidRow_12(h3(label, helpLink)),
     shinyBS::bsAlert(ns("top_error")),
     fluidRow(
-      column(
-        width = 4,
+      column_4(
         fileInput(
           inputId = ns("upload"),
           label = "Choose File",
@@ -44,10 +38,7 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
         ),
         uiOutput(ns("stat"))
       ),
-      column(
-        width = 8,
-        uiOutput(ns("options"))
-      )
+      column_8(uiOutput(ns("options")))
     ),
     uiOutput(ns("plot")),
     shinyBS::bsAlert(ns("bottom_error"))
@@ -164,8 +155,7 @@ classicUploadInputModeUI_options <- function(id){
   ns <- NS(id)
 
   fluidRow(
-    column(
-      width = 6,
+    column_6(
       selectInput(
         inputId = ns("column"),
         label = "select file column",
@@ -177,8 +167,7 @@ classicUploadInputModeUI_options <- function(id){
         value = FALSE
       )
     ),
-    column(
-      width = 6,
+    column_6(
       selectizeInput(
         inputId = ns("column_facet"),
         label = "split view by",
@@ -467,8 +456,7 @@ mlUploadInputModeUI_options <- function(id, input, AllTumortype){
   myT <- AllTumortype()
 
   fluidRow(
-    column(
-      width = 6,
+    column_6(
       radioButtons(
         inputId = ns("show"),
         label = "Show",
@@ -476,8 +464,7 @@ mlUploadInputModeUI_options <- function(id, input, AllTumortype){
         selected = "split training and unseen"
       )
     ),
-    column(
-      width = 6,
+    column_6(
       selectInput(
         inputId = ns("tumortype"),
         label = "Tumor Types:",

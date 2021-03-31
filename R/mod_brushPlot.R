@@ -5,8 +5,7 @@ brushPlotUI <- function(id, ..., direction = "x", height = "600px"){
   tagList(
     fluidRow(
       class = "brush-container",
-      column(
-        width = 12,
+      column_12(
         fluidRow(
           class = "brush-info",
           textOutput(ns("selectionStat"), inline = TRUE),
