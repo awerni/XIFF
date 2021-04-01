@@ -1,7 +1,7 @@
 #' @export
 additionalColumnsUI_main <- function(id, style = "font-size:80%"){
-  ns <- shiny::NS(id)
-  shiny::div(
+  ns <- NS(id)
+  div(
     style = style,
     DT::dataTableOutput(ns("table"))
   )
@@ -9,11 +9,11 @@ additionalColumnsUI_main <- function(id, style = "font-size:80%"){
 
 #' @export
 additionalColumnsUI_sidebar <- function(id){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
 
-  shiny::div(
+  div(
     class = "column-picker",
-    shiny::uiOutput(ns("picker"))
+    uiOutput(ns("picker"))
   )
 }
 
@@ -27,11 +27,11 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
       theDots[["options"]][["stateSave"]] <- TRUE
     }
 
-    Defaults <- shiny::reactiveVal()
-    SelectedCols <- shiny::reactiveVal()
-    ColumnState <- shiny::reactiveVal()
+    Defaults <- reactiveVal()
+    SelectedCols <- reactiveVal()
+    ColumnState <- reactiveVal()
 
-    shiny::observeEvent(
+    observeEvent(
       eventExpr = Table(),
       handlerExpr = {
         # Reset settings on table change
@@ -45,7 +45,7 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
       ignoreNULL = FALSE
     )
 
-    shiny::observeEvent(
+    observeEvent(
       eventExpr = input$showCols,
       handlerExpr = {
         old <- SelectedCols()
@@ -58,9 +58,9 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
       ignoreNULL = FALSE
     )
 
-    Choices <- shiny::reactive({
+    Choices <- reactive({
       tab <- Table()
-      shiny::req(tab)
+      req(tab)
       tabNames <- names(tab)
 
       if (is.null(defaultCols)) {
@@ -72,12 +72,12 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
       setdiff(tabNames, Defaults())
     })
 
-    output$picker <- shiny::renderUI({
+    output$picker <- renderUI({
       shinyWidgets::pickerInput(
         inputId = ns("showCols"),
         label = NULL,
         choices = Choices(),
-        selected = shiny::isolate(SelectedCols()),
+        selected = isolate(SelectedCols()),
         width = "100%",
         options = list(
           `actions-box` = FALSE,
@@ -89,19 +89,19 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
       )
     })
 
-    VisibleCols <- shiny::reactive({
+    VisibleCols <- reactive({
       tab <- Table()
-      shiny::req(tab)
+      req(tab)
       visibleCols <- c(Defaults(), SelectedCols())
       intersect(names(tab), visibleCols)
     })
 
     output$table <- DT::renderDataTable({
       tab <- Table()
-      shiny::validate(shiny::need(tab, "no data available"))
+      validate(need(tab, "no data available"))
       vc <- VisibleCols()
 
-      currentColState <- shiny::isolate(ColumnState())
+      currentColState <- isolate(ColumnState())
 
       if (length(currentColState) > 0){
         # prepare empty state per each column
@@ -116,7 +116,7 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
       do.call(DT::datatable, theDots)
     })
 
-    shiny::observeEvent(
+    observeEvent(
       eventExpr = input$table_state,
       handlerExpr = {
         currentState <- lapply(
@@ -129,8 +129,8 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
     )
 
     proxy <- DT::dataTableProxy("table")
-    SelectedRows <- shiny::reactive({ input$table_rows_selected })
-    AllRows <- shiny::reactive({ input$table_rows_all })
+    SelectedRows <- reactive({ input$table_rows_selected })
+    AllRows <- reactive({ input$table_rows_all })
 
     list(
       proxy = proxy,

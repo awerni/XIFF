@@ -6,10 +6,10 @@ generatePlotByType <- function(item, data, sampleClasses, classLabel, plotType, 
   switch(
     EXPR = plotType,
     roc = rocPlotFun(item, data, sampleClasses, ...),
-    point = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_jitter,
-                        width = 0.25, height = 0, mapping = ggplot2::aes(colour = class), ...),
-    violin = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_violin, ...),
-    box = diffPlotFun(item, data, sampleClasses, classLabel, ggplot2::geom_boxplot, ...),
+    point = diffPlotFun(item, data, sampleClasses, classLabel, geom_jitter,
+                        width = 0.25, height = 0, mapping = aes(colour = class), ...),
+    violin = diffPlotFun(item, data, sampleClasses, classLabel, geom_violin, ...),
+    box = diffPlotFun(item, data, sampleClasses, classLabel, geom_boxplot, ...),
     coverage = generateDataCoveragePlot(data, dataCol, sampleClasses, classLabel)
   )
 }
@@ -20,26 +20,26 @@ generateROCPlot <- function(data, sampleClasses, dataCol, title = "ROC plot") {
 
   colname <- getOption("xiff.column")
   assignment <- stackClasses(sampleClasses)
-  data <- data %>% dplyr::inner_join(assignment, by = colname)
+  data <- data %>% inner_join(assignment, by = colname)
 
   ordering <- 0:1
   names(ordering) <- names(sort(sapply(split(data[[dataCol]], data[["class"]]), mean, na.rm = TRUE)))
   data[["d"]] <- ordering[as.character(data[["class"]])]
 
   dataCol <- rlang::sym(dataCol)
-  p <- ggplot2::ggplot(data, ggplot2::aes(d = d, m = !!dataCol)) +
+  p <- ggplot(data, aes(d = d, m = !!dataCol)) +
     plotROC::geom_roc() +
-    ggplot2::theme(
-      text = ggplot2::element_text(size = 16),
-      plot.title = ggplot2::element_text(hjust = 0.5)
+    theme(
+      text = element_text(size = 16),
+      plot.title = element_text(hjust = 0.5)
     ) +
-    ggplot2::ggtitle(title) +
-    ggplot2::xlab("False positive rate") +
-    ggplot2::ylab("True positive rate")
+    ggtitle(title) +
+    xlab("False positive rate") +
+    ylab("True positive rate")
   # scale_fill_viridis(discrete = TRUE, option = "plasma")
 
   auc <- plotROC::calc_auc(p)$AUC
-  p + ggplot2::annotate("text", x = .75, y = .25, label = paste("AUC =", signif(auc, 3)))
+  p + annotate("text", x = .75, y = .25, label = paste("AUC =", signif(auc, 3)))
 }
 
 #' @export
@@ -49,7 +49,7 @@ generateDiffPlot <- function(data, sampleClasses, classLabel, dataCol, title, pl
 
   colname <- getOption("xiff.column")
   coldata <- stackClasses(sampleClasses, classLabel, return_factor = TRUE) %>%
-    dplyr::inner_join(data, by = colname)
+    inner_join(data, by = colname)
 
   dataCol <- rlang::sym(dataCol)
   mapping <- tooltipAes(class, !!dataCol, fill = class, plotFunc = plotFunc)
@@ -57,26 +57,26 @@ generateDiffPlot <- function(data, sampleClasses, classLabel, dataCol, title, pl
   breaks <- if (trans == "identity"){
     scales::breaks_pretty(n = 5)
   } else {
-    ggplot2::waiver()
+    waiver()
   }
 
-  ggplot2::ggplot(coldata, mapping) +
+  ggplot(coldata, mapping) +
     plotFunc(...) +
-    ggplot2::scale_y_continuous(
+    scale_y_continuous(
       trans = trans,
       breaks = breaks
     ) +
-    ggplot2::theme(
-      text = ggplot2::element_text(size = 16),
+    theme(
+      text = element_text(size = 16),
       legend.position = "none",
-      plot.title = ggplot2::element_text(hjust = 0.5)
+      plot.title = element_text(hjust = 0.5)
     ) +
-    ggplot2::scale_fill_manual(values = plotColors) +
-    ggplot2::scale_color_manual(values = plotColors) +
+    scale_fill_manual(values = plotColors) +
+    scale_color_manual(values = plotColors) +
     # + scale_fill_viridis(discrete = TRUE, option = "plasma") +
-    ggplot2::ggtitle(title) +
-    ggplot2::xlab(xlabel) +
-    ggplot2::ylab(ylabel)
+    ggtitle(title) +
+    xlab(xlabel) +
+    ylab(ylabel)
 }
 
 #' @export
@@ -89,31 +89,31 @@ generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"
 
   dataCol <- rlang::sym(dataCol)
   fill <- rlang::sym(fill)
-  p <- ggplot2::ggplot(data, ggplot2::aes(x = !!colname, y = !!dataCol, fill = !!fill)) +
-    ggplot2::geom_bar(stat = "identity", width = 1) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(
+  p <- ggplot(data, aes(x = !!colname, y = !!dataCol, fill = !!fill)) +
+    geom_bar(stat = "identity", width = 1) +
+    theme_bw() +
+    theme(
       legend.position = "bottom",
-      text = ggplot2::element_text(size = 15),
-      axis.text.x = ggplot2::element_blank(),
-      panel.grid.major = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.background = ggplot2::element_blank(),
-      axis.ticks.x = ggplot2::element_blank()
+      text = element_text(size = 15),
+      axis.text.x = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.background = element_blank(),
+      axis.ticks.x = element_blank()
     ) +
-    ggplot2::scale_y_continuous(trans = trans) +
-    ggplot2::coord_cartesian(ylim = limits) +
-    ggplot2::xlab(xlabel) +
-    ggplot2::ylab(ylabel)
+    scale_y_continuous(trans = trans) +
+    coord_cartesian(ylim = limits) +
+    xlab(xlabel) +
+    ylab(ylabel)
 
   nItems <- nrow(data)
   if (nItems > 100){
     p
   } else {
-    p + ggplot2::theme(axis.text.x = ggplot2::element_text(
+    p + theme(axis.text.x = element_text(
       angle = -90,
       hjust = 0,
-      size = dplyr::if_else(nItems <= 50, 15, 10)
+      size = if_else(nItems <= 50, 15, 10)
     ))
   }
 }
@@ -124,48 +124,48 @@ generateDataCoveragePlot <- function(data, col, sampleClasses, classLabel) {
   colname <- getOption("xiff.column")
 
   df <- stackClasses(sampleClasses, classLabel) %>%
-    dplyr::left_join(data, by = colname) %>%
-    dplyr::select(class, !!colname, x = !!col) %>%
-    dplyr::group_by(class) %>%
-    dplyr::summarize(
+    left_join(data, by = colname) %>%
+    select(class, !!colname, x = !!col) %>%
+    group_by(class) %>%
+    summarize(
       missing = sum(is.na(x)),
       available = dplyr::n() - missing
     ) %>%
     tidyr::pivot_longer(missing:available, names_to = "type", values_to = "n") %>%
-    dplyr::mutate(type = factor(type, levels = c("missing", "available")))
+    mutate(type = factor(type, levels = c("missing", "available")))
 
-  ggplot2::ggplot(
+  ggplot(
     data = df,
-    mapping = ggplot2::aes(
+    mapping = aes(
       x = class,
       y = n,
       fill = type
     )
   ) +
-    ggplot2::geom_bar(
+    geom_bar(
       position = "stack",
       stat = "identity"
     ) +
-    ggplot2::scale_fill_manual(
+    scale_fill_manual(
       values = c(
         missing = "gray80",
         available = "#91bfdb")
     ) +
-    ggplot2::theme(
-      text = ggplot2::element_text(size = 16),
+    theme(
+      text = element_text(size = 16),
       legend.position = "right",
-      plot.title = ggplot2::element_text(hjust = 0.5)
+      plot.title = element_text(hjust = 0.5)
     ) +
-    ggplot2::ggtitle(paste("\n", "Data coverage")) +
-    ggplot2::xlab("") +
-    ggplot2::ylab(paste0("Number of ", getOption("xiff.label"), "s"))
+    ggtitle(paste("\n", "Data coverage")) +
+    xlab("") +
+    ylab(paste0("Number of ", getOption("xiff.label"), "s"))
 }
 
 generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol, fontSize = 10, p = TRUE) {
   ret <- list(status = "ok")
 
   if (p) {
-    progress <- shiny::Progress$new()
+    progress <- Progress$new()
     on.exit(progress$close())
     progress$set(message = progressText, value = 0.5)
   }
@@ -175,7 +175,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
   nItems <- data[[getOption('xiff.name')]]
 
   if (progressText == "plot PCA") {
-    mapping <- ggplot2::aes(
+    mapping <- aes(
       x = PC1,
       y = PC2,
       color = class,
@@ -189,7 +189,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
     title <- glue::glue("PCA plot\n#{getOption('xiff.label')}s={nItems}")
 
   } else if (progressText == "plot t-SNE") {
-    mapping <- ggplot2::aes(
+    mapping <- aes(
       x = X1,
       y = X2,
       color = class,
@@ -203,7 +203,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
 
   } else if (progressText == "plot umap") {
 
-    mapping <- ggplot2::aes(
+    mapping <- aes(
       x = X1,
       y = X2,
       color = class,
@@ -216,25 +216,25 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
     title <- paste0("UMAP plot\n", data$title)
   }
 
-  df <- data$data %>% dplyr::mutate(class = factor(class))
+  df <- data$data %>% mutate(class = factor(class))
 
-  pl <- ggplot2::ggplot(
+  pl <- ggplot(
     data = df,
     mapping = mapping
   ) +
-    ggplot2::geom_point(size = 3) +
-    ggplot2::xlab(xlabel) +
-    ggplot2::ylab(ylabel) +
-    ggplot2::ggtitle(title) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(hjust = 0.5),
-      text = ggplot2::element_text(size = fontSize),
+    geom_point(size = 3) +
+    xlab(xlabel) +
+    ylab(ylabel) +
+    ggtitle(title) +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      text = element_text(size = fontSize),
       legend.position = "bottom"
     ) +
-    ggplot2::labs(color = colorCol)
+    labs(color = colorCol)
 
   if (length(unique(data$data$class)) <= 7) {
-    pl <- pl + ggplot2::scale_color_manual(values = plotColors)
+    pl <- pl + scale_color_manual(values = plotColors)
   } else {
     #pl <- pl + viridis::scale_color_viridis(discrete = TRUE, option = "plasma")
   }
@@ -299,7 +299,7 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
 
     if (usePercent && (prop1 %in% names(annotation))){
       x <- getPropertyFractions(data, annotation, annotationFocus, prop1, prop2)
-      mapping <- ggplot2::aes(
+      mapping <- aes(
         x = prop1,
         y = percent,
         fill = !!colorProp
@@ -307,7 +307,7 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
 
       generateClassSelectionBarPlot(x, mapping, paste("% of respective", prop1), n_rows, prop2, "identity")
     } else {
-      mapping <- ggplot2::aes(
+      mapping <- aes(
         x = prop1,
         fill = !!colorProp
       )
@@ -316,34 +316,34 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
     }
   } else if (plot_type == "pie") {
     data_sum <- if (prop1 != prop2 && !isProp2None) {
-      data %>% dplyr::mutate(prop = paste(prop1, prop2, sep = "-"))
+      data %>% mutate(prop = paste(prop1, prop2, sep = "-"))
     } else {
-      data %>% dplyr::rename(prop = prop1)
+      data %>% rename(prop = prop1)
     }
 
     data_sum <- data_sum %>%
-      dplyr::group_by(class, prop) %>%
-      dplyr::summarise(n = n()) %>%
-      dplyr::mutate(percent = n/sum(n))
+      group_by(class, prop) %>%
+      summarise(n = dplyr::n()) %>%
+      mutate(percent = n/sum(n))
 
-    ggplot2::ggplot(
+    ggplot(
       data = data_sum,
-      mapping = ggplot2::aes(
+      mapping = aes(
         x = 1,
         y = percent,
         fill = prop
       )
     ) +
-      ggplot2::geom_bar(stat = "identity") +
-      ggplot2::facet_grid(facets = . ~ class) +
-      ggplot2::coord_polar(theta = "y") +
-      ggplot2::xlab("") +
-      ggplot2::ylab("") +
-      ggplot2::labs(fill = "") +
-      ggplot2::theme(
-        axis.text = ggplot2::element_blank(),
-        axis.ticks = ggplot2::element_blank(),
-        text = ggplot2::element_text(size = 20),
+      geom_bar(stat = "identity") +
+      facet_grid(facets = . ~ class) +
+      coord_polar(theta = "y") +
+      xlab("") +
+      ylab("") +
+      labs(fill = "") +
+      theme(
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        text = element_text(size = 20),
         legend.position = "bottom"
       )
   }
@@ -360,26 +360,26 @@ generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, prop2, 
     colorProp <- "prop2"
   }
 
-  p <- ggplot2::ggplot(
+  p <- ggplot(
     data = data,
     mapping = mapping
   ) +
-    ggplot2::geom_bar(stat = stat) +
-    ggplot2::theme(
-      text = ggplot2::element_text(size = 20),
+    geom_bar(stat = stat) +
+    theme(
+      text = element_text(size = 20),
       legend.position = legendPosition
     ) +
-    ggplot2::xlab("") +
-    ggplot2::ylab(ylabel) +
-    ggplot2::coord_flip() +
-    ggplot2::facet_wrap(~class, scales = "free_x")
+    xlab("") +
+    ylab(ylabel) +
+    coord_flip() +
+    facet_wrap(~class, scales = "free_x")
 
   if (isProp2None){
     p
   } else {
     p +
-      ggplot2::labs(fill = prop2) +
-      ggplot2::guides(fill = ggplot2::guide_legend(
+      labs(fill = prop2) +
+      guides(fill = guide_legend(
         nrow = n_rows,
         byrow = FALSE
       ))
@@ -390,31 +390,31 @@ generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, prop2, 
 generateScoreBarPlot <- function(data, score_desc) {
   if (nrow(data) == 0) return()
 
-  g <- ggplot2::ggplot(
+  g <- ggplot(
     data = data,
-    mapping = ggplot2::aes(
+    mapping = aes(
       x = x_score,
       fill = x_score
     )
   ) +
-    ggplot2::geom_bar() +
-    ggplot2::theme(
+    geom_bar() +
+    theme(
       legend.position = "none",
-      text = ggplot2::element_text(size = 15)
+      text = element_text(size = 15)
     ) +
-    ggplot2::xlab(score_desc)
+    xlab(score_desc)
 
   if (length(unique(data$x_score)) > 10) {
-    g <- g + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+    g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
   }
 
   nItems <- length(unique(data$x_score))
 
 
   if (nItems > 100) {
-    g + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+    g + theme(axis.text.x = element_blank())
   } else if (nItems > 10) {
-    g + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+    g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
   } else {
     g
   }

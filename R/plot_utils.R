@@ -2,8 +2,8 @@
 tooltipAes <- function(..., plotFunc){
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
-  mapping <- ggplot2::aes(..., dummy = !!colname)
-  isPointGeom <- identical(plotFunc, ggplot2::geom_point) || identical(plotFunc, ggplot2::geom_jitter)
+  mapping <- aes(..., dummy = !!colname)
+  isPointGeom <- identical(plotFunc, geom_point) || identical(plotFunc, geom_jitter)
 
   if (!isPointGeom){
     mapping$dummy <- NULL # use dummy only for geom_point

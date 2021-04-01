@@ -1,6 +1,6 @@
 #' @export
 uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
 
   acceptExt <- c(
     "text/csv", "text/comma-separated-values,text/plain", ".csv",
@@ -18,7 +18,7 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   }
 
   helpLink <- if (!is.null(helpUrl)){
-    shiny::a(
+    a(
       href = helpUrl,
       target = "_blank",
       "[help]"
@@ -26,30 +26,21 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   }
 
   list(
-    shiny::fluidRow(
-      shiny::column(
-        width = 12,
-        shiny::h3(label, helpLink)
-      )
-    ),
+    fluidRow_12(h3(label, helpLink)),
     shinyBS::bsAlert(ns("top_error")),
-    shiny::fluidRow(
-      shiny::column(
-        width = 4,
-        shiny::fileInput(
+    fluidRow(
+      column_4(
+        fileInput(
           inputId = ns("upload"),
           label = "Choose File",
           multiple = FALSE,
           accept = acceptExt
         ),
-        shiny::uiOutput(ns("stat"))
+        uiOutput(ns("stat"))
       ),
-      shiny::column(
-        width = 8,
-        shiny::uiOutput(ns("options"))
-      )
+      column_8(uiOutput(ns("options")))
     ),
-    shiny::uiOutput(ns("plot")),
+    uiOutput(ns("plot")),
     shinyBS::bsAlert(ns("bottom_error"))
   )
 }
@@ -58,12 +49,12 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
 uploadInputMode <- function(input, output, session, AnnotationFull, translationFun, AllTumortype){
   ns <- session$ns
 
-  Dummy_rds <- shiny::reactiveVal()
-  Dummy_xlsx <- shiny::reactiveVal()
+  Dummy_rds <- reactiveVal()
+  Dummy_xlsx <- reactiveVal()
 
-  FileInfo <- shiny::reactive({
+  FileInfo <- reactive({
     info <- input$upload
-    shiny::req(info)
+    req(info)
 
     info[["isXlsx"]] <- grepl("xlsx$", info$datapath)
     info[["isRds"]] <- grepl("rds$", info$datapath)
@@ -73,10 +64,10 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     info
   })
 
-  output$stat <- shiny::renderUI({
+  output$stat <- renderUI({
     isRds <- Dummy_rds()
     isXlsx <- Dummy_xlsx()
-    shiny::req(is.logical(isRds) && is.logical(isXlsx))
+    req(is.logical(isRds) && is.logical(isXlsx))
 
     if (isRds){
       mlUploadInputModeUI_stat(ns("ml"))
@@ -85,9 +76,9 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     }
   })
 
-  output$options <- shiny::renderUI({
+  output$options <- renderUI({
     isRds <- Dummy_rds()
-    shiny::req(is.logical(isRds))
+    req(is.logical(isRds))
 
     if (isRds){
       mlUploadInputModeUI_options(ns("ml"), input, AllTumortype)
@@ -96,9 +87,9 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     }
   })
 
-  output$plot <- shiny::renderUI({
+  output$plot <- renderUI({
     isRds <- Dummy_rds()
-    shiny::req(is.logical(isRds))
+    req(is.logical(isRds))
 
     if (isRds){
       mlUploadInputModeUI_plot(ns("ml"))
@@ -110,7 +101,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
   topErrorId <- ns("top_error")
   bottomErrorId <- ns("bottom_error")
 
-  ClassicItems <- shiny::callModule(
+  ClassicItems <- callModule(
     module = classicUploadInputMode,
     id = "classic",
     FileInfo = FileInfo,
@@ -120,7 +111,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     translationFun = translationFun
   )
 
-  MLItems <- shiny::callModule(
+  MLItems <- callModule(
     module = mlUploadInputMode,
     id = "ml",
     FileInfo = FileInfo,
@@ -130,9 +121,9 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     translationFun = translationFun
   )
 
-  UploadItems <- shiny::reactive({
+  UploadItems <- reactive({
     isRds <- Dummy_rds()
-    shiny::req(is.logical(isRds))
+    req(is.logical(isRds))
 
     if (isRds){
       MLItems()
@@ -146,40 +137,38 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
 
 # classic upload --------------------------------------------------------------
 classicUploadInputModeUI_stat <- function(id, isXlsx){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
 
-  sheetSelector <- shiny::selectInput(
+  sheetSelector <- selectInput(
     inputId = ns("sheet"),
     label = "select sheet",
     choices = NULL
   )
 
-  shiny::div(
+  div(
     `if`(isXlsx, sheetSelector),
-    shiny::textOutput(ns("stat"))
+    textOutput(ns("stat"))
   )
 }
 
 classicUploadInputModeUI_options <- function(id){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
 
-  shiny::fluidRow(
-    shiny::column(
-      width = 6,
-      shiny::selectInput(
+  fluidRow(
+    column_6(
+      selectInput(
         inputId = ns("column"),
         label = "select file column",
         choices = NULL
       ),
-      shiny::checkboxInput(
+      checkboxInput(
         inputId = ns("display_bar"),
         label = "stack numeric values",
         value = FALSE
       )
     ),
-    shiny::column(
-      width = 6,
-      shiny::selectizeInput(
+    column_6(
+      selectizeInput(
         inputId = ns("column_facet"),
         label = "split view by",
         choices = NULL
@@ -189,7 +178,7 @@ classicUploadInputModeUI_options <- function(id){
 }
 
 classicUploadInputModeUI_plot <- function(id){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
 
   brushPlotUI(ns("barplot"))
 }
@@ -199,7 +188,7 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
   colname <- rlang::sym(colname)
 
   ns <- session$ns
-  rv <- shiny::reactiveValues()
+  rv <- reactiveValues()
 
   registerExtendedInputObserver(
     input = input,
@@ -207,7 +196,7 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     inputId = "sheet"
   )
 
-  shiny::observeEvent(
+  observeEvent(
     eventExpr = FileInfo(),
     handlerExpr = {
       info <- FileInfo()
@@ -217,7 +206,7 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
 
         if (length(sheets) > 0){
           rv[["sheet"]] <- sheets[1]
-          shiny::updateSelectInput(
+          updateSelectInput(
             session = session,
             inputId = "sheet",
             choices = sheets,
@@ -228,16 +217,16 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     }
   )
 
-  fileUploadRaw <- shiny::reactive({
+  fileUploadRaw <- reactive({
     info <- FileInfo()
-    shiny::req(!is.null(info) && !info[["isRds"]])
+    req(!is.null(info) && !info[["isRds"]])
 
     tryCatch(
       expr = {
         file_name <- info$datapath
         if (info[["isXlsx"]]) {
           sheet <- rv[["sheet"]]
-          shiny::validate(shiny::need(sheet, "select sheet first"))
+          validate(need(sheet, "select sheet first"))
 
           df <- readxl::read_xlsx(
             path = file_name,
@@ -258,13 +247,13 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
           }
         }
       },
-      error = function(e) stop(shiny::safeError(e))
+      error = function(e) stop(safeError(e))
     )
 
     df <- removeEmptyColumns(df)
 
-    anno <- AnnotationFull() %>% dplyr::select(!!colname, tumortype)
-    if ("tumortype" %in% colnames(df)) df <- df %>% dplyr::select(-tumortype)
+    anno <- AnnotationFull() %>% select(!!colname, tumortype)
+    if ("tumortype" %in% colnames(df)) df <- df %>% select(-tumortype)
     ret <- translationFun(df, anno)
 
     if ("tumortype" %in% colnames(ret$df)) ret$df <- ret$df %>% relocate(tumortype, .after = 1)
@@ -293,23 +282,23 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     return(list(df = df, col_type = col_type))
   })
 
-  shiny::observe({
+  observe({
     df <- fileUploadRaw()$df
-    shiny::req(df)
+    req(df)
 
-    d <- df %>% dplyr::select(-!!colname)
+    d <- df %>% select(-!!colname)
     updateSplitChoices("column", "column_facet", d, input, session)
   })
 
-  fileUploadIDs <- shiny::reactive({
+  fileUploadIDs <- reactive({
     file_data <- fileUploadRaw()
-    shiny::req(file_data)
+    req(file_data)
 
     sel_col <- input$column
     facet_col <- input$column_facet
-    shiny::req(sel_col)
-    shiny::req(facet_col)
-    shiny::req(sel_col != facet_col)
+    req(sel_col)
+    req(facet_col)
+    req(sel_col != facet_col)
 
     d <- file_data$df
     if ((is.null(d)) | (!sel_col %in% names(file_data$col_type))) return()
@@ -318,17 +307,17 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
 
     if (shouldFacet){
       facet_col <- sym(facet_col)
-      d <- d %>% dplyr::mutate(facet_var = !!facet_col)
+      d <- d %>% mutate(facet_var = !!facet_col)
     } else {
-      d <- d %>% dplyr::mutate(facet_var = "dummy")
+      d <- d %>% mutate(facet_var = "dummy")
     }
 
     sel_type <- file_data$col_type[[sel_col]]
     d <- d %>%
-      dplyr::rename(x_score = !!sel_col) %>%
-      dplyr::filter(!is.na(x_score), !is.na(facet_var)) %>%
-      dplyr::arrange(dplyr::desc(x_score), as.character(!!colname)) %>%
-      dplyr::mutate(!!colname := forcats::as_factor(as.character(!!colname)))
+      rename(x_score = !!sel_col) %>%
+      filter(!is.na(x_score), !is.na(facet_var)) %>%
+      arrange(desc(x_score), as.character(!!colname)) %>%
+      mutate(!!colname := forcats::as_factor(as.character(!!colname)))
 
     if (sel_type == "numeric" && length(unique(d$x_score)) <= 10) {
       shinyjs::show("display_bar")
@@ -348,9 +337,9 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     )
   })
 
-  UploadPlot <- shiny::reactive({
-    shiny::validate(
-      shiny::need(!is.null(fileUploadIDs()), "no file data available")
+  UploadPlot <- reactive({
+    validate(
+      need(!is.null(fileUploadIDs()), "no file data available")
     )
     file_data <- fileUploadIDs()
     d <- file_data$df
@@ -364,16 +353,16 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     }
 
     if (file_data$shouldFacet){
-      g <- g + ggplot2::facet_grid(. ~ facet_var, scales = "free_x", space = "free")
+      g <- g + facet_grid(. ~ facet_var, scales = "free_x", space = "free")
     }
 
     return(g)
   })
-  UploadPlotCheck <- shiny::reactive({
+  UploadPlotCheck <- reactive({
     !is.null(fileUploadIDs()) && !is.null(input$display_bar)
   })
 
-  Upload_items <- shiny::callModule(
+  Upload_items <- callModule(
     module = brushPlot,
     id = "barplot",
     plotExpr = UploadPlot,
@@ -388,12 +377,12 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     value = 0.3
   )
 
-  output$stat <- shiny::renderText({
-    shiny::req(fileUploadIDs()$df)
+  output$stat <- renderText({
+    req(fileUploadIDs()$df)
     paste(get_label(nrow(fileUploadIDs()$df)), "found")
   })
 
-  shiny::observeEvent(input$upload, {
+  observeEvent(input$upload, {
     session$resetBrush("plot_brush")
   })
 
@@ -415,13 +404,13 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
     names() %>%
     setdiff(selected)
 
-  shiny::updateSelectInput(
+  updateSelectInput(
     session = session,
     inputId = splitId,
     choices = c("-- none --", choices_facet),
     selected = "-- none --"
   )
-  shiny::updateSelectInput(
+  updateSelectInput(
     session = session,
     inputId = basicId,
     choices = choices,
@@ -431,7 +420,7 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
 
 filterSplitChoices <- function(df, min_number = 10, min_percent = 5, min_distinct = 2, max_distinct = 4){
   filterFun <- function(x){
-    n_dist <- dplyr::n_distinct(x, na.rm = TRUE)
+    n_dist <- n_distinct(x, na.rm = TRUE)
     if (n_dist < min_distinct || n_dist > max_distinct) return(FALSE)
 
     n_available <- sum(!is.na(x))
@@ -442,7 +431,7 @@ filterSplitChoices <- function(df, min_number = 10, min_percent = 5, min_distinc
   }
 
   df %>%
-    dplyr::select_if(~ is.character(.x) || is.factor(.x) || is.logical(.x)) %>%
+    select_if(~ is.character(.x) || is.factor(.x) || is.logical(.x)) %>%
     Filter(f = filterFun)
 }
 
@@ -463,27 +452,25 @@ mlUploadInputModeUI_stat <- function(id){
 }
 
 mlUploadInputModeUI_options <- function(id, input, AllTumortype){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
   myT <- AllTumortype()
 
-  shiny::fluidRow(
-    shiny::column(
-      width = 6,
-      shiny::radioButtons(
+  fluidRow(
+    column_6(
+      radioButtons(
         inputId = ns("show"),
         label = "Show",
         choices = c("split training and unseen", "unseen only", "all"),
         selected = "split training and unseen"
       )
     ),
-    shiny::column(
-      width = 6,
-      shiny::selectInput(
+    column_6(
+      selectInput(
         inputId = ns("tumortype"),
         label = "Tumor Types:",
         multiple = TRUE,
         choices = myT,
-        selected = shiny::isolate(input$tumortype),
+        selected = isolate(input$tumortype),
         selectize = FALSE,
         size = 7
       ) %>%
@@ -493,7 +480,7 @@ mlUploadInputModeUI_options <- function(id, input, AllTumortype){
 }
 
 mlUploadInputModeUI_plot <- function(id){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
   brushPlotUI(ns("barplot"))
 }
 
@@ -503,9 +490,9 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
 
-  Model <- shiny::reactive({
+  Model <- reactive({
     info <- FileInfo()
-    shiny::req(!is.null(info) && info[["isRds"]])
+    req(!is.null(info) && info[["isRds"]])
 
     withProgress(
       expr = loadMachineLearningModel(info$datapath, topErrorId, session),
@@ -514,31 +501,31 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     )
   })
 
-  TrainingSet <- shiny::reactive({
+  TrainingSet <- reactive({
     m <- Model()
     anno <- Annotation()
-    shiny::req(m, anno)
+    req(m, anno)
 
     translated <- translationFun(tibble(!!colname := m$trainingSet), anno)
     if (is.null(translated)) return()
     translated$df[[colname]]
   })
 
-  shiny::observeEvent(
+  observeEvent(
     eventExpr = Model(),
     handlerExpr = {
       m <- Model()
-      shiny::req(m)
+      req(m)
 
       cl <- TrainingSet()
-      shiny::req(length(cl) > 0)
+      req(length(cl) > 0)
 
       tt <- Annotation() %>%
-        dplyr::filter(!!colname %in% cl) %>%
-        dplyr::pull(tumortype) %>%
+        filter(!!colname %in% cl) %>%
+        pull(tumortype) %>%
         unique()
 
-      shiny::updateSelectInput(
+      updateSelectInput(
         session = session,
         inputId = "tumortype",
         selected = tt
@@ -547,9 +534,9 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     priority = 100
   )
 
-  DB_Data <- shiny::reactive({
+  DB_Data <- reactive({
     m <- Model()
-    shiny::req(m)
+    req(m)
 
     sql <- paste0("SELECT ", colname, ", ensg, log2tpm AS score FROM cellline.processedrnaseqview ",
                   "WHERE ", getSQL_filter("ensg", m$bestFeatures))
@@ -561,19 +548,19 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     )
   })
 
-  Data <- shiny::reactive({
+  Data <- reactive({
     m <- Model()
     d <- DB_Data()
 
     trainingSet <- TrainingSet()
-    shiny::req(d, m, trainingSet)
+    req(d, m, trainingSet)
 
     tumortypes <- input$tumortype
     if (length(tumortypes) == 0) return()
 
     items <- Annotation() %>%
-      dplyr::filter(tumortype %in% tumortypes) %>%
-      dplyr::pull(!!colname)
+      filter(tumortype %in% tumortypes) %>%
+      pull(!!colname)
 
     showType <- input$show
 
@@ -592,9 +579,9 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
       items <- setdiff(items, trainingSet)
     }
 
-    df <- d %>% dplyr::filter(!!colname %in% items)
+    df <- d %>% filter(!!colname %in% items)
 
-    shiny::validate(shiny::need(nrow(df) > 0, "no data available"))
+    validate(need(nrow(df) > 0, "no data available"))
 
     df <- df %>% tidyr::pivot_wider(names_from = ensg, values_from = score)
 
@@ -615,14 +602,14 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
       !!colname := df[[colname]],
       class = assignment
     ) %>%
-      dplyr::filter(!is.na(class)) %>%
-      dplyr::mutate(
+      filter(!is.na(class)) %>%
+      mutate(
         class = ifelse(class == "class1", cl[1], cl[2]),
         class = factor(class, levels = cl)
       )
 
     if (useFacets){
-      df <- df %>% dplyr::mutate(
+      df <- df %>% mutate(
         type = factor(ifelse(
           test = !!colname %in% trainingSet,
           yes = "training",
@@ -634,25 +621,25 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     df
   })
 
-  UploadPlot <- shiny::reactive({
+  UploadPlot <- reactive({
     df <- Data()
-    shiny::req(df)
+    req(df)
 
-    p <- generateScoreBarPlot(df %>% dplyr::rename(x_score = class), "class") +
-      ggplot2::scale_y_continuous(breaks = scales::breaks_pretty(n = 5))
+    p <- generateScoreBarPlot(df %>% rename(x_score = class), "class") +
+      scale_y_continuous(breaks = scales::breaks_pretty(n = 5))
 
     if ("type" %in% names(df)){
-      p <- p + ggplot2::facet_wrap(~ type, scales = "free_y")
+      p <- p + facet_wrap(~ type, scales = "free_y")
     }
 
     p
   })
 
-  UploadPlotCheck <- shiny::reactive({
+  UploadPlotCheck <- reactive({
     !is.null(Data()) && !is.null(input$tumortype)
   })
 
-  ML_items <- shiny::callModule(
+  ML_items <- callModule(
     module = brushPlot,
     id = "barplot",
     plotExpr = UploadPlot,

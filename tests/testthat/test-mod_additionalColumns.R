@@ -16,15 +16,15 @@ test_that(
           expected = c("Sepal.Length", "Petal.Width", "Species")
         )
         expect_equal(
-          object = TableExpr(),
-          expected = iris[c("Sepal.Width", "Petal.Length")]
+          object = VisibleCols(),
+          expected = c("Sepal.Width", "Petal.Length")
         )
 
         # Another column selected
         session$setInputs(showCols = "Species")
         expect_equal(
-          object = TableExpr(),
-          expected = iris[c("Sepal.Width", "Petal.Length", "Species")]
+          object = VisibleCols(),
+          expected = c("Sepal.Width", "Petal.Length", "Species")
         )
       }
     )

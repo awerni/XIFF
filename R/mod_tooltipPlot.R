@@ -3,8 +3,8 @@ tooltipPlotUI <- function(id, width = "100%", height = "400px"){
   width <- htmltools::validateCssUnit(width)
   height <- htmltools::validateCssUnit(height)
 
-  ns <- shiny::NS(id)
-  shiny::uiOutput(
+  ns <- NS(id)
+  uiOutput(
     outputId = ns("plot"),
     class = "shiny-report-size tooltip-plot-output",
     style = sprintf("width: %s; height: %s;", width, height)
@@ -16,7 +16,7 @@ tooltipPlot <- function(input, output, session, plotExpr, varDict,
                         callback = getOption("xiff.tooltipCallbackFun"), ...){
   id <- paste0("output_", session$ns("plot"))
 
-  Width <- shiny::reactive({
+  Width <- reactive({
     w <- session$clientData[[paste0(id, "_width")]]
 
     if (is.null(w)){
@@ -26,7 +26,7 @@ tooltipPlot <- function(input, output, session, plotExpr, varDict,
     }
   })
 
-  Height <- shiny::reactive({
+  Height <- reactive({
     h <- session$clientData[[paste0(id, "_height")]]
 
     if (is.null(h)){
@@ -39,13 +39,13 @@ tooltipPlot <- function(input, output, session, plotExpr, varDict,
   output$plot <- ggtips::renderWithTooltips(
     plot = {
       p <- plotExpr()
-      shiny::req(Width(), p) # re-render on resize
+      req(Width(), p) # re-render on resize
       p
     },
     varDict = varDict,
     callback = callback,
-    width = shiny::isolate(Width()),
-    height = shiny::isolate(Height()),
+    width = isolate(Width()),
+    height = isolate(Height()),
     ...
   )
 }

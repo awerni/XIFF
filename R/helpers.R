@@ -28,13 +28,13 @@ stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE
 
   if (!is.null(classLabel)) {
     my_labels <- utils::stack(classLabel) %>%
-      dplyr::mutate(class = gsub("_name$", "", ind)) %>%
-      dplyr::select(-ind) %>%
-      dplyr::arrange(class)
+      mutate(class = gsub("_name$", "", ind)) %>%
+      select(-ind) %>%
+      arrange(class)
     assignment <- assignment %>%
-      dplyr::inner_join(my_labels, by = "class") %>%
-      dplyr::select(-class) %>%
-      dplyr::rename(class = values)
+      inner_join(my_labels, by = "class") %>%
+      select(-class) %>%
+      rename(class = values)
     if (return_factor) assignment$class <- factor(assignment$class, levels = my_labels$values)
   } else {
     if (return_factor) assignment$class <- factor(assignment$class, levels = c("class1", "class2"))
@@ -72,25 +72,25 @@ getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2
   focusLevels <- as.character(unique(annotationFocus[[prop1]]))
 
   available <- data %>%
-    dplyr::mutate(prop1 = as.character(prop1)) %>%
-    dplyr::group_by(class, prop1, prop2) %>%
-    dplyr::summarize(n = dplyr::n())
+    mutate(prop1 = as.character(prop1)) %>%
+    group_by(class, prop1, prop2) %>%
+    summarize(n = dplyr::n())
   notOthers <- setdiff(available[["prop1"]], "other")
 
   annotation %>%
-    dplyr::select(prop1 = !!prop1) %>%
-    dplyr::filter(prop1 %in% focusLevels) %>%
-    dplyr::mutate(
+    select(prop1 = !!prop1) %>%
+    filter(prop1 %in% focusLevels) %>%
+    mutate(
       prop1 = as.character(prop1),
       prop1 = ifelse(is.na(prop1), "NA", prop1),
       prop1 = ifelse(prop1 %in% notOthers, prop1, "other")
     ) %>%
-    dplyr::group_by(prop1) %>%
-    dplyr::summarize(nTotal = dplyr::n()) %>%
-    dplyr::left_join(available, ., by = "prop1") %>%
-    dplyr::filter(!is.na(class)) %>%
-    dplyr::mutate(percent = n/nTotal * 100) %>%
-    dplyr::select(class, prop1, prop2, percent)
+    group_by(prop1) %>%
+    summarize(nTotal = dplyr::n()) %>%
+    left_join(available, ., by = "prop1") %>%
+    filter(!is.na(class)) %>%
+    mutate(percent = n/nTotal * 100) %>%
+    select(class, prop1, prop2, percent)
 }
 
 #' @export
@@ -108,7 +108,7 @@ replaceClassLabels <- function(df, cl) {
   names(cl) <- gsub("_name", "", names(cl))
   myLabel <- stack(cl) %>% rename(class = values, classold = ind) %>%
     mutate(class = as.factor(class), classold = as.character(classold))
-  suppressWarnings(df <- df %>% rename(classold = class) %>% left_join(myLabel, by = "classold") %>% dplyr::select(-classold))
+  suppressWarnings(df <- df %>% rename(classold = class) %>% left_join(myLabel, by = "classold") %>% select(-classold))
   return(df)
 }
 

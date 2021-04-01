@@ -1,21 +1,21 @@
 #' @export
 plotWrapperUI <- function(id, width = "100%", height = "400px", center = FALSE){
-  ns <- shiny::NS(id)
+  ns <- NS(id)
   width <- htmltools::validateCssUnit(width)
   height <- htmltools::validateCssUnit(height)
 
-  shiny::div(
+  div(
     class = "downloadable-plot",
-    shiny::uiOutput(
+    uiOutput(
       outputId = ns("container"),
       class = "shiny-report-size",
       style = sprintf("width: %s; height: %s;%s", width, height, `if`(center, " margin: 0 auto;", ""))
     ),
-    shiny::actionButton(
+    actionButton(
       inputId = ns("modalButton"),
       class = "download-btn",
       label = NULL,
-      icon = shiny::icon("download")
+      icon = icon("download")
     )
   )
 }
@@ -26,15 +26,15 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
                         allowedTooltipTypes = c("point", "comparison", "scatterplot"),
                         tooltipCallback = getOption("xiff.tooltipCallbackFun"), ...){
   ns <- session$ns
-  sizeId <- shiny::reactiveVal()
+  sizeId <- reactiveVal()
 
-  output$plot_normal <- shiny::renderPlot({
-    shiny::req(!PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
+  output$plot_normal <- renderPlot({
+    req(!PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
     PlotExpr()
   }, ...)
 
   shouldInitTooltips <- TRUE
-  normalOnly <- !shiny::is.reactive(PlotType)
+  normalOnly <- !is.reactive(PlotType)
   if (normalOnly){
     defaultType <- if (PlotType){
       "point"
@@ -42,16 +42,16 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
       shouldInitTooltips <- FALSE
       "other"
     }
-    PlotType <- shiny::reactive({ defaultType })
+    PlotType <- reactive({ defaultType })
   }
 
   if (shouldInitTooltips){
-    TooltipPlotExpr <- shiny::reactive({
-      shiny::req(PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
+    TooltipPlotExpr <- reactive({
+      req(PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
       PlotExpr()
     })
 
-    shiny::callModule(
+    callModule(
       module = tooltipPlot,
       id = "plot_tooltip",
       plotExpr = TooltipPlotExpr,
@@ -60,11 +60,11 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
     )
   }
 
-  output$container <- shiny::renderUI({
+  output$container <- renderUI({
     hid <- paste0("output_", ns("container"), "_height")
-    height <- shiny::isolate(session$clientData[[hid]]) # will be available when renderUI is called (i.e. output is visible)
+    height <- isolate(session$clientData[[hid]]) # will be available when renderUI is called (i.e. output is visible)
     type <- PlotType()
-    shiny::validate(shiny::need(type, "wait"))
+    validate(need(type, "wait"))
 
     plotContainer <- if (type %in% allowedTooltipTypes){
       id <- ns("plot_tooltip")
@@ -78,12 +78,12 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
 
     list(
       plotContainer,
-      shiny::div(class = "loader")
+      div(class = "loader")
     )
   })
 
   # Download ------------------------------------------------------------------
-  shiny::observeEvent(
+  observeEvent(
     eventExpr = input$modalButton,
     handlerExpr = {
       sid <- sizeId()
@@ -98,44 +98,44 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
       downloadWidth <- ceiling(wp / 72) #inches
       ratio <- hp/wp # plot ratio
 
-      shiny::showModal(shiny::modalDialog(
+      showModal(modalDialog(
         title = "Download plot",
-        shiny::textInput(
+        textInput(
           inputId = ns("filename"),
           label = "Filename",
           value = filename
         ),
-        shiny::radioButtons(
+        radioButtons(
           inputId = ns("format"),
           label = "Plot format",
           choices = c("pdf", "png"),
           selected = "pdf"
         ),
-        shiny::numericInput(
+        numericInput(
           inputId = ns("width"),
           label = "Plot width [in]",
           value = downloadWidth
         ),
-        shiny::numericInput(
+        numericInput(
           inputId = ns("height"),
           label = "Plot height [in]",
           value = signif(downloadWidth * ratio, 2)
         ),
         size = "s",
-        footer = shiny::tagList(
-          shiny::tags$button(
+        footer = tagList(
+          tags$button(
             type = "button",
             class = "btn",
             `data-dismiss` = "modal",
             "Cancel"
           ),
-          shiny::downloadButton(ns("download"))
+          downloadButton(ns("download"))
         )
       ))
     }
   )
 
-  output$download <- shiny::downloadHandler(
+  output$download <- downloadHandler(
     filename = function() {
       paste(input$filename, input$format, sep = ".")
     },
@@ -152,8 +152,8 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
         args$type <- "cairo-png"
       }
 
-      do.call(ggplot2::ggsave, args)
-      shiny::removeModal()
+      do.call(ggsave, args)
+      removeModal()
     }
   )
 }

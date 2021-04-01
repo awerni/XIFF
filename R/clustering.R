@@ -1,6 +1,6 @@
 addClustering <- function(df, cluster_method, p = TRUE) {
   if (p) {
-    progress <- shiny::Progress$new()
+    progress <- Progress$new()
     on.exit(progress$close())
     progress$set(message = "clustering...", value = 0.5)
   }
@@ -22,8 +22,8 @@ addClustering <- function(df, cluster_method, p = TRUE) {
     apres <- apcluster::apcluster(apcluster::negDistMat(data, r = 2))
     df$cluster <- apres@clusters %>%
       purrr::map_dfr(as.tibble, .id = "cluster") %>%
-      dplyr::arrange(value) %>%
-      dplyr::mutate(cluster = as.factor(cluster)) %>%
+      arrange(value) %>%
+      mutate(cluster = as.factor(cluster)) %>%
       .$cluster
   } else if (grepl("pam", cluster_method)) {
     if (grepl("automatic", cluster_method)) {
@@ -40,11 +40,11 @@ addClustering <- function(df, cluster_method, p = TRUE) {
 calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = TRUE) {
   if (is.null(PCAData)) return()
   if (p) {
-    progress <- shiny::Progress$new()
+    progress <- Progress$new()
     on.exit(progress$close())
     progress$set(message = "sorting genes by variance", value = 0.3)
   }
-  
+
   data.counts <- PCAData[["data.counts"]]
   maxVarRows <- order(apply(PCAData[["data.log2tpm"]], 1, var), decreasing = TRUE)
   if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
@@ -52,12 +52,12 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = TRUE) {
 
   if (p) progress$set(message = "transforming count matrix", value = 0.4)
   assignment <- PCAData[["assignment"]]
-  design <- if (dplyr::n_distinct(assignment$class) > 1){
+  design <- if (n_distinct(assignment$class) > 1){
     "~ class"
   } else {
     "~ 1"
   }
-  
+
   dds <- DESeq2::DESeqDataSetFromMatrix(countData = data.counts, colData = assignment, design = as.formula(design))
   if (p) progress$set(message = "variance stabilization", value = 0.6)
   vst <- DESeq2::varianceStabilizingTransformation(dds, fitType = "local")
@@ -80,7 +80,7 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = TRUE) {
 calcPCA_Score <- function(PCAData, geneSource, numGenes = 300, unit = "score", p = TRUE) {
   if (is.null(PCAData)) return()
   if (p) {
-    progress <- shiny::Progress$new()
+    progress <- Progress$new()
     on.exit(progress$close())
     progress$set(message = "sorting genes by variance", value = 0.3)
   }
@@ -94,7 +94,7 @@ calcPCA_Score <- function(PCAData, geneSource, numGenes = 300, unit = "score", p
 
   colname <- getOption("xiff.column")
   result <- tibble::tibble(!!colname := rownames(pcadata$x), pcadata$x[, 1:2]) %>%
-    dplyr::left_join(PCAData$assignment, by = colname)
+    left_join(PCAData$assignment, by = colname)
   eigs <- pcadata$sdev^2
 
   res <- list(
@@ -110,7 +110,7 @@ calcPCA_Score <- function(PCAData, geneSource, numGenes = 300, unit = "score", p
 calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p = TRUE) {
   if (is.null(TSNEData)) return()
   if (p) {
-    progress <- shiny::Progress$new()
+    progress <- Progress$new()
     on.exit(progress$close())
     progress$set(message = "sorting genes by variance", value = 0.1)
   }
@@ -138,7 +138,7 @@ calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = 
   #save(UMAPData, geneSource, numGenes, unit, file = "calcUMAP.Rdata")
   if (is.null(UMAPData)) return()
   if (p) {
-    progress <- shiny::Progress$new()
+    progress <- Progress$new()
     on.exit(progress$close())
     progress$set(message = "sorting genes by variance", value = 0.3)
   }
@@ -153,12 +153,12 @@ calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = 
   res <- umap::umap(t(data.cross), perplexity = perp)
 
   colname <- getOption("xiff.column")
-  umapdata <- res$layout %>% as.data.frame() %>% dplyr::rename(X1 = 1, X2 = 2) %>% tibble::rownames_to_column(colname)
+  umapdata <- res$layout %>% as.data.frame() %>% rename(X1 = 1, X2 = 2) %>% tibble::rownames_to_column(colname)
   cl_genes <- dim(res$data)
   myTitle <- glue::glue("perplexity={perp}  #{getOption('xiff.label')}s={cl_genes[[1]]}  #genes={cl_genes[[2]]}")
 
   res <- list(
-    data = dplyr::left_join(umapdata, UMAPData[["assignment"]], by = colname),
+    data = left_join(umapdata, UMAPData[["assignment"]], by = colname),
     title = myTitle
   )
   res[[getOption("xiff.name")]] <- ncol(data.cross)
