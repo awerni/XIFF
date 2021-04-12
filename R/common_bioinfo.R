@@ -91,3 +91,47 @@ preparePredictionData <- function(df){
 
   df
 }
+
+#' @export
+dropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
+  anno <- AnnotationFocus()
+  if (is.null(anno) || nrow(anno) == 0) return()
+  
+  cs <- reactiveValuesToList(classSelection)
+  balancedTT <- getValidTumorTypes(cs, anno)
+  
+  colname <- getOption("xiff.column")
+  colname <- rlang::sym(colname)
+  
+  validItems <- anno %>% 
+    filter(tumortype %in% balancedTT) %>%
+    pull(!!colname)
+  
+  classSelection$class1 <- intersect(classSelection$class1, validItems)
+  classSelection$class2 <- intersect(classSelection$class2, validItems)
+}
+
+#' Get valid tumor types
+#' 
+#' This function returns tumor types that are available in the data for both classes
+#' 
+#' @param cs list, class selection
+#' @param anno data.frame, item annotation
+#' 
+#' @return character vector of valid tumortypes
+#' @export
+getValidTumorTypes <- function(cs, anno){
+  if (is.null(anno) || nrow(anno) == 0) return()
+  
+  colname <- getOption("xiff.column")
+  
+  stackClasses(cs) %>%
+    left_join(anno, by = colname) %>%
+    group_by(class, tumortype) %>%
+    summarise(n = dplyr::n(), .groups = "drop") %>%
+    group_by(tumortype) %>%
+    summarize(ok = dplyr::n() > 1, .groups = "drop") %>% # must be present in both classes
+    filter(ok) %>%
+    pull(tumortype) %>%
+    as.character()
+}
