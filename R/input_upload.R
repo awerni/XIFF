@@ -495,7 +495,11 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     req(!is.null(info) && info[["isRds"]])
 
     withProgress(
-      expr = loadMachineLearningModel(info$datapath, topErrorId, session),
+      expr = withErrorHandler(
+        expr = loadMachineLearningModel(info$datapath), 
+        errorId = topErrorId, 
+        session = session
+      ),
       value = 0.2,
       message = "loading ML model..."
     )
@@ -537,12 +541,9 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
   DB_Data <- reactive({
     m <- Model()
     req(m)
-
-    sql <- paste0("SELECT ", colname, ", ensg, log2tpm AS score FROM cellline.processedrnaseqview ",
-                  "WHERE ", getSQL_filter("ensg", m$bestFeatures))
-
+    
     withProgress(
-      expr = getPostgresql(sql),
+      expr = getRawDataForModel(features = m$bestFeatures),
       value = 0.4,
       message = "fetching DB data..."
     )
@@ -578,17 +579,19 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     if (!useTraining){
       items <- setdiff(items, trainingSet)
     }
-
+    
     df <- d %>% filter(!!colname %in% items)
 
     validate(need(nrow(df) > 0, "no data available"))
 
     df <- df %>% tidyr::pivot_wider(names_from = ensg, values_from = score)
 
-    withProgress(
-      expr = {
-        assignment <- predictFromModel(m, df, topErrorId, session)
-      },
+    assignment <- withProgress(
+      expr = withErrorHandler(
+        expr = predictFromModel(m, df),
+        errorId = topErrorId, 
+        session = session
+      ),
       value = 0.8,
       message = "predicting..."
     )
