@@ -1,71 +1,259 @@
+# Machine learning ------------------------------------------------------------
 #' @export
-loadMachineLearningModel <- function(filepath, errorId, session, object = NULL){
+splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
+  trainingSet <- assignment
+  validationSet <- NULL
+  
+  if (p_validation > 0){
+    n <- nrow(assignment)
+    # full random selection; no stratification included
+    validationIdx <- sort(sample(x = n, size = p_validation * n))
+    validationSet <- assignment[validationIdx, ]
+    trainingSet <- assignment[-validationIdx, ]
+  }
+  
+  list(
+    training = trainingSet,
+    validation = validationSet
+  )
+}
+
+#' @export
+getRawDataForModel <- function(features, celllinenames = NULL){
+  clFilter <- if (length(celllinenames) > 0){
+    paste(" AND", getSQL_filter("celllinename", celllinenames))
+  }
+  
+  sql <- paste0("SELECT celllinename, ensg, log2tpm AS score FROM cellline.processedrnaseqview ",
+                "WHERE ", getSQL_filter("ensg", features), clFilter)
+  getPostgresql(sql)
+}
+
+#' @export
+getDataForModel <- function(assignment, features){
+  getRawDataForModel(
+    features = features,
+    celllinenames =  assignment$celllinename
+  ) %>%
+    tidyr::pivot_wider(names_from = ensg, values_from = score) %>%
+    left_join(assignment, by = "celllinename")
+}
+
+#' @export
+selectBestFeatures <- function(df, threshold = 0.05){
+  ttRes <- genefilter::colttests(
+    x = df %>% select(-class) %>% as.matrix(),
+    fac = df$class,
+    na.rm = TRUE
+  ) %>% 
+    tibble::rownames_to_column("ensg") %>%
+    filter(p.value <= threshold) %>%
+    arrange(p.value)
+  
+  bestFeatures <- ttRes %>% pull(ensg)
+  df <- df %>% select_at(c("class", bestFeatures))
+  
+  list(
+    stats = ttRes,
+    df = df
+  )
+}
+
+#' @export
+trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10){
+  fitControl <- caret::trainControl(
+    method = "repeatedcv",
+    number = number,
+    repeats = repeats,
+    savePredictions = "final"
+  )
+  
+  args <- list(
+    as.formula("class ~ ."),
+    data = df, 
+    method = method,
+    trControl = fitControl,
+    tuneLength = tuneLength
+  )
+  
+  if (method == "rf"){
+    args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
+  }
+  
+  do.call(caret::train, args)
+}
+
+#' @export
+getVarImp <- function(model, stats){
+  switch(
+    EXPR = class(model),
+    randomForest = list(
+      df = varImp(model) %>%
+        tibble::rownames_to_column("ensg") %>%
+        rename(importance = Overall) %>%
+        arrange(desc(importance)),
+      importanceName = "Mean decrease Gini"
+    ),
+    svm = list(
+      df = stats %>% 
+        select(ensg, importance = p.value) %>%
+        arrange(importance),
+      importanceName = "p.val"
+    ),
+    list(
+      df = tibble(ensg = character(0), importance = NA),
+      importanceName = NA
+    )
+  )
+}
+
+#' @importFrom FutureManager fmIsInterrupted fmUpdateProgress fmError
+#' @export
+createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, fmTask = NULL, 
+                                       classLabel = list(class1_name = "class1", class2_name = "class2"),
+                                       method = "rf", tuneLength = 5, number = 10, repeats = 10, threshold = 0.05){  
+  p <- !is.null(fmTask)
+  
+  if (p) {
+    if (fmIsInterrupted(fmTask)) return()
+    fmUpdateProgress(fmTask, progress = 0.2, msg = "fetching data...")
+  }
+  
+  df <- getDataForModel(
+    assignment = trainingSet,
+    features = geneSet
+  ) %>%
+    select(-celllinename)
+  
+  if (nrow(df) == 0) return(fmError("No data available"))
+  
+  # Feature selection
+  if (p) {
+    if (fmIsInterrupted(fmTask)) return()
+    fmUpdateProgress(fmTask, progress = 0.3, msg = "selecting features...")
+  }
+  
+  selectedFeatures <- selectBestFeatures(
+    df = df,
+    threshold = threshold
+  )
+  stats <- selectedFeatures$stats
+  df <- selectedFeatures$df
+  
+  bestFeatures <- stats %>% pull(ensg)
+  
+  if (length(bestFeatures) == 0){
+    return(fmError(paste("no significant features found for threshold =", threshold)))
+  }
+  
+  if (p) {
+    if (fmIsInterrupted(fmTask)) return()
+    fmUpdateProgress(fmTask, progress = 0.5, msg = "training model...")
+  }
+  
+  trainingOutput <- trainModel(
+    df = df,
+    method = method,
+    tuneLength = tuneLength,
+    number = number, 
+    repeats = repeats
+  )
+  
+  importanceRes <- getVarImp(trainingOutput$finalModel, stats)
+  df <- importanceRes$df %>% left_join(geneAnno, by = "ensg")
+  attr(df, "importanceName") <- importanceRes$importanceName
+  
+  if (p) {
+    if (fmIsInterrupted(fmTask)) return()
+    fmUpdateProgress(fmTask, progress = 1, msg = "done!")
+  }
+  
+  list(
+    model = machineLearningResult(
+      res = list(
+        trainingOutput = trainingOutput,
+        df = df,
+        trainingSet = trainingSet$celllinename
+      ), 
+      classLabel = classLabel
+    ),
+    df = df,
+    trainingOutput = trainingOutput
+  )
+}
+
+#' @export
+machineLearningResult <- function(res, classLabel){
+  output <- structure(
+    list(
+      model = res$trainingOutput$finalModel,
+      library = res$trainingOutput$modelInfo$library,
+      classLabel = classLabel,
+      bestFeatures = res$df[["ensg"]],
+      trainingSet = res$trainingSet
+    ),
+    class = "machineLearningResult"
+  )
+}
+
+#' @export
+`newClassLabel<-` <- function(x, value){
+  x$classLabel <- value
+  x
+}
+
+#' @export
+loadMachineLearningModel <- function(filepath, object = NULL){
   x <- if (is.null(object)){
     readRDS(filepath)
   } else {
     object
   }
 
-  if (is(x, "machineLearningResult")){
-    modelLibrary <- x$library
-    isPackageInstalled <- packageInstalled(modelLibrary)
-
-    if (isPackageInstalled){
-      modelClass <- class(x$model)
-      predFun <- getS3method(
-        f = "predict",
-        class = modelClass,
-        envir = asNamespace(modelLibrary),
-        optional = TRUE
-      )
-
-      if (is.null(predFun)){
-        errorMsg <- paste0("No predict() method found for ", modelClass, "-class object")
-      } else {
-        x[[".predFun"]] <- predFun
-        return(x)
-      }
-    } else {
-      errorMsg <- paste0("Package '", modelLibrary, "' is not available.")
-    }
-  } else {
-    errorMsg <- "Incorrect input file. Please provide a file downloaded from the machine learning tab"
+  if (!is(x, "machineLearningResult")){
+    stop("Incorrect input file. Please provide a file downloaded from the machine learning tab")
   }
-
-  shinyBS::createAlert(
-    session = session,
-    anchorId = errorId,
-    content = errorMsg,
-    style = "danger"
+  
+  modelLibrary <- x$library
+  
+  if (!packageInstalled(modelLibrary)){
+    stop(paste0("Package '", modelLibrary, "' is not available."))
+  }
+  
+  modelClass <- class(x$model)
+  predFun <- getS3method(
+    f = "predict",
+    class = modelClass,
+    envir = asNamespace(modelLibrary),
+    optional = TRUE
   )
-
-  return()
+  
+  if (is.null(predFun)){
+    stop(paste0("No predict() method found for ", modelClass, "-class object"))
+  }
+  
+  x[[".predFun"]] <- predFun
+  class(x) <- "machineLearningResultReady"
+  x
 }
 
 #' @export
-predictFromModel <- function(m, df, errorId, session){
-  predFun <- m[[".predFun"]]
-
-  showPredictError <- function(msg){
-    shinyBS::createAlert(
-      session = session,
-      anchorId = errorId,
-      content = msg,
-      style = "danger"
-    )
+predictFromModel <- function(x, df){
+  if (!is(x, "machineLearningResultReady")){
+    stop("Incorrect input object. Please provide an object returned by loadMachineLearningModel function")
   }
+  
+  predFun <- x[[".predFun"]]
 
-  missingFeatures <- setdiff(m$bestFeatures, names(df))
+  missingFeatures <- setdiff(x$bestFeatures, names(df))
   if (length(missingFeatures) > 0){
-    showPredictError(paste("Missing features:", paste(missingFeatures, collapse = ", ")))
-    return()
+    stop(paste("Missing features:", paste(missingFeatures, collapse = ", ")))
   }
 
   df <- preparePredictionData(df)
-  assignment <- try(predFun(m$model, df))
+  assignment <- try(predFun(x$model, df))
   if (is(assignment, "try-error")){
-    showPredictError("Error during prediction. Please contact the app author.")
-    return()
+    stop("Error during prediction. Please contact the app author.")
   }
 
   if (is.list(assignment)){
@@ -74,8 +262,7 @@ predictFromModel <- function(m, df, errorId, session){
   assignment <- as.character(assignment)
 
   if (length(assignment) == 0 || any(! assignment %in% c("class1", "class2", NA))){
-    showPredictError("Incorrect prediction format. Did you use a custom model? Please contact the app author.")
-    return()
+    stop("Incorrect prediction format. Did you use a custom model? Please contact the app author.")
   }
 
   assignment
@@ -92,6 +279,7 @@ preparePredictionData <- function(df){
   df
 }
 
+# Unbalanced tumortypes -------------------------------------------------------
 #' @export
 dropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
   anno <- AnnotationFocus()

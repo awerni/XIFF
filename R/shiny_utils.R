@@ -1,4 +1,27 @@
 #' @export
+withErrorHandler <- function(expr, errorId = NULL, session = getDefaultReactiveDomain(), callback = NULL){
+  tryCatch(
+    expr = expr,
+    error = function(e){
+      errorMsg <- e$message
+      
+      if (is.character(errorId)){
+        shinyBS::createAlert(
+          session = session,
+          anchorId = errorId,
+          content = errorMsg,
+          style = "danger"
+        )
+      }
+      
+      if (is.function(callback)){
+        callback(errorMsg)
+      }
+    }
+  )
+}
+
+#' @export
 errorScreen <- function(reason){
   msg <- if (reason == "db"){
     "DB is not accessible"
