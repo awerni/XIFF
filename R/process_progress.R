@@ -90,3 +90,8 @@ ProcessProgress <- R6::R6Class(
     }
   )
 )
+
+#' @export
+validateFunctionResult <- function(x){
+  if (is.character(x)) validate(need(FALSE, x))
+}
