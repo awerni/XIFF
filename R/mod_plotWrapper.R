@@ -29,8 +29,9 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
   sizeId <- reactiveVal()
   
   PlotExprWrapper <- reactive({
+    jsId <- paste0("#", ns("container"))
     shinyjs::addClass(
-      selector = paste0("#", ns("container"), " .shiny-plot-output"), #TODO: consider adding some brushPlot API
+      selector = paste0(jsId, " .shiny-plot-output, ", jsId, " .tooltip-plot-output"),
       class = "recalculating"
     )
     PlotExpr()
