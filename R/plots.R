@@ -161,7 +161,8 @@ generateDataCoveragePlot <- function(data, col, sampleClasses, classLabel) {
     ylab(paste0("Number of ", getOption("xiff.label"), "s"))
 }
 
-generateDimRedPlot <- function(data, progressText, showLabels = TRUE, colorCol, fontSize = 10, p = FALSE) {
+#' @export
+generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, fontSize = 10, p = FALSE) {
   ret <- list(status = "ok")
 
   progress <- ProcessProgress$new("DimRed plot", p)
