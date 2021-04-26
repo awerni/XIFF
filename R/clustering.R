@@ -19,7 +19,7 @@ addClustering <- function(df, cluster_method, p = FALSE) {
   } else if (cluster_method == "affinity propagation") {
     apres <- apcluster::apcluster(apcluster::negDistMat(data, r = 2))
     df$cluster <- apres@clusters %>%
-      purrr::map_dfr(as.tibble, .id = "cluster") %>%
+      purrr::map_dfr(as_tibble, .id = "cluster") %>%
       arrange(value) %>%
       mutate(cluster = as.factor(cluster)) %>%
       .$cluster
