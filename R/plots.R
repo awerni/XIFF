@@ -161,14 +161,12 @@ generateDataCoveragePlot <- function(data, col, sampleClasses, classLabel) {
     ylab(paste0("Number of ", getOption("xiff.label"), "s"))
 }
 
-generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol, fontSize = 10, p = TRUE) {
+#' @export
+generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, fontSize = 10, p = FALSE) {
   ret <- list(status = "ok")
 
-  if (p) {
-    progress <- Progress$new()
-    on.exit(progress$close())
-    progress$set(message = progressText, value = 0.5)
-  }
+  progress <- ProcessProgress$new("DimRed plot", p)
+  progress$update(0.5, progressText)
 
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
@@ -239,7 +237,7 @@ generateDimRedPlot <- function(data, progressText, show.labels = TRUE, colorCol,
     #pl <- pl + viridis::scale_color_viridis(discrete = TRUE, option = "plasma")
   }
 
-  if (show.labels) {
+  if (showLabels) {
     if (nItems > 400) {
       ret$status <- "Can not display labels for more than 400 samples"
     } else {

@@ -135,7 +135,7 @@ body:not(.modal-open) {
 }
 
 .downloadable-plot .shiny-plot-output.recalculating + .loader,
-.downloadable-plot .shiny-html-output.recalculating + .loader,
+.downloadable-plot .tooltip-plot-output.recalculating + .loader,
 .brush-container .shiny-plot-output.recalculating + .loader {
   visibility: visible;
 }

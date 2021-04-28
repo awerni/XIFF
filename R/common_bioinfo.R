@@ -3,7 +3,7 @@
 splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
   trainingSet <- assignment
   validationSet <- NULL
-  
+
   if (p_validation > 0){
     n <- nrow(assignment)
     # full random selection; no stratification included
@@ -11,7 +11,7 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
     validationSet <- assignment[validationIdx, ]
     trainingSet <- assignment[-validationIdx, ]
   }
-  
+
   list(
     training = trainingSet,
     validation = validationSet
@@ -23,7 +23,7 @@ getRawDataForModel <- function(features, celllinenames = NULL){
   clFilter <- if (length(celllinenames) > 0){
     paste(" AND", getSQL_filter("celllinename", celllinenames))
   }
-  
+
   sql <- paste0("SELECT celllinename, ensg, log2tpm AS score FROM cellline.processedrnaseqview ",
                 "WHERE ", getSQL_filter("ensg", features), clFilter)
   getPostgresql(sql)
@@ -45,14 +45,14 @@ selectBestFeatures <- function(df, threshold = 0.05){
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
     na.rm = TRUE
-  ) %>% 
+  ) %>%
     tibble::rownames_to_column("ensg") %>%
     filter(p.value <= threshold) %>%
     arrange(p.value)
-  
+
   bestFeatures <- ttRes %>% pull(ensg)
   df <- df %>% select_at(c("class", bestFeatures))
-  
+
   list(
     stats = ttRes,
     df = df
@@ -67,19 +67,19 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
     repeats = repeats,
     savePredictions = "final"
   )
-  
+
   args <- list(
     as.formula("class ~ ."),
-    data = df, 
+    data = df,
     method = method,
     trControl = fitControl,
     tuneLength = tuneLength
   )
-  
+
   if (method == "rf"){
     args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
   }
-  
+
   do.call(caret::train, args)
 }
 
@@ -95,7 +95,7 @@ getVarImp <- function(model, stats){
       importanceName = "Mean decrease Gini"
     ),
     svm = list(
-      df = stats %>% 
+      df = stats %>%
         select(ensg, importance = p.value) %>%
         arrange(importance),
       importanceName = "p.val"
@@ -107,74 +107,60 @@ getVarImp <- function(model, stats){
   )
 }
 
-#' @importFrom FutureManager fmIsInterrupted fmUpdateProgress fmError
 #' @export
-createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, fmTask = NULL, 
+createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
-                                       method = "rf", tuneLength = 5, number = 10, repeats = 10, threshold = 0.05){  
-  p <- !is.null(fmTask)
-  
-  if (p) {
-    if (fmIsInterrupted(fmTask)) return()
-    fmUpdateProgress(fmTask, progress = 0.2, msg = "fetching data...")
-  }
-  
+                                       method = "rf", tuneLength = 5, number = 10, repeats = 10, threshold = 0.05){
+  progress <- ProcessProgress$new("Create ML model", p)
+  progress$update(0.2, "fetching data...")
+
   df <- getDataForModel(
     assignment = trainingSet,
     features = geneSet
   ) %>%
     select(-celllinename)
-  
-  if (nrow(df) == 0) return(fmError("No data available"))
-  
+
+  if (nrow(df) == 0) progress$error("No data available")
+
   # Feature selection
-  if (p) {
-    if (fmIsInterrupted(fmTask)) return()
-    fmUpdateProgress(fmTask, progress = 0.3, msg = "selecting features...")
-  }
-  
+  progress$update(0.3, "selecting features...")
+
   selectedFeatures <- selectBestFeatures(
     df = df,
     threshold = threshold
   )
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
-  
+
   bestFeatures <- stats %>% pull(ensg)
-  
+
   if (length(bestFeatures) == 0){
-    return(fmError(paste("no significant features found for threshold =", threshold)))
+    progress$error(paste("no significant features found for threshold =", threshold))
   }
-  
-  if (p) {
-    if (fmIsInterrupted(fmTask)) return()
-    fmUpdateProgress(fmTask, progress = 0.5, msg = "training model...")
-  }
-  
+
+  progress$update(0.5, "training model...")
+
   trainingOutput <- trainModel(
     df = df,
     method = method,
     tuneLength = tuneLength,
-    number = number, 
+    number = number,
     repeats = repeats
   )
-  
+
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
   df <- importanceRes$df %>% left_join(geneAnno, by = "ensg")
   attr(df, "importanceName") <- importanceRes$importanceName
-  
-  if (p) {
-    if (fmIsInterrupted(fmTask)) return()
-    fmUpdateProgress(fmTask, progress = 1, msg = "done!")
-  }
-  
+
+  progress$update(1.0, "job done")
+
   list(
     model = machineLearningResult(
       res = list(
         trainingOutput = trainingOutput,
         df = df,
         trainingSet = trainingSet$celllinename
-      ), 
+      ),
       classLabel = classLabel
     ),
     df = df,
@@ -213,13 +199,13 @@ loadMachineLearningModel <- function(filepath, object = NULL){
   if (!is(x, "machineLearningResult")){
     stop("Incorrect input file. Please provide a file downloaded from the machine learning tab")
   }
-  
+
   modelLibrary <- x$library
-  
+
   if (!packageInstalled(modelLibrary)){
     stop(paste0("Package '", modelLibrary, "' is not available."))
   }
-  
+
   modelClass <- class(x$model)
   predFun <- getS3method(
     f = "predict",
@@ -227,11 +213,11 @@ loadMachineLearningModel <- function(filepath, object = NULL){
     envir = asNamespace(modelLibrary),
     optional = TRUE
   )
-  
+
   if (is.null(predFun)){
     stop(paste0("No predict() method found for ", modelClass, "-class object"))
   }
-  
+
   x[[".predFun"]] <- predFun
   class(x) <- "machineLearningResultReady"
   x
@@ -242,7 +228,7 @@ predictFromModel <- function(x, df){
   if (!is(x, "machineLearningResultReady")){
     stop("Incorrect input object. Please provide an object returned by loadMachineLearningModel function")
   }
-  
+
   predFun <- x[[".predFun"]]
 
   missingFeatures <- setdiff(x$bestFeatures, names(df))
@@ -284,35 +270,35 @@ preparePredictionData <- function(df){
 dropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
   anno <- AnnotationFocus()
   if (is.null(anno) || nrow(anno) == 0) return()
-  
+
   cs <- reactiveValuesToList(classSelection)
   balancedTT <- getValidTumorTypes(cs, anno)
-  
+
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
-  
-  validItems <- anno %>% 
+
+  validItems <- anno %>%
     filter(tumortype %in% balancedTT) %>%
     pull(!!colname)
-  
+
   classSelection$class1 <- intersect(classSelection$class1, validItems)
   classSelection$class2 <- intersect(classSelection$class2, validItems)
 }
 
 #' Get valid tumor types
-#' 
+#'
 #' This function returns tumor types that are available in the data for both classes
-#' 
+#'
 #' @param cs list, class selection
 #' @param anno data.frame, item annotation
-#' 
+#'
 #' @return character vector of valid tumortypes
 #' @export
 getValidTumorTypes <- function(cs, anno){
   if (is.null(anno) || nrow(anno) == 0) return()
-  
+
   colname <- getOption("xiff.column")
-  
+
   stackClasses(cs) %>%
     left_join(anno, by = colname) %>%
     group_by(class, tumortype) %>%

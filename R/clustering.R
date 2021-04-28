@@ -1,9 +1,7 @@
-addClustering <- function(df, cluster_method, p = TRUE) {
-  if (p) {
-    progress <- Progress$new()
-    on.exit(progress$close())
-    progress$set(message = "clustering...", value = 0.5)
-  }
+addClustering <- function(df, cluster_method, p = FALSE) {
+  progress <- ProcessProgress$new("Clustering", p)
+  progress$update(0.5, "clustering...")
+
   data <- select_if(df, is.numeric)
   mc <- min(nrow(data) - 1, 20)
 
@@ -21,7 +19,7 @@ addClustering <- function(df, cluster_method, p = TRUE) {
   } else if (cluster_method == "affinity propagation") {
     apres <- apcluster::apcluster(apcluster::negDistMat(data, r = 2))
     df$cluster <- apres@clusters %>%
-      purrr::map_dfr(as.tibble, .id = "cluster") %>%
+      purrr::map_dfr(as_tibble, .id = "cluster") %>%
       arrange(value) %>%
       mutate(cluster = as.factor(cluster)) %>%
       .$cluster
@@ -37,20 +35,19 @@ addClustering <- function(df, cluster_method, p = TRUE) {
 }
 
 #' @export
-calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = TRUE) {
+calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE) {
   if (is.null(PCAData)) return()
-  if (p) {
-    progress <- Progress$new()
-    on.exit(progress$close())
-    progress$set(message = "sorting genes by variance", value = 0.3)
-  }
+
+  progress <- ProcessProgress$new("PCA", p)
+  progress$update(0.3, "sorting genes by variance...")
 
   data.counts <- PCAData[["data.counts"]]
   maxVarRows <- order(apply(PCAData[["data.log2tpm"]], 1, var), decreasing = TRUE)
   if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
   data.counts <- data.counts[maxVarRows, ]
 
-  if (p) progress$set(message = "transforming count matrix", value = 0.4)
+  progress$update(0.4, "transforming count matrix...")
+
   assignment <- PCAData[["assignment"]]
   design <- if (n_distinct(assignment$class) > 1){
     "~ class"
@@ -58,10 +55,18 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = TRUE) {
     "~ 1"
   }
 
-  dds <- DESeq2::DESeqDataSetFromMatrix(countData = data.counts, colData = assignment, design = as.formula(design))
-  if (p) progress$set(message = "variance stabilization", value = 0.6)
+  dds <- DESeq2::DESeqDataSetFromMatrix(
+    countData = data.counts,
+    colData = assignment,
+    design = as.formula(design)
+  )
+
+  progress$update(0.6, "variance stabilization...")
+
   vst <- DESeq2::varianceStabilizingTransformation(dds, fitType = "local")
-  if (p) progress$set(message = "calculating PCA", value = 0.8)
+
+  progress$update(0.8, "calculating PCA...")
+
   pcadata <- DESeq2::plotPCA(vst, intgroup = c("class"), returnData = TRUE)
   percentVar <- round(100 * attr(pcadata, "percentVar"))
 
@@ -77,52 +82,25 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = TRUE) {
 }
 
 #' @export
-calcPCA_Score <- function(PCAData, geneSource, numGenes = 300, unit = "score", p = TRUE) {
-  if (is.null(PCAData)) return()
-  if (p) {
-    progress <- Progress$new()
-    on.exit(progress$close())
-    progress$set(message = "sorting genes by variance", value = 0.3)
-  }
-
-  data_score <- PCAData[[paste0("data.", unit)]]
-  maxVarRows <- order(apply(data_score, 1, var), decreasing = TRUE)
-  if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
-  data_score <- data_score[maxVarRows, ]
-
-  pcadata <- prcomp(t(data_score), center = TRUE, scale. = TRUE)
-
-  colname <- getOption("xiff.column")
-  result <- tibble::tibble(!!colname := rownames(pcadata$x), pcadata$x[, 1:2]) %>%
-    left_join(PCAData$assignment, by = colname)
-  eigs <- pcadata$sdev^2
-
-  res <- list(
-    data = result,
-    genes = nrow(data_score),
-    percentVar = signif(100 * eigs/sum(eigs), 3)
-  )
-  res[[getOption("xiff.name")]] <- ncol(data_score)
-  res
-}
-
-#' @export
-calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p = TRUE) {
+calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p = FALSE) {
   if (is.null(TSNEData)) return()
-  if (p) {
-    progress <- Progress$new()
-    on.exit(progress$close())
-    progress$set(message = "sorting genes by variance", value = 0.1)
-  }
+
+  progress <- ProcessProgress$new("t-SNE", p)
+  progress$update(0.1, "sorting genes by variance...")
+
   data.cross <- TSNEData[[paste0("data.", unit)]]
   maxVarRows <- order(apply(data.cross, 1, var), decreasing = TRUE)
   if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
   data.cross <- data.cross[maxVarRows, ]
 
-  if (p) progress$set(message = "calculating t-SNE", value = 0.5)
+  progress$update(0.5, "calculating t-SNE...")
 
   perp <- min(50, round(0.5 + ncol(data.cross)/10))
-  res <- Rtsne::Rtsne(t(data.cross), perplexity = perp, inital_dims = min(50, numGenes))
+  res <- Rtsne::Rtsne(
+    X = t(data.cross),
+    perplexity = perp,
+    inital_dims = min(50, numGenes)
+  )
   myTitle <- glue::glue("perplexity={res$perplexity}  #{getOption('xiff.label')}s={res$N}  #genes={nrow(data.cross)}")
 
   final_res <- list(
@@ -134,20 +112,18 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
 }
 
 #' @export
-calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = TRUE){
-  #save(UMAPData, geneSource, numGenes, unit, file = "calcUMAP.Rdata")
+calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE){
   if (is.null(UMAPData)) return()
-  if (p) {
-    progress <- Progress$new()
-    on.exit(progress$close())
-    progress$set(message = "sorting genes by variance", value = 0.3)
-  }
+
+  progress <- ProcessProgress$new("UMAP", p)
+  progress$update(0.3, "sorting genes by variance...")
+
   data.cross <- UMAPData[[paste0("data.", unit)]]
   maxVarRows <- order(apply(data.cross, 1, var), decreasing = TRUE)
   if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
   data.cross <- data.cross[maxVarRows, ]
 
-  if (p) progress$set(message = "calculating umap", value = 0.6)
+  progress$update(0.6, "calculating umap...")
 
   perp <- min(50, round(0.5 + ncol(data.cross)/10))
   res <- umap::umap(t(data.cross), perplexity = perp)

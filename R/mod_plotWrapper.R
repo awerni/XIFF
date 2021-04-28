@@ -27,10 +27,19 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
                         tooltipCallback = getOption("xiff.tooltipCallbackFun"), ...){
   ns <- session$ns
   sizeId <- reactiveVal()
+  
+  PlotExprWrapper <- reactive({
+    jsId <- paste0("#", ns("container"))
+    shinyjs::addClass(
+      selector = paste0(jsId, " .shiny-plot-output, ", jsId, " .tooltip-plot-output"),
+      class = "recalculating"
+    )
+    PlotExpr()
+  })
 
   output$plot_normal <- renderPlot({
     req(!PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
-    PlotExpr()
+    PlotExprWrapper()
   }, ...)
 
   shouldInitTooltips <- TRUE
@@ -48,7 +57,7 @@ plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
   if (shouldInitTooltips){
     TooltipPlotExpr <- reactive({
       req(PlotType() %in% allowedTooltipTypes, cancelOutput = TRUE)
-      PlotExpr()
+      PlotExprWrapper()
     })
 
     callModule(

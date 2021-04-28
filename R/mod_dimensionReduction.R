@@ -35,15 +35,15 @@ dimensionReduction <- function(input, output, session,
       EXPR = method,
       tsne = {
         progressText <- "plot t-SNE"
-        d <- funTSNE(res, dataSource, n, unit)
+        d <- funTSNE(res, dataSource, n, unit, p = session)
       },
       pca = {
         progressText <- "plot PCA"
-        d <- funPCA(res, dataSource, n)
+        d <- funPCA(res, dataSource, n, p = session)
       },
       umap = {
         progressText <- "plot umap"
-        d <- funUMAP(res, dataSource, n, unit)
+        d <- funUMAP(res, dataSource, n, unit, p = session)
       }
     )
     if (is.null(d)) return()
@@ -63,7 +63,7 @@ dimensionReduction <- function(input, output, session,
     req(res)
 
     cm <- ClusterMethod()
-    res$d$data <- addClustering(res$d$data, cm)
+    res$d$data <- addClustering(res$d$data, cm, p = session)
     res
   })
 
@@ -95,7 +95,7 @@ dimensionReduction <- function(input, output, session,
       levels = labels
     )
 
-    p <- plotDimRed(res$d, params, res$annotationFocus)
+    p <- plotDimRed(res$d, params, res$annotationFocus, p = session)
     validate(need(p$plot, "nothing to show yet..."))
     colorTooltip <<- p$colorTooltip
     p$plot
@@ -113,7 +113,7 @@ dimensionReduction <- function(input, output, session,
   ClusterResults
 }
 
-plotDimRed <- function(d, params, annotationFocus) {
+plotDimRed <- function(d, params, annotationFocus, p = FALSE) {
   if (is.null(d)) return()
 
   il <- params$labelDimRed
@@ -145,7 +145,14 @@ plotDimRed <- function(d, params, annotationFocus) {
     colorTooltip <- n_distinct(d$data[["class"]]) > 5
   }
 
-  p <- generateDimRedPlot(d, d$progressText, showLabels, colorCol, fs)
+  p <- generateDimRedPlot(
+    data = d,
+    progressText = d$progressText,
+    showLabels = showLabels,
+    colorCol = colorCol,
+    fontSize = fs,
+    p = p
+  )
 
   list(
     plot = p$pl,
