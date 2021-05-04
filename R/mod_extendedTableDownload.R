@@ -65,6 +65,7 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
   )
 }
 
+#' @export
 stripHtml <- function(x){
   gsub("<[^>]*>", "", x)
 }

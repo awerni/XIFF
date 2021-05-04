@@ -169,3 +169,19 @@ getEnsemblSpecies <- function(species){
 packageInstalled <- function(name){
   is.character(name) && name %in% rownames(installed.packages())
 }
+
+#' @export
+napply <- function(X, FUN, ...){
+  if (length(X) == 0) return(list())
+  
+  n <- names(X)
+  if (is.null(n)){
+    n <- seq_along(X)
+  }
+  
+  mapply(
+    FUN = FUN,
+    X, n,
+    ...
+  )
+}
