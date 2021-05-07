@@ -86,5 +86,31 @@ getSQL_filter <- function(filter_col, filter_options) {
   #sql <- paste0(filter_col, " IN (", paste(filter_options, collapse = ","), ")")
   #}
   #return(sql)
-  paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")
+  
+  if (length(filter_options) > 0){
+    paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")
+  }
+}
+
+#' @export
+prepareConditionSql <- function(...){
+  dots <- list(...)
+  
+  items <- napply(
+    X = dots,
+    FUN = function(x, name){
+      if (is.character(x) && length(x) > 0){
+        if (length(x) > 1){
+          getSQL_filter(name, x)
+        } else {
+          paste0(name, " = '", x, "'")
+        }
+      }
+    }
+  )
+  
+  items <- dropNulls(items)
+  if (length(items) > 0){
+    paste(items, collapse = " AND ")
+  }
 }

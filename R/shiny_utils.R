@@ -152,6 +152,13 @@ getEnsgRowCallback <- function(species, idx = 1){
   htmlwidgets::JS(paste0("function(row, data, dataIndex) { ensgRowCallback(row, data, '", spFull, "', ", idx - 1, "); }"))
 }
 
+#' Set DB options
+#' 
+#' This function sets all R options required for DB connection based on the
+#' settings object.
+#' 
+#' @param settings list of settings
+#' @return nothing 
 #' @export
 setDbOptions <- function(settings){
   options("dbname" = settings[["db"]][["name"]])
