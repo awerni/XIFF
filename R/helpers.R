@@ -1,3 +1,94 @@
+# Class assignment ------------------------------------------------------------
+#'@export
+classAssignment <- function(...){
+  theDots <- list(...)
+  if (length(theDots) != 2){
+    stop("please provide 2 sample name vectors")
+  }
+  
+  labels <- names(theDots)
+  if (is.null(labels)){
+    labels <- c("class1", "class2")
+  }
+  
+  structure(
+    list(
+      class1 = theDots[[1]],
+      class2 = theDots[[2]]
+    ),
+    labels = list(
+      class1 = labels[1],
+      class2 = labels[2]
+    ),
+    class = c("classAssignment", "list")
+  )
+}
+
+#' @export
+classIdToLabel <- function(x, ca){
+  returnFactor <- is.factor(x)
+  stopifnot(
+    is(ca, "classAssignment"),
+    is.character(x) || returnFactor
+  )
+  
+  dict <- attr(ca, "labels")
+  labels <- c(dict$class1, dict$class2)
+  res <- ifelse(x == "class1", labels[1], labels[2])
+  
+  if (returnFactor){
+    res <- factor(res, levels = labels)
+  }
+  
+  res
+}
+
+#' @export
+`setClassItems<-` <- function(ca, classId, value = NULL){
+  stopifnot(
+    is(ca, "classAssignment"),
+    is.character(classId) && length(classId) == 1 && classId %in% c("class1", "class2"),
+    is.null(value) || is.character(value)
+  )
+  
+  ca[classId] <- list(value)
+  ca
+}
+
+#' @export
+`setClassLabel<-` <- function(ca, classId, value){
+  stopifnot(
+    is(ca, "classAssignment"),
+    is.character(classId) && classId %in% c("class1", "class2"),
+    is.character(value) && length(value) == 1
+  )
+  
+  labels <- attr(ca, "labels")
+  labels[[classId]] <- value
+  attr(ca, "labels") <- labels
+  ca
+}
+
+#' @export
+getAssignmentDf <- function(ca, useLabels = TRUE, returnFactor = TRUE){
+  stopifnot(is(ca, "classAssignment"))
+  
+  classLabel <- if (useLabels){
+    labels <- attr(ca, "labels")
+    list(
+      class1_name = labels$class1, 
+      class2_name = labels$class2
+    )
+  }
+  
+  stackClasses(
+    sampleClasses = ca,
+    classLabel = classLabel,
+    return_factor = returnFactor
+  )
+}
+
+# Others ----------------------------------------------------------------------
 #' Null default
 #' @export
 `%||%` <- function(x, y){
@@ -39,6 +130,8 @@ stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE
   } else {
     if (return_factor) assignment$class <- factor(assignment$class, levels = c("class1", "class2"))
   }
+  
+  assignment <- assignment[, c(colname, "class")]
   rownames(assignment) <- assignment[[colname]]
   return(assignment)
 }
