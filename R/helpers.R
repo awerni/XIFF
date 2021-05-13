@@ -25,6 +25,16 @@ classAssignment <- function(...){
 }
 
 #' @export
+print.classAssignment <- function(x){
+  dict <- attr(x, "labels")
+  n1 <- length(x$class1)
+  n2 <- length(x$class2)
+  cat("Class assignment object\n")
+  cat(paste0("Class1 (", dict$class1, "): ", n1, " items\n"))
+  cat(paste0("Class2 (", dict$class2, "): ", n2, " items\n"))
+}
+
+#' @export
 classIdToLabel <- function(x, ca){
   returnFactor <- is.factor(x)
   stopifnot(
@@ -90,6 +100,7 @@ getAssignmentDf <- function(ca, useLabels = TRUE, returnFactor = TRUE){
 
 # Others ----------------------------------------------------------------------
 #' Null default
+#' @name op-null-default
 #' @export
 `%||%` <- function(x, y){
   if (rlang::is_null(x) || length(x) == 0)
