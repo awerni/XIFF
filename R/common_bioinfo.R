@@ -1,3 +1,124 @@
+#' @export
+differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol, 
+                                    progressLabel, itemLabel, p = FALSE){
+  progress <- ProcessProgress$new(progressLabel, p)
+  progress$update(0.2, paste("fetching", itemLabel, "data..."))
+  
+  data <- prepareDataAndDesignCommon(
+    sampleClasses = sampleClasses,
+    dbDataFun = dbDataFun,
+    idCol = idCol,
+    scoreCol = scoreCol
+  )
+  if (is.character(data)) progress$error(data)
+  
+  progress$update(0.7, "fitting linear model...")
+  
+  fit <- limma::lmFit(data$data, data$design)
+  fit <- limma::eBayes(fit)
+  tt <-  limma::topTable(fit, number = 1e9, coef = ncol(data$design))
+  res <- tt %>% tibble::rownames_to_column(idCol)
+  
+  progress$update(1.0, "job done")
+  
+  res %>% 
+    rename(adj.p.val = adj.P.Val) %>% 
+    arrange(P.Value, adj.p.val)
+}
+
+#' @export
+prepareDataAndDesignCommon <- function(sampleClasses, dbDataFun, idCol, 
+                                       scoreCol = "score"){
+  class1 <- sampleClasses$class1
+  class2 <- sampleClasses$class2
+  
+  column <- getOption("xiff.column")
+  column <- rlang::sym(column)
+  
+  samplenames <- c(class1, class2)
+  data <- dbDataFun(samplenames)
+  if (nrow(data) <= 2) return("not enough data available")
+  
+  scoreCol <- rlang::sym(scoreCol)
+  dataWide <- data %>%
+    tidyr::pivot_wider(names_from = !!column, values_from = !!scoreCol) %>%
+    tibble::column_to_rownames(idCol)
+  
+  avail.samples <- colnames(dataWide)
+  class1 <- intersect(class1, avail.samples)
+  class2 <- intersect(class2, avail.samples)
+  
+  if (length(class1) == 0 || length(class2) == 0) {
+    label <- getOption("xiff.name")
+    return(paste(label, "from both classes need to be available"))
+  }
+  
+  classification <- prepareClassificationTable(class1, class2)
+  dataWide <- dataWide[, classification[[column]]]
+  design <- model.matrix(~ class, data = classification)
+  
+  list(
+    data = dataWide, 
+    design = design
+  )
+}
+
+#' @export
+prepareClassificationTable <- function(class1, class2, addRownames = TRUE){
+  sampleNames <- c(class1, class2)
+  df <- data.frame(
+    samples = sampleNames,
+    class = c(
+      rep("class1", length(class1)),
+      rep("class2", length(class2))
+    )
+  )
+  names(df)[1] <- getOption("xiff.column")
+  
+  if (addRownames){
+    rownames(df) <- sampleNames
+  }
+  
+  df
+}
+
+#' @export
+reorderByScore <- function(df, orderCol = getOption("xiff.column"), 
+                           valueCol = "score", .desc = TRUE){
+  if (!is.data.frame(df) || nrow(df) == 0) return()
+  
+  valueCol <- sym(valueCol)
+  df <- df %>% filter(!is.na(!!valueCol))
+  
+  if (nrow(df) == 0) return()
+  orderCol <- sym(orderCol)
+  
+  df %>% mutate(
+    !!orderCol := forcats::fct_reorder(!!orderCol, !!valueCol, .desc = .desc)
+  )
+}
+
+#' @export
+ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
+  r1 <- rownames(m1)
+  r2 <- rownames(m2)
+  
+  if (!identical(r1, r2)){
+    rCommon <- intersect(r1, r2)
+    if (sortRownames){
+      rCommon <- sort(rCommon)
+    }
+    m1 <- m1[rCommon, ]
+    m2 <- m2[rCommon, ]
+  }
+  
+  res <- list(m1, m2)
+  if (!is.null(outNames)){
+    names(res) <- outNames
+  }
+  res
+}
+
 # Machine learning ------------------------------------------------------------
 #' @export
 splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
