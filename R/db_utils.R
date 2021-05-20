@@ -57,6 +57,12 @@ getPostgresqlConnection <- function() {
   return(con)
 }
 
+#' Get data from Postgres
+#' 
+#' Function that queries the DB
+#' 
+#' @param sql character string, the SQL query
+#' @return data.frame
 #' @export
 getPostgresql <- function(sql) {
   con <- getPostgresqlConnection()
