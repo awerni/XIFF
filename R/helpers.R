@@ -1,5 +1,11 @@
 # Class assignment ------------------------------------------------------------
-#'@export
+#' Class assignment
+#' 
+#' Helper class that holds class samples with class labels
+#' 
+#' @param ... named character vectors
+#' @return classAssignment object
+#' @export
 classAssignment <- function(...){
   theDots <- list(...)
   if (length(theDots) != 2){
@@ -51,6 +57,16 @@ classIdToLabel <- function(x, ca){
   }
   
   res
+}
+
+#' @export
+renameClassIdToLabel <- function(df, column, ca){
+  if (is(ca, "classAssignment")){
+    column <- rlang::sym(column)
+    df %>% mutate(!!column := classIdToLabel(!!column, ca))
+  } else {
+    df
+  }
 }
 
 #' @export
