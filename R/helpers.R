@@ -8,6 +8,11 @@
 #' @export
 classAssignment <- function(...){
   theDots <- list(...)
+  
+  if (length(theDots) == 1 && is.list(theDots[[1]])){
+    theDots <- theDots[[1]]
+  }
+  
   if (length(theDots) != 2){
     stop("please provide 2 sample name vectors")
   }
