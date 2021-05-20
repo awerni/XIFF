@@ -22,6 +22,9 @@ differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol,
   progress$update(1.0, "job done")
   
   res %>% 
+    mutate(higher = ifelse(logFC < 0, "class1", "class2")) %>%
+    renameClassIdToLabel("higher", sampleClasses) %>%
+    relocate(higher, .after = 1) %>%
     rename(adj.p.val = adj.P.Val) %>% 
     arrange(P.Value, adj.p.val)
 }
