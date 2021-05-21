@@ -463,3 +463,8 @@ generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
     fill = "tumortype"
   )
 }
+
+#' @export
+print.customPlotPrint <- function(x){
+  grid::grid.draw(x)
+}
