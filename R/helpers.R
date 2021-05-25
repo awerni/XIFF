@@ -36,6 +36,16 @@ classAssignment <- function(...){
 }
 
 #' @export
+makeClassAssignment <- function(sampleClasses, classLabel){
+  if (is.null(sampleClasses) || is.null(classLabel)) return()
+  
+  # make sure the order is fine
+  sampleClasses <- sampleClasses[c("class1", "class2")]
+  names(sampleClasses) <- c(classLabel$class1_name, classLabel$class2_name)
+  classAssignment(sampleClasses)
+}
+
+#' @export
 print.classAssignment <- function(x){
   dict <- attr(x, "labels")
   n1 <- length(x$class1)

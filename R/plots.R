@@ -2,24 +2,58 @@
 plotColors <- c("#d73027", "#4575b4", "#fc8d59", "#91bfdb", "#A8840D", "#24BF43", "#000000")
 
 #' @export
-generatePlotByType <- function(item, data, sampleClasses, classLabel, plotType, rocPlotFun, diffPlotFun, dataCol, ...) {
+generatePlotByType <- function(data, ca, plotType, dataCol, title = NULL,
+                               rocPlotFun = generateROCPlot, 
+                               diffPlotFun = generateDiffPlot, ...) {
   switch(
     EXPR = plotType,
-    roc = rocPlotFun(item, data, sampleClasses, ...),
-    point = diffPlotFun(item, data, sampleClasses, classLabel, geom_jitter,
-                        width = 0.25, height = 0, mapping = aes(colour = class), ...),
-    violin = diffPlotFun(item, data, sampleClasses, classLabel, geom_violin, ...),
-    box = diffPlotFun(item, data, sampleClasses, classLabel, geom_boxplot, ...),
-    coverage = generateDataCoveragePlot(data, dataCol, sampleClasses, classLabel)
+    roc = rocPlotFun(
+      data = data, 
+      ca = ca, 
+      dataCol = dataCol,
+      title = title
+    ),
+    point = diffPlotFun(
+      data = data, 
+      ca = ca, 
+      dataCol = dataCol,
+      plotFunc = geom_jitter,
+      title = title, 
+      width = 0.25, 
+      height = 0, 
+      mapping = aes(colour = class),
+      ...
+    ),
+    violin = diffPlotFun(
+      data = data, 
+      ca = ca, 
+      dataCol = dataCol,
+      plotFunc = geom_violin,
+      title = title,
+      ...
+    ),
+    box = diffPlotFun(
+      data = data, 
+      ca = ca, 
+      dataCol = dataCol,
+      plotFunc = geom_boxplot,
+      title = title,
+      ...
+    ),
+    coverage = generateDataCoveragePlot(
+      data = data, 
+      col = dataCol, 
+      ca = ca
+    )
   )
 }
 
 #' @export
-generateROCPlot <- function(data, sampleClasses, dataCol, title = "ROC plot") {
-  if (is.null(data) || is.null(sampleClasses) || is.null(dataCol)) return()
+generateROCPlot <- function(data, ca, dataCol, title = "ROC plot") {
+  if (is.null(data) || is.null(ca) || is.null(dataCol)) return()
 
   colname <- getOption("xiff.column")
-  assignment <- stackClasses(sampleClasses)
+  assignment <- stackClasses(ca)
   data <- data %>% inner_join(assignment, by = colname)
 
   ordering <- 0:1
@@ -43,12 +77,12 @@ generateROCPlot <- function(data, sampleClasses, dataCol, title = "ROC plot") {
 }
 
 #' @export
-generateDiffPlot <- function(data, sampleClasses, classLabel, dataCol, title, plotFunc,
+generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
                              xlabel = "", ylabel = "", trans = "identity", ...) {
-  if (is.null(data) || is.null(dataCol) || is.null(sampleClasses)) return()
+  if (is.null(data) || is.null(dataCol) || is.null(ca)) return()
 
   colname <- getOption("xiff.column")
-  coldata <- stackClasses(sampleClasses, classLabel, return_factor = TRUE) %>%
+  coldata <- getAssignmentDf(ca) %>%
     inner_join(data, by = colname)
 
   dataCol <- rlang::sym(dataCol)
@@ -119,11 +153,10 @@ generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"
 }
 
 #' @export
-generateDataCoveragePlot <- function(data, col, sampleClasses, classLabel) {
-  if (is.null(data) | is.null(col) | is.null(sampleClasses)) return(NULL)
+generateDataCoveragePlot <- function(data, col, ca) {
   colname <- getOption("xiff.column")
 
-  df <- stackClasses(sampleClasses, classLabel) %>%
+  df <- getAssignmentDf(ca) %>%
     left_join(data, by = colname) %>%
     select(class, !!colname, x = !!col) %>%
     group_by(class) %>%
@@ -429,4 +462,9 @@ generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
     trans = y_scale,
     fill = "tumortype"
   )
+}
+
+#' @export
+print.customPlotPrint <- function(x){
+  grid::grid.draw(x)
 }
