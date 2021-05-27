@@ -262,7 +262,7 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
       shinyBS::createAlert(
         session = session,
         anchorId = topErrorId,
-        content = "Could not find any column with", getOption("xiff.label"), "names or identifiers<br>",
+        content = paste("Could not find any column with", getOption("xiff.label"), "names or identifiers<br>"),
         style = "danger"
       )
       return()
