@@ -301,6 +301,11 @@ getEnsemblSpecies <- function(species){
 }
 
 #' @export
+getGeneSetLink <- function(geneset, msigDBLink){
+  paste0('<a href="', msigDBLink, geneset, '" target="_blank">', geneset, '</a>')
+}
+
+#' @export
 packageInstalled <- function(name){
   is.character(name) && name %in% rownames(installed.packages())
 }
