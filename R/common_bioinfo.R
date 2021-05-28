@@ -433,3 +433,27 @@ getValidTumorTypes <- function(cs, anno){
     pull(tumortype) %>%
     as.character()
 }
+
+#' @export
+getClassDistances <- function(mat, pheno, metric = "euclidean"){
+  cv <- pheno[colnames(mat), "class"] # make sure the order is correct
+  
+  dn <- combn(
+    x = ncol(mat), # get all pairs in the same way as dist() does this
+    m = 2,
+    FUN = function(x){
+      cv[x[1]] != cv[x[2]] # look for class1 vs class2 pairs
+    }
+  )
+  
+  d <- dist(t(mat), method = metric) # calculate distance
+  d[dn] <- max(d) + 1 # introduce maximal available distance to separate classes
+  d
+}
+
+#' @export
+scaleRows <- function(x){
+  m <- apply(x, 1, mean, na.rm = TRUE)
+  s <- apply(x, 1, sd, na.rm = TRUE)
+  return((x - m)/s)
+}

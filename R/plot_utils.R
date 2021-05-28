@@ -13,9 +13,17 @@ tooltipAes <- function(..., plotFunc){
 }
 
 #' @export
-getPheatmap <- function(..., silent = TRUE){
+getPheatmap <- function(mat, ..., silent = TRUE,
+                        show_rownames = nrow(mat) < 100,
+                        show_colnames = ncol(mat) < 100){
   oldDev <- grDevices::dev.cur()
-  x <- pheatmap::pheatmap(..., silent = silent)
+  x <- pheatmap::pheatmap(
+    mat = mat,
+    ..., 
+    show_rownames = show_rownames,
+    show_colnames = show_colnames,
+    silent = silent
+  )
   if (oldDev > 1) grDevices::dev.set(oldDev)
   x
 }
@@ -31,4 +39,10 @@ guessAxisScale <- function(values){
   }
 
   myScale
+}
+
+#' @export
+ggColorHue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
 }
