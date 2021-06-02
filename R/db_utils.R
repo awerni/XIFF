@@ -120,3 +120,44 @@ prepareConditionSql <- function(...){
     paste(items, collapse = " AND ")
   }
 }
+
+#' Stash data and use them in apps
+#' 
+#' For expert usage only. You have to have writing permissions to the DB.
+#' Returned hash may be used in the Restore selection input mode.
+#' 
+#' @param df data.frame data to store
+#' @return character string, the dataset hash
+#' @examples
+#' \dontrun{
+#' setDbOptions(getSettings())
+#' options(dbuser = Sys.getenv("USER"))
+#' options(dbpass = NA)
+#' df <- data.frame(celllinename = c("a", "b", "c"), property = c(1, 2, 3))
+#' hash <- stashData(df)
+#' df2 <- getStashedData(hash) # you can reach the data anywhere the DB is available
+#' }
+stashData <- function(df){
+  stopifnot(is.data.frame(df))
+  
+  myHash <- substr(digest::digest(Sys.time()), 1, 6)
+  payload <- jsonlite::toJSON(df)
+  
+  sql <- paste0(
+    "INSERT INTO datastack (datastackid, playload, created) VALUES ('",
+    myHash, "','", payload, "', now());"
+  )
+  
+  res <- getPostgresql(sql)
+  myHash
+}
+
+#' @export
+getStashedData <- function(hash){
+  sql <- paste0("SELECT playload FROM datastack WHERE datastackid = '", hash, "'")
+  res <- getPostgresql(sql)
+  
+  if (nrow(res) > 0){
+    jsonlite::fromJSON(res$playload)
+  }
+}

@@ -3,6 +3,13 @@ restoreSelectionInputModeUI <- function(id){
   ns <- NS(id)
 
   list(
+    br(),
+    fluidRow_12(
+      textInput(
+        inputId = ns("hash"),
+        label = "Dataset hash"
+      )
+    ),
     fluidRow(
       column_4(
         selectInput(
@@ -30,12 +37,29 @@ restoreSelectionInputModeUI <- function(id){
 }
 
 #' @export
-restoreSelectionInputMode <- function(input, output, session, classStack){
-  colname <- getOption("xiff.column")
-  colname <- rlang::sym(colname)
+restoreSelectionInputMode <- function(input, output, session, classStack, Annotation){
+  strColname <- getOption("xiff.column")
+  colname <- rlang::sym(strColname)
 
   ns <- session$ns
 
+  observeEvent(
+    eventExpr = input$hash,
+    handlerExpr = {
+      hash <- input$hash
+      if (!is.character(hash) || nchar(hash) != 6) return()
+      
+      df <- getStashedData(hash)
+      if (is.data.frame(df) && strColname %in% names(df)){
+        if (!"tumortype" %in% names(df)){
+          df <- df %>% addTumortypes(Annotation())
+        }
+        
+        classStack(df)
+      }
+    }
+  )
+  
   observe({
     df <- classStack()
     req(df)
