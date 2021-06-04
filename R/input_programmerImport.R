@@ -1,5 +1,5 @@
 #' @export
-ProgrammerImportInputModeUI <- function(id){
+programmerImportInputModeUI <- function(id){
   ns <- NS(id)
   
   restoreSelectionInputModeUI(
@@ -14,7 +14,7 @@ ProgrammerImportInputModeUI <- function(id){
 }
 
 #' @export
-ProgrammerImportInputMode <- function(input, output, session, Annotation){
+programmerImportInputMode <- function(input, output, session, Annotation){
   colname <- getOption("xiff.column")
   
   StashedData <- reactive({
