@@ -247,6 +247,23 @@ replaceClassLabels <- function(df, cl) {
   return(df)
 }
 
+#' Add tumor types
+#' 
+#' A simple function that adds `tumortype` column to the data
+#' 
+#' @param data data.frame, `celllinename` column required
+#' @param anno data.frame, cell line annotation
+#' 
+#' @return data data.frame with the additional column
+#' @export
+addTumortypes <- function(data, anno){
+  strColname <- getOption("xiff.column")
+  colname <- rlang::sym(strColname)
+  
+  tt <- anno %>% select(!!colname, tumortype)
+  data %>% left_join(tt, by = strColname)
+}
+
 #' @export
 textAreaContentToVector <- function(content){
   ret <- if (stringr::str_length(content) > 0) as.vector(sapply(strsplit(content,'\n'), stringr::str_trim)) else c()

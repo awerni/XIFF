@@ -1,8 +1,10 @@
 #' @export
-restoreSelectionInputModeUI <- function(id){
+restoreSelectionInputModeUI <- function(id, ...){
   ns <- NS(id)
 
   list(
+    br(),
+    ...,
     fluidRow(
       column_4(
         selectInput(
@@ -33,9 +35,7 @@ restoreSelectionInputModeUI <- function(id){
 restoreSelectionInputMode <- function(input, output, session, classStack){
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
-
-  ns <- session$ns
-
+  
   observe({
     df <- classStack()
     req(df)
@@ -104,6 +104,7 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
     !is.null(input$column) &&
       !is.null(input$column_facet) &&
       !is.null(input$display_bar) &&
+      !is.null(classStack()) && 
       nrow(classStack()) > 0
   })
 
