@@ -183,27 +183,72 @@ selectBestFeatures <- function(df, threshold = 0.05){
   )
 }
 
+#' Train Machine Learning Models.
+#' 
+#' @param df 
+#' @param method 
+#' @param tuneLength 
+#' @param number 
+#' @param repeats 
+#'
 #' @export
+#' 
+#' @examples 
+#' 
+#' if(require("xiffModels")) {
+#'   data("train_model_data", package = "xiffModels")
+#'   train_model_data <- train_model_data[,-1]
+#' 
+#'   fitRF  <- trainModel(train_model_data, method = "rf", tuneLength = 1)
+#'   fitSVM <- trainModel(train_model_data, method = "svmLinear2", tuneLength = 1)
+#'   fitNeuralnet <- trainModel(train_model_data, method = "neuralnetwork")
+#' }
+#' 
+#' 
 trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10){
-  fitControl <- caret::trainControl(
-    method = "repeatedcv",
-    number = number,
-    repeats = repeats,
-    savePredictions = "final"
-  )
-
-  args <- list(
-    as.formula("class ~ ."),
-    data = df,
-    method = method,
-    trControl = fitControl,
-    tuneLength = tuneLength
-  )
-
-  if (method == "rf"){
-    args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
+  
+  
+  if(method == "neuralnetwork") {
+    
+    stopifnot(require("xiffModels"))
+    
+    fitControl <- caret::trainControl(
+      method = "none",
+      savePredictions = "final"
+    )
+    tuneLength <- 1
+    method <- xiffModels::modelInfoNeuralNetwork()
+    param <- data.frame(layer1=  10, layer2 = 10, layer3 = 10)
+    
+    args <- list(
+      as.formula("class ~ ."),
+      data = df,
+      method = method,
+      trControl = fitControl,
+      tuneGrid = param
+    )
+    
+  } else {
+    fitControl <- caret::trainControl(
+      method = "repeatedcv",
+      number = number,
+      repeats = repeats,
+      savePredictions = "final"
+    )
+    
+    args <- list(
+      as.formula("class ~ ."),
+      data = df,
+      method = method,
+      trControl = fitControl,
+      tuneLength = tuneLength
+    )
+    
+    if (method == "rf"){
+      args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
+    }
   }
-
+  
   do.call(caret::train, args)
 }
 
@@ -232,6 +277,14 @@ getVarImp <- function(model, stats){
 }
 
 #' @export
+#' 
+#' @examples 
+#' 
+#' data(data_createMachineLearningModel, package = "XIFF")
+#' trainingSet <- data_createMachineLearningModel$trainingSet
+#' geneSet     <- data_createMachineLearningModel$geneSet
+#' geneAnno    <- data_createMachineLearningModel$geneAnno
+#' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
                                        method = "rf", tuneLength = 5, number = 10, repeats = 10, threshold = 0.05){
