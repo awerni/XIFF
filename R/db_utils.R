@@ -65,22 +65,41 @@ getPostgresqlConnection <- function() {
 #' @return data.frame
 #' @export
 getPostgresql <- function(sql) {
+  x <- runDbQuery(sql)
+  data <- try(RPostgres::dbFetch(x$rs, n = -1))
+
+  if (class(x$rs) == "PqResult") RPostgres::dbClearResult(x$rs)
+  RPostgres::dbDisconnect(x$con)
+  if (class(data) == "try-error") stop("can not retrieve data")
+
+  return(data)
+}
+
+#' Run set query in Postgres
+#' 
+#' Function that queries the DB
+#' 
+#' @param sql character string, the SQL query
+#' @return TRUE if success
+#' @export
+setPostgresql <- function(sql){
+  x <- runDbQuery(sql)
+  if (class(x$rs) == "PqResult") RPostgres::dbClearResult(x$rs)
+  RPostgres::dbDisconnect(x$con)
+  TRUE
+}
+
+runDbQuery <- function(sql){
   con <- getPostgresqlConnection()
   if (class(con) == "try-error") stop("no connection to database")
-
+  
   rs <- try(RPostgres::dbSendQuery(con, sql))
   if (class(rs) == "try-error") {
     RPostgres::dbDisconnect(con)
     stop("can not exectute sql command")
   }
-
-  data <- try(RPostgres::dbFetch(rs, n = -1))
-
-  if (class(rs) == "PqResult") RPostgres::dbClearResult(rs)
-  RPostgres::dbDisconnect(con)
-  if (class(data) == "try-error") stop("can not retrieve data")
-
-  return(data)
+  
+  list(rs = rs, con = con)
 }
 
 #' @export
@@ -128,6 +147,7 @@ prepareConditionSql <- function(...){
 #' 
 #' @param df data.frame data to store
 #' @return character string, the dataset hash
+#' @export
 #' @examples
 #' \dontrun{
 #' setDbOptions(getSettings())
@@ -148,7 +168,7 @@ stashData <- function(df){
     myHash, "','", payload, "', now());"
   )
   
-  res <- getPostgresql(sql)
+  invisible(setPostgresql(sql))
   myHash
 }
 
