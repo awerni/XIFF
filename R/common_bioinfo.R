@@ -186,6 +186,12 @@ selectBestFeaturesColTest <- function(df, threshold = 0.05){
 
 #' @export
 selectBestFeatures <- function(df, threshold = "Confirmed") {
+  
+  if(is.numeric(threshold)) { 
+    warning("Opps! You've send the threshold as numeric value! Please use 'Confirmend' (default) or 'Tentative'.")
+    threshold <- "Confirmed" 
+  } # if CLIFF sends a numeric value
+  
   selectBestFeaturesBoruta(df, threshold)
 }
 
@@ -244,7 +250,7 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
   )
   
   stats <- stats[order(stats$p.value),]
-  
+  df <- df[, c(stats$ensg, "class")]
   list(
     fit = fit
     , stats = stats
@@ -356,6 +362,8 @@ getVarImp <- function(model, stats){
 #' geneSet     <- data_createMachineLearningModel$geneSet
 #' geneAnno    <- data_createMachineLearningModel$geneAnno
 #' 
+#' fit <- createMachineLearningModel(trainingSet, geneSet, geneAnno)
+#' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
                                        method = "rf", tuneLength = 5, number = 10, repeats = 10, threshold = 0.05){
@@ -403,6 +411,7 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   progress$update(1.0, "job done")
 
   list(
+    featureSelectionResult = selectedFeatures,
     model = machineLearningResult(
       res = list(
         trainingOutput = trainingOutput,
