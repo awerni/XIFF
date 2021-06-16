@@ -164,7 +164,7 @@ getDataForModel <- function(assignment, features){
 }
 
 #' @export
-selectBestFeatures <- function(df, threshold = 0.05){
+selectBestFeaturesColTest <- function(df, threshold = 0.05){
   ttRes <- genefilter::colttests(
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
@@ -179,8 +179,79 @@ selectBestFeatures <- function(df, threshold = 0.05){
 
   list(
     stats = ttRes,
-    df = df
+    df = df,
+    method = "genefilter::colttests"
   )
+}
+
+#' @export
+selectBestFeatures <- function(df, threshold = "Confirmed") {
+  selectBestFeaturesBoruta(df, threshold)
+}
+
+#' @export
+selectBestFeaturesColTest <- function(df, threshold = 0.05){
+  ttRes <- genefilter::colttests(
+    x = df %>% select(-class) %>% as.matrix(),
+    fac = df$class,
+    na.rm = TRUE
+  ) %>%
+    tibble::rownames_to_column("ensg") %>%
+    filter(p.value <= threshold) %>%
+    arrange(p.value)
+  
+  bestFeatures <- ttRes %>% pull(ensg)
+  df <- df %>% select_at(c("class", bestFeatures))
+  
+  list(
+    stats = ttRes,
+    df = df,
+    method = "genefilter::colttests"
+  )
+}
+
+
+#' Use Bortua algorithm for feature selection.
+#'
+#' @param df 
+#' @param threshold 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' 
+#' data("feature_selection_data", package = "XIFF")
+#' featureFit <- selectBestFeaturesBoruta(feature_selection_data)
+#' plot(featureFit$fit, las = 1, horizontal = TRUE)
+#' 
+selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")) {
+  
+  threshold <- match.arg(threshold, c("Confirmed", "Tentative"))
+  if(threshold == "Tentative") threshold <- c("Confirmed", "Tentative")
+  
+  fit <- Boruta::Boruta(class ~ ., df)
+  
+  fit$finalDecision <- fit$finalDecision[fit$finalDecision %in% threshold]
+  fit$ImpHistory <- fit$ImpHistory[,c(names(fit$finalDecision), "shadowMax", "shadowMean", "shadowMin")]
+  
+  pvals <- apply(fit$ImpHistory[,names(fit$finalDecision)], 2, function(x) t.test(x, fit$ImpHistory[,"shadowMax"])$p.value) * (ncol(df) - 1)
+  
+  stats <- tibble(
+    ensg = colnames(fit$ImpHistory[,names(fit$finalDecision)])
+    , p.value = pvals
+    , decision = fit$finalDecision 
+  )
+  
+  stats <- stats[order(stats$p.value),]
+  
+  list(
+    fit = fit
+    , stats = stats
+    , df = df
+    , method = "Boruta::Boruta"
+  )
+  
 }
 
 #' Train Machine Learning Models.
@@ -280,7 +351,7 @@ getVarImp <- function(model, stats){
 #' 
 #' @examples 
 #' 
-#' data(data_createMachineLearningModel, package = "XIFF")
+#' data("data_createMachineLearningModel", package = "XIFF")
 #' trainingSet <- data_createMachineLearningModel$trainingSet
 #' geneSet     <- data_createMachineLearningModel$geneSet
 #' geneAnno    <- data_createMachineLearningModel$geneAnno
