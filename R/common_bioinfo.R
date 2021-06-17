@@ -286,26 +286,10 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
   
   
   if(method == "neuralnetwork") {
-    
     stopifnot(require("xiffModels"))
-    
-    fitControl <- caret::trainControl(
-      method = "none",
-      savePredictions = "final"
-    )
-    tuneLength <- 1
     method <- xiffModels::modelInfoNeuralNetwork()
-    param <- data.frame(layer1=  10, layer2 = 10, layer3 = 10)
-    
-    args <- list(
-      as.formula("class ~ ."),
-      data = df,
-      method = method,
-      trControl = fitControl,
-      tuneGrid = param
-    )
-    
-  } else {
+  } 
+  
     fitControl <- caret::trainControl(
       method = "repeatedcv",
       number = number,
@@ -321,16 +305,17 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
       tuneLength = tuneLength
     )
     
-    if (method == "rf"){
+    if (is.character(method) && method == "rf"){
       args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
     }
-  }
+  
   
   do.call(caret::train, args)
 }
 
 #' @export
 getVarImp <- function(model, stats){
+  
   switch(
     EXPR = class(model),
     randomForest = list(
@@ -346,10 +331,13 @@ getVarImp <- function(model, stats){
         arrange(importance),
       importanceName = "p.val"
     ),
-    list(
-      df = tibble(ensg = character(0), importance = NA),
-      importanceName = NA
-    )
+    nn = list(
+      df = xiffModels::modelInfoNeuralNetwork()$varImp(model) %>%
+        tibble::rownames_to_column("ensg") %>%
+        arrange(desc(importance))
+      , importanceName = "olden"
+    ),
+    stop(glue::glue("Variable imortance for {EXPR} not supported."))
   )
 }
 
