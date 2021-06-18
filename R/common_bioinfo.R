@@ -314,6 +314,10 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
 }
 
 #' @export
+#' 
+#' @importFrom tibble rownames_to_column
+#' @importFrom dplyr rename arrange select
+#' 
 getVarImp <- function(model, stats){
   
   switch(
@@ -321,23 +325,23 @@ getVarImp <- function(model, stats){
     randomForest = list(
       df = varImp(model) %>%
         tibble::rownames_to_column("ensg") %>%
-        rename(importance = Overall) %>%
-        arrange(desc(importance)),
+        dplyr::rename(importance = Overall) %>%
+        dplyr::arrange(desc(importance)),
       importanceName = "Mean decrease Gini"
     ),
     svm = list(
       df = stats %>%
-        select(ensg, importance = p.value) %>%
-        arrange(importance),
+        dplyr::select(ensg, importance = p.value) %>%
+        dplyr::arrange(importance),
       importanceName = "p.val"
     ),
     nn = list(
       df = xiffModels::modelInfoNeuralNetwork()$varImp(model) %>%
         tibble::rownames_to_column("ensg") %>%
-        arrange(desc(importance))
+        dplyr::arrange(desc(abs(importance)))
       , importanceName = "olden"
     ),
-    stop(glue::glue("Variable imortance for {EXPR} not supported."))
+    stop(glue::glue("Variable imortance for {class(model)} not supported."))
   )
 }
 
