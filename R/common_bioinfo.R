@@ -359,7 +359,9 @@ getVarImp <- function(model, stats){
 #' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
-                                       method = "rf", tuneLength = 5, number = 10, repeats = 10, threshold = 0.05){
+                                       method = "rf", tuneLength = 5, number = 10, repeats = 10
+                                       , selectBestFeaturesFnc = selectBestFeatures, threshold = "Confirmed", 
+                                       ...){
   progress <- ProcessProgress$new("Create ML model", p)
   progress$update(0.2, "fetching data...")
 
@@ -374,9 +376,10 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   # Feature selection
   progress$update(0.3, "selecting features...")
 
-  selectedFeatures <- selectBestFeatures(
+  selectedFeatures <- selectBestFeaturesFnc(
     df = df,
     threshold = threshold
+    , ...
   )
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
@@ -438,6 +441,42 @@ machineLearningResult <- function(res, classLabel){
   x
 }
 
+#' Function that reutrns the proper prediction function for given model
+.getPredictFunction <- function(model, library) {
+  
+  if (!packageInstalled(library)){
+    stop(paste0("Package '", library, "' is not available."))
+  }
+  
+  UseMethod(".getPredictFunction")
+}
+
+.getPredictFunction.default <- function(model, library) {
+  
+  modelClass <- class(model)
+  predFun <- getS3method(
+    f = "predict",
+    class = modelClass,
+    envir = asNamespace(library),
+    optional = TRUE
+  )
+  
+  if (is.null(predFun)){
+    stop(paste0("No predict() method found for ", modelClass, "-class object"))
+  }
+  
+  return(predFun)
+}
+
+.getPredictFunction.nn <- function(model, library) {
+  
+  if (!packageInstalled("xiffModels")){
+    stop(paste0("Package '", "xiffModels", "' is not available."))
+  }
+  
+  return(xiffModels::modelInfoNeuralNetwork()$predict)
+}
+
 #' @export
 loadMachineLearningModel <- function(filepath, object = NULL){
   x <- if (is.null(object)){
@@ -449,26 +488,8 @@ loadMachineLearningModel <- function(filepath, object = NULL){
   if (!is(x, "machineLearningResult")){
     stop("Incorrect input file. Please provide a file downloaded from the machine learning tab")
   }
-
-  modelLibrary <- x$library
-
-  if (!packageInstalled(modelLibrary)){
-    stop(paste0("Package '", modelLibrary, "' is not available."))
-  }
-
-  modelClass <- class(x$model)
-  predFun <- getS3method(
-    f = "predict",
-    class = modelClass,
-    envir = asNamespace(modelLibrary),
-    optional = TRUE
-  )
-
-  if (is.null(predFun)){
-    stop(paste0("No predict() method found for ", modelClass, "-class object"))
-  }
-
-  x[[".predFun"]] <- predFun
+  
+  x[[".predFun"]] <- .getPredictFunction(x$model, x$library)
   class(x) <- "machineLearningResultReady"
   x
 }
