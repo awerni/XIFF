@@ -351,6 +351,7 @@ getVarImp <- function(model, stats){
 #' geneAnno    <- data_createMachineLearningModel$geneAnno
 #' 
 #' fit <- createMachineLearningModel(trainingSet, geneSet, geneAnno)
+#' fitNN <- createMachineLearningModel(trainingSet, geneSet, geneAnno, method = "neuralnetwork")
 #' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
