@@ -37,7 +37,7 @@ fitNN <- test_time(createMachineLearningModel(trainingSet, geneSet, geneAnno, me
 fitRf <- test_time(createMachineLearningModel(trainingSet, geneSet, geneAnno))
 
 # Use different feature selection algorithm
-fitRfColTest <- test_time(createMachineLearningModel(trainingSet, geneSet, geneAnno, selectBestFeaturesFnc = selectBestFeaturesColTest, threshold = 0.05))
+fitRfColTest <- test_time(createMachineLearningModel(trainingSet, geneSet, geneAnno, selectBestFeaturesFnc = selectBestFeaturesTTest, threshold = 0.05))
 ```
 Saving and loading the model
 

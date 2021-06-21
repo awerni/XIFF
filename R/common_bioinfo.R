@@ -163,26 +163,6 @@ getDataForModel <- function(assignment, features){
     left_join(assignment, by = "celllinename")
 }
 
-#' @export
-selectBestFeaturesColTest <- function(df, threshold = 0.05){
-  ttRes <- genefilter::colttests(
-    x = df %>% select(-class) %>% as.matrix(),
-    fac = df$class,
-    na.rm = TRUE
-  ) %>%
-    tibble::rownames_to_column("ensg") %>%
-    filter(p.value <= threshold) %>%
-    arrange(p.value)
-
-  bestFeatures <- ttRes %>% pull(ensg)
-  df <- df %>% select_at(c("class", bestFeatures))
-
-  list(
-    stats = ttRes,
-    df = df,
-    method = "genefilter::colttests"
-  )
-}
 
 #' @export
 selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
@@ -196,7 +176,7 @@ selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
 }
 
 #' @export
-selectBestFeaturesColTest <- function(df, threshold = 0.05, maxFeatures = Inf){
+selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
   ttRes <- genefilter::colttests(
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
