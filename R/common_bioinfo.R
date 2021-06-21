@@ -185,18 +185,18 @@ selectBestFeaturesColTest <- function(df, threshold = 0.05){
 }
 
 #' @export
-selectBestFeatures <- function(df, threshold = "Confirmed") {
+selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
   
   if(is.numeric(threshold)) { 
     warning("Opps! You've send the threshold as numeric value! Please use 'Confirmend' (default) or 'Tentative'.")
     threshold <- "Confirmed" 
   } # if CLIFF sends a numeric value
   
-  selectBestFeaturesBoruta(df, threshold)
+  selectBestFeaturesBoruta(df, threshold, maxFeatures)
 }
 
 #' @export
-selectBestFeaturesColTest <- function(df, threshold = 0.05){
+selectBestFeaturesColTest <- function(df, threshold = 0.05, maxFeatures = Inf){
   ttRes <- genefilter::colttests(
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
@@ -204,7 +204,8 @@ selectBestFeaturesColTest <- function(df, threshold = 0.05){
   ) %>%
     tibble::rownames_to_column("ensg") %>%
     filter(p.value <= threshold) %>%
-    arrange(p.value)
+    arrange(p.value) %>%
+    head(maxFeatures)
   
   bestFeatures <- ttRes %>% pull(ensg)
   df <- df %>% select_at(c("class", bestFeatures))
@@ -221,7 +222,8 @@ selectBestFeaturesColTest <- function(df, threshold = 0.05){
 #'
 #' @param df 
 #' @param threshold 
-#'
+#' @param maxFeatures maximal number of features to be returned.
+#' 
 #' @return
 #' @export
 #'
@@ -231,10 +233,14 @@ selectBestFeaturesColTest <- function(df, threshold = 0.05){
 #' featureFit <- selectBestFeaturesBoruta(feature_selection_data)
 #' plot(featureFit$fit, las = 1, horizontal = TRUE)
 #' 
-selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")) {
+selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative"), maxFeatures = Inf) {
   
   threshold <- match.arg(threshold, c("Confirmed", "Tentative"))
   if(threshold == "Tentative") threshold <- c("Confirmed", "Tentative")
+  if(maxFeatures < 1) {
+    warning("XIFF:::selectBestFeaturesBoruta - maxFeatures should not be lower than 1. The function will return all the features.")
+    maxFeatures <- Inf
+  }
   
   fit <- Boruta::Boruta(class ~ ., df)
   
@@ -250,6 +256,13 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
   )
   
   stats <- stats[order(stats$p.value),]
+  
+  # Select the values based on maxFeatures
+  stats <- head(stats, maxFeatures)
+  fit$finalDecision <- fit$finalDecision[stats$ensg]
+  fit$ImpHistory <- fit$ImpHistory[,c(stats$ensg, "shadowMax", "shadowMean", "shadowMin")]
+  
+  
   df <- df[, c(stats$ensg, "class")]
   list(
     fit = fit
@@ -360,8 +373,9 @@ getVarImp <- function(model, stats){
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
                                        method = "rf", tuneLength = 5, number = 10, repeats = 10
-                                       , selectBestFeaturesFnc = selectBestFeatures, threshold = "Confirmed", 
-                                       ...){
+                                       , selectBestFeaturesFnc = selectBestFeatures, threshold = "Confirmed" 
+                                       , maxFeatures = "auto"
+                                       , ...){
   progress <- ProcessProgress$new("Create ML model", p)
   progress$update(0.2, "fetching data...")
 
@@ -376,9 +390,21 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   # Feature selection
   progress$update(0.3, "selecting features...")
 
+  if(maxFeatures == "auto") {
+    # selecting custom number of features for 'neuralnetwork' - note that other methods are not 
+    # constrained here. But if you want to make such constrain that is going to be a default for the users,
+    # please do that here.
+    maxFeatures <- case_when(
+      method == "neuralnetwork" ~ 5
+      , TRUE ~ Inf
+    )
+  } else if(!is.numeric(maxFeatures)) {
+    stop("XIFF::createMachineLearningModel - maxFeatures must be a numeric value greater than zero or 'auto' string.")
+  }
   selectedFeatures <- selectBestFeaturesFnc(
-    df = df,
-    threshold = threshold
+    df = df
+    , threshold = threshold
+    , maxFeatures = maxFeatures
     , ...
   )
   stats <- selectedFeatures$stats
