@@ -4,12 +4,21 @@
 \alias{selectBestFeaturesBoruta}
 \title{Use Bortua algorithm for feature selection.}
 \usage{
-selectBestFeaturesBoruta(df, threshold = c("Confirmed", "Tentative"))
+selectBestFeaturesBoruta(
+  df,
+  threshold = c("Confirmed", "Tentative"),
+  maxFeatures = Inf,
+  threads = getOption("xiff.boruta.threads", 2)
+)
 }
 \arguments{
 \item{df}{}
 
 \item{threshold}{}
+
+\item{maxFeatures}{maximal number of features to be returned.}
+
+\item{threads}{number of threads to be used by Boruta algorithm.}
 }
 \value{
 
