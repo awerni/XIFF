@@ -223,6 +223,8 @@ selectBestFeaturesColTest <- function(df, threshold = 0.05, maxFeatures = Inf){
 #' @param df 
 #' @param threshold 
 #' @param maxFeatures maximal number of features to be returned.
+#' @param threads number of threads to be used by Boruta algorithm.
+#' 
 #' 
 #' @return
 #' @export
@@ -233,7 +235,7 @@ selectBestFeaturesColTest <- function(df, threshold = 0.05, maxFeatures = Inf){
 #' featureFit <- selectBestFeaturesBoruta(feature_selection_data)
 #' plot(featureFit$fit, las = 1, horizontal = TRUE)
 #' 
-selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative"), maxFeatures = Inf) {
+selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative"), maxFeatures = Inf, threads = getOption("xiff.boruta.threads", 2)) {
   
   threshold <- match.arg(threshold, c("Confirmed", "Tentative"))
   if(threshold == "Tentative") threshold <- c("Confirmed", "Tentative")
@@ -242,7 +244,7 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
     maxFeatures <- Inf
   }
   
-  fit <- Boruta::Boruta(class ~ ., df)
+  fit <- Boruta::Boruta(class ~ ., df, num.threads = threads)
   
   fit$finalDecision <- fit$finalDecision[fit$finalDecision %in% threshold]
   fit$ImpHistory <- fit$ImpHistory[,c(names(fit$finalDecision), "shadowMax", "shadowMean", "shadowMin")]

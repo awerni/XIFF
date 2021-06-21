@@ -6,6 +6,7 @@
   options(xiff.label = "cell line")
   options(xiff.name = "celllines")
   options(xiff.tooltipCallbackFun = tooltipCallbackFun)
+  options(xiff.boruta.threads = 2)
 
   addResourcePath(
     prefix = "xiff",
