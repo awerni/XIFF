@@ -39,7 +39,8 @@ fitRf <- test_time(createMachineLearningModel(trainingSet, geneSet, geneAnno))
 # Use different feature selection algorithm
 fitRfColTest <- test_time(createMachineLearningModel(trainingSet, geneSet, geneAnno, selectBestFeaturesFnc = selectBestFeaturesTTest, threshold = 0.05))
 ```
-Saving and loading the model
+
+# Saving and loading the model:
 
 ```{r}
 # Save machine learning model
@@ -62,3 +63,4 @@ predictFromModel(loadedFileRf, data)
 XIFF::getVarImp(fitNN$model$model)
 XIFF::getVarImp(fitRf$model$model)
 ```
+
