@@ -208,6 +208,7 @@ selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
 #' 
 #' @return
 #' @export
+#' @importFrom Boruta Boruta
 #'
 #' @examples
 #' 
@@ -232,9 +233,9 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
   pvals <- apply(fit$ImpHistory[,names(fit$finalDecision)], 2, function(x) t.test(x, fit$ImpHistory[,"shadowMax"])$p.value) * (ncol(df) - 1)
   
   stats <- tibble(
-    ensg = colnames(fit$ImpHistory[,names(fit$finalDecision)])
-    , p.value = pvals
-    , decision = fit$finalDecision 
+    ensg = colnames(fit$ImpHistory[,names(fit$finalDecision)]),
+    p.value = pvals,
+    decision = fit$finalDecision 
   )
   
   stats <- stats[order(stats$p.value),]
@@ -247,10 +248,10 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
   
   df <- df[, c(stats$ensg, "class")]
   list(
-    fit = fit
-    , stats = stats
-    , df = df
-    , method = "Boruta::Boruta"
+    fit = fit,
+    stats = stats,
+    df = df,
+    method = "Boruta::Boruta"
   )
   
 }
@@ -281,7 +282,7 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
   
   
   if(method == "neuralnetwork") {
-    stopifnot(require("xiffModels"))
+    stopifnot(packageInstalled("xiffModels"))
     method <- xiffModels::modelInfoNeuralNetwork()
   } 
   
@@ -312,6 +313,8 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
 #' 
 #' @importFrom tibble rownames_to_column
 #' @importFrom dplyr rename arrange select
+#' @importFrom neuralnet neuralnet
+#' @importFrom NeuralNetTools olden
 #' 
 getVarImp <- function(model, stats){
   
@@ -333,13 +336,15 @@ getVarImp <- function(model, stats){
     nn = list(
       df = xiffModels::modelInfoNeuralNetwork()$varImp(model) %>%
         tibble::rownames_to_column("ensg") %>%
-        dplyr::arrange(desc(abs(importance)))
-      , importanceName = "olden"
+        dplyr::arrange(desc(abs(importance))),
+        importanceName = "olden"
     ),
     stop(glue::glue("Variable imortance for {class(model)} not supported."))
   )
 }
 
+#' Create machine learning model using XIFF package.
+#' 
 #' @export
 #' 
 #' @examples 
@@ -354,10 +359,10 @@ getVarImp <- function(model, stats){
 #' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
-                                       method = "rf", tuneLength = 5, number = 10, repeats = 10
-                                       , selectBestFeaturesFnc = selectBestFeatures, threshold = "Confirmed" 
-                                       , maxFeatures = "auto"
-                                       , ...){
+                                       method = "rf", tuneLength = 5, number = 10, repeats = 10,
+                                       selectBestFeaturesFnc = selectBestFeatures, threshold = "Confirmed",
+                                       maxFeatures = "auto",
+                                       ...){
   progress <- ProcessProgress$new("Create ML model", p)
   progress$update(0.2, "fetching data...")
 
@@ -377,17 +382,17 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
     # constrained here. But if you want to make such constrain that is going to be a default for the users,
     # please do that here.
     maxFeatures <- case_when(
-      method == "neuralnetwork" ~ 5
-      , TRUE ~ Inf
+      method == "neuralnetwork" ~ 5,
+      TRUE ~ Inf
     )
   } else if(!is.numeric(maxFeatures)) {
     stop("XIFF::createMachineLearningModel - maxFeatures must be a numeric value greater than zero or 'auto' string.")
   }
   selectedFeatures <- selectBestFeaturesFnc(
-    df = df
-    , threshold = threshold
-    , maxFeatures = maxFeatures
-    , ...
+    df = df,
+    threshold = threshold,
+    maxFeatures = maxFeatures,
+    ...
   )
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
@@ -450,6 +455,10 @@ machineLearningResult <- function(res, classLabel){
 }
 
 #' Function that reutrns the proper prediction function for given model
+#' 
+#' @noRd
+#' @noMd
+#' 
 .getPredictFunction <- function(model, library) {
   
   if (!packageInstalled(library)){
