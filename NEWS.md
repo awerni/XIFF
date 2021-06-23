@@ -1,7 +1,7 @@
 # XIFF 0.1.16
 
 * Added Boruta feature selection algorithm.
-  * Run `demo(boruta.feature.selection)` to check it out.
+  * See `vignettes/feature_selection.Rmd` to check it out.
 
 # XIFF 0.1.15
 
