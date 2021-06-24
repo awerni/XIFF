@@ -18,6 +18,7 @@ This vignette show the basic functionality related to building and using machine
 
 ```{r setup}
 library(XIFF)
+CLIFF::setDbOptions(CLIFF::getSettings())
 
 # Model training
 
