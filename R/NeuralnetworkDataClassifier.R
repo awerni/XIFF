@@ -11,7 +11,7 @@
 #' 
 #' @examples 
 #' 
-#' data("train_model_data", package = "xiffModels")
+#' data("train_model_data", package = "XIFF")
 #' 
 "train_model_data"
 
@@ -31,7 +31,7 @@
 #' 
 #' @examples 
 #' library(dplyr)
-#' data("train_model_data", package = "xiffModels")
+#' data("train_model_data", package = "XIFF")
 #' modelInfo <- modelInfoNeuralNetwork()
 #' 
 #' # Basic usage
@@ -133,13 +133,13 @@ modelInfoNeuralNetwork <- function() {
     varImp = function(object, ...){
       if(inherits(object, "train")) {
         if(is.null(object$finalModel)) {
-          stop("Cannot extract finalModel from caret's 'train' object in xiffModels::modelInfoNeuralNetwork()$varImp")
+          stop("Cannot extract finalModel from caret's 'train' object in XIFF::modelInfoNeuralNetwork()$varImp")
         }
         model <- object$finalModel
       } else if(inherits(object, "nn")) {
         model <- object
       } else {
-        stop("Model not supported in xiffModels::modelInfoNeuralNetwork()$varImp!")
+        stop("Model not supported in XIFF::modelInfoNeuralNetwork()$varImp!")
       }
       
       secondResponse <- getNNLabelOrdering(object)[2]
@@ -163,7 +163,7 @@ modelInfoNeuralNetwork <- function() {
 getNNLabelOrdering <- function(modelFit) {
   
   if(inherits(modelFit, "train")) {
-    if(is.null(modelFit$finalModel)) stop("Cannot extract finalModel from caret's 'train' object in xiffModels:::getNNLabelOrdering")
+    if(is.null(modelFit$finalModel)) stop("Cannot extract finalModel from caret's 'train' object in XIFF:::getNNLabelOrdering")
     return(getNNLabelOrdering(modelFit$finalModel))
   }
   

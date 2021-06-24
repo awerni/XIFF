@@ -268,8 +268,8 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
 #' 
 #' @examples 
 #' 
-#' if(require("xiffModels")) {
-#'   data("train_model_data", package = "xiffModels")
+#' \dontrun{
+#'   data("train_model_data", package = "XIFF")
 #'   train_model_data <- train_model_data[,-1]
 #' 
 #'   fitRF  <- trainModel(train_model_data, method = "rf", tuneLength = 1)
@@ -282,8 +282,7 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
   
   
   if(method == "neuralnetwork") {
-    stopifnot(packageInstalled("xiffModels"))
-    method <- xiffModels::modelInfoNeuralNetwork()
+    method <- modelInfoNeuralNetwork()
   } 
   
     fitControl <- caret::trainControl(
@@ -334,7 +333,7 @@ getVarImp <- function(model, stats){
       importanceName = "p.val"
     ),
     nn = list(
-      df = xiffModels::modelInfoNeuralNetwork()$varImp(model) %>%
+      df = modelInfoNeuralNetwork()$varImp(model) %>%
         tibble::rownames_to_column("ensg") %>%
         dplyr::arrange(desc(abs(importance))),
         importanceName = "olden"
@@ -486,12 +485,7 @@ machineLearningResult <- function(res, classLabel){
 }
 
 .getPredictFunction.nn <- function(model, library) {
-  
-  if (!packageInstalled("xiffModels")){
-    stop(paste0("Package '", "xiffModels", "' is not available."))
-  }
-  
-  return(xiffModels::modelInfoNeuralNetwork()$predict)
+  return(modelInfoNeuralNetwork()$predict)
 }
 
 #' @export

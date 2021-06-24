@@ -22,8 +22,8 @@ Train Machine Learning Models.
 }
 \examples{
 
-if(require("xiffModels")) {
-  data("train_model_data", package = "xiffModels")
+\dontrun{
+  data("train_model_data", package = "XIFF")
   train_model_data <- train_model_data[,-1]
 
   fitRF  <- trainModel(train_model_data, method = "rf", tuneLength = 1)
