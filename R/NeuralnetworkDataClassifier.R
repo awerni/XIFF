@@ -102,6 +102,8 @@ modelInfoNeuralNetwork <- function() {
         hidden = layers,
         act.fct = "logistic",
         linear.output = FALSE,
+        threshold = 0.05,
+        stepmax = 1e4,
         ...)
     },
     predict = function(modelFit, newdata, submodels = NULL) {
