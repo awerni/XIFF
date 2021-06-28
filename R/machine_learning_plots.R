@@ -54,18 +54,38 @@ generatePerformancePlot <- function(x){
     coord_cartesian(xlim = c(0, 1))
 }
 
-#
-
-.varImpPlot <- function(df, xl = "Mean decrease Gini") {
+#' @export
+#' @examples 
+#' 
+#' \dontrun{
+#' # TODO: create models here
+#' # check buildMachineLearning docs for fit and fitNN creation.
+#' generateVarImpPlot(fit)
+#' generateVarImpPlot(fitNN)
+#' 
+#' }
+#' 
+generateVarImpPlot <- function(x){
+  
+  if(!inherits(x, "XiffMachineLearningResult")) {
+    stop("Error in XIFF::generateVarImpPlot - x must be XiffMachineLearningResult object!")
+  }
+  
+  importanceData <- x$df[, c("ensg", "importance")]
+  importanceName <- attr(x$df, "importanceName")
+  
+  importanceData <- importanceData %>% arrange(importance) %>%
+    mutate(ensg = factor(ensg, ordered = TRUE, levels = importanceData$ensg))
+  
   ggplot(
-    data = df,
+    data = importanceData,
     mapping = aes(
-      x = x,
+      x = importance,
       y = ensg
     )
   ) +
     geom_point() +
-    xlab(xl) +
+    xlab(importanceName) +
     ggtitle("\nVariable importance") +
     theme(
       text = element_text(size = 16),
@@ -73,58 +93,12 @@ generatePerformancePlot <- function(x){
       axis.title.y = element_blank()
     ) +
     coord_cartesian(xlim = c(
-      floor(min(df$x, na.rm = TRUE)),
-      ceiling(max(df$x, na.rm = TRUE))
+      floor(min(importanceData$importance, na.rm = TRUE)),
+      ceiling(max(importanceData$importance, na.rm = TRUE))
     ))
-}
-
-
-
-#' @export
-#' @examples 
-#' 
-#' \dontrun{
-#' # TODO: create models here
-#' # check buildMachineLearning docs for fit and fitNN creation.
-#' generateVarImpPlot(fit$trainingOutput)
-#' generateVarImpPlot(fitNN$trainingOutput)
-#' 
-#' }
-#' 
-generateVarImpPlot <- function(x){
-  .generateVarImpPlot(x$finalModel)
-}
-
-.generateVarImpPlot <- function(x) {
-  UseMethod(".generateVarImpPlot")
-}
-
-.generateVarImpPlot.default <- function(x) {
-  return(NULL)
-}
-
-.generateVarImpPlot.randomForest <- function(x) {
-  data <- x$importance
-  if (is.null(data)) return()
-  
-  df <- data %>%
-    as_tibble(rownames = "ensg") %>%
-    rename(x = MeanDecreaseGini) %>%
-    arrange(x) %>%
-    mutate(ensg = factor(ensg, levels = unique(ensg)))
-  
-  .varImpPlot(df)
-}
-
-.generateVarImpPlot.nn <- function(x) {
-  
-  df <- XIFF::modelInfoNeuralNetwork()$varImp(x) %>% arrange(importance)
-  df <- rownames_to_column(df, var = "ensg")
-  colnames(df)[2] <- "x"
-  
-  .varImpPlot(df, "Importance")
   
 }
+
 
 #' @export
 #' 

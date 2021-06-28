@@ -308,7 +308,18 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
   do.call(caret::train, args)
 }
 
+
+tbl2XiffImportanceTable <- function(tbl, name) {
+  class(tbl) <- c("XiffImportanceTable", class(tbl)[class(tbl) != "XiffImportanceTable"])
+  attr(tbl, "importanceName") <- name
+  tbl
+}
+
 #' @export
+#' 
+#' @details 
+#' 
+#' A function that returns formatted 
 #' 
 #' @importFrom tibble rownames_to_column
 #' @importFrom dplyr rename arrange select
@@ -317,29 +328,43 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
 #' 
 getVarImp <- function(model, stats){
   
-  switch(
-    EXPR = class(model),
-    randomForest = list(
-      df = varImp(model) %>%
-        tibble::rownames_to_column("ensg") %>%
-        dplyr::rename(importance = Overall) %>%
-        dplyr::arrange(desc(importance)),
-      importanceName = "Mean decrease Gini"
-    ),
-    svm = list(
-      df = stats %>%
-        dplyr::select(ensg, importance = p.value) %>%
-        dplyr::arrange(importance),
-      importanceName = "p.val"
-    ),
-    nn = list(
-      df = modelInfoNeuralNetwork()$varImp(model) %>%
-        tibble::rownames_to_column("ensg") %>%
-        dplyr::arrange(desc(abs(importance))),
-        importanceName = "olden"
-    ),
+  varImp2table <- function(model, name) {
+    
+    tbl <- varImp(model) %>%
+      tibble::rownames_to_column("ensg") %>%
+      dplyr::rename(importance = Overall) %>%
+      dplyr::arrange(desc(importance)) %>%
+      tbl2XiffImportanceTable(name)
+  }
+  
+  if(length(class(model)) == 1) { # e.g. result of glmnet has 2 classes "lognet" and "glmnet"
+    result <- switch(
+      EXPR = class(model),
+      randomForest = varImp2table(model, "Mean decrease Gini"),
+      svm = stats %>%
+          dplyr::select(ensg, importance = p.value) %>%
+          dplyr::arrange(importance) %>% 
+          tbl2XiffImportanceTable("p.val")
+      ,
+      nn = modelInfoNeuralNetwork()$varImp(model) %>%
+          tibble::rownames_to_column("ensg") %>%
+          dplyr::arrange(desc(abs(importance))) %>%
+          tbl2XiffImportanceTable("olden")
+      ,
+      NULL
+    )
+    
+    return(result)
+  }
+  
+  result <- try(varImp2table(model, "Model Importance"))
+  
+  if(inherits(result, "try-error")) {
     stop(glue::glue("Variable imortance for {class(model)} not supported."))
-  )
+  }
+  
+  return(result)
+    
 }
 
 #' Create machine learning model using XIFF package.
@@ -413,8 +438,8 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   )
 
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
-  df <- importanceRes$df %>% left_join(geneAnno, by = "ensg")
-  attr(df, "importanceName") <- importanceRes$importanceName
+  df <- importanceRes %>% left_join(geneAnno, by = "ensg")
+  df <- tbl2XiffImportanceTable(df, attr(importanceRes, "importanceName"))
 
   progress$update(1.0, "job done")
 
