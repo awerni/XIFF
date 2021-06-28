@@ -2,6 +2,18 @@
 plotColors <- c("#d73027", "#4575b4", "#fc8d59", "#91bfdb", "#A8840D", "#24BF43", "#000000")
 
 #' @export
+commonPlotTheme <- function(legend.position = "right", textSize = 16){
+  theme(
+    text = element_text(
+      size = textSize,
+      family = "Helvetica"
+    ),
+    legend.position = legend.position,
+    plot.title = element_text(hjust = 0.5)
+  )
+}
+
+#' @export
 generatePlotByType <- function(data, ca, plotType, dataCol, title = NULL,
                                rocPlotFun = generateROCPlot, 
                                diffPlotFun = generateDiffPlot, ...) {
@@ -63,10 +75,7 @@ generateROCPlot <- function(data, ca, dataCol, title = "ROC plot") {
   dataCol <- rlang::sym(dataCol)
   p <- ggplot(data, aes(d = d, m = !!dataCol)) +
     plotROC::geom_roc() +
-    theme(
-      text = element_text(size = 16),
-      plot.title = element_text(hjust = 0.5)
-    ) +
+    commonPlotTheme() +
     ggtitle(title) +
     xlab("False positive rate") +
     ylab("True positive rate")
@@ -100,11 +109,7 @@ generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
       trans = trans,
       breaks = breaks
     ) +
-    theme(
-      text = element_text(size = 16),
-      legend.position = "none",
-      plot.title = element_text(hjust = 0.5)
-    ) +
+    commonPlotTheme("none") + 
     scale_fill_manual(values = plotColors) +
     scale_color_manual(values = plotColors) +
     # + scale_fill_viridis(discrete = TRUE, option = "plasma") +
@@ -126,9 +131,8 @@ generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"
   p <- ggplot(data, aes(x = !!colname, y = !!dataCol, fill = !!fill)) +
     geom_bar(stat = "identity", width = 1) +
     theme_bw() +
+    commonPlotTheme("bottom") + 
     theme(
-      legend.position = "bottom",
-      text = element_text(size = 15),
       axis.text.x = element_blank(),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
@@ -144,7 +148,8 @@ generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"
   if (nItems > 100){
     p
   } else {
-    p + theme(axis.text.x = element_text(
+    p + theme(
+      axis.text.x = element_text(
       angle = -90,
       hjust = 0,
       size = if_else(nItems <= 50, 15, 10)
@@ -184,11 +189,7 @@ generateDataCoveragePlot <- function(data, col, ca) {
         missing = "gray80",
         available = "#91bfdb")
     ) +
-    theme(
-      text = element_text(size = 16),
-      legend.position = "right",
-      plot.title = element_text(hjust = 0.5)
-    ) +
+    commonPlotTheme("right") +
     ggtitle(paste("\n", "Data coverage")) +
     xlab("") +
     ylab(paste0("Number of ", getOption("xiff.label"), "s"))
@@ -257,11 +258,7 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
     xlab(xlabel) +
     ylab(ylabel) +
     ggtitle(title) +
-    theme(
-      plot.title = element_text(hjust = 0.5),
-      text = element_text(size = fontSize),
-      legend.position = "bottom"
-    ) +
+    commonPlotTheme("bottom", fontSize) +
     labs(color = colorCol)
 
   if (length(unique(data$data$class)) <= 7) {
@@ -371,11 +368,10 @@ generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, 
       xlab("") +
       ylab("") +
       labs(fill = "") +
+      commonPlotTheme("bottom", 20)
       theme(
         axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        text = element_text(size = 20),
-        legend.position = "bottom"
+        axis.ticks = element_blank()
       )
   }
 }
@@ -396,10 +392,7 @@ generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, prop2, 
     mapping = mapping
   ) +
     geom_bar(stat = stat) +
-    theme(
-      text = element_text(size = 20),
-      legend.position = legendPosition
-    ) +
+    commonPlotTheme(legendPosition, 20) +
     xlab("") +
     ylab(ylabel) +
     coord_flip() +
@@ -429,10 +422,7 @@ generateScoreBarPlot <- function(data, score_desc) {
     )
   ) +
     geom_bar() +
-    theme(
-      legend.position = "none",
-      text = element_text(size = 15)
-    ) +
+    commonPlotTheme("none") +
     xlab(score_desc)
 
   if (length(unique(data$x_score)) > 10) {
