@@ -1,6 +1,8 @@
 # Machine learning ------------------------------------------------------------
 #' @export
-#' 
+#' @importFrom tidyr pivot_longer
+#' @importFrom purrr map_dfr map
+#' @importFrom ggplot2 ggplot xlab ylab geom_boxplot
 #' 
 #' @examples 
 #' \dontrun{
@@ -125,7 +127,11 @@ generateVarImpPlot <- function(x){
 }
 
 #' @export
-generateErrorPlot <- function(x, cl){
+#' 
+#' @importFrom tibble rowid_to_column
+#' 
+generateErrorPlot <- function(x, cl = list(class1_name = "sensitive", class2_name = "resistant")){
+  
   m <- x$finalModel
   
   dict <- c(

@@ -1,12 +1,13 @@
 #' Workhorse for machine learning.
 #'
-#' @param task 
 #' @param cs 
 #' @param ensg_gene_set 
 #' @param gene_anno 
 #' @param species 
 #' @param method 
 #' @param p_validation 
+#' @param ...
+#' @param task 
 #'
 #' 
 #' @importFrom FutureManager is.fmError
@@ -17,12 +18,19 @@
 #' 
 #' data(machine_learning_long_fun_example_data, package = "XIFF")
 #' attach(machine_learning_long_fun_example_data)
-#' task <- FALSE
 #' 
-#' fit <- buildMachineLearning(task, cs, ensg_gene_set, gene_anno, species = "human", method = "rf", p_validation = 0.2)
-#' fitNN <- buildMachineLearning(task, cs, ensg_gene_set, gene_anno, species = "human", method = "neuralnetwork", p_validation = 0.2)
+#' fit <- buildMachineLearning(cs, ensg_gene_set, gene_anno, species = "human", method = "rf", p_validation = 0.2)
+#' fitNN <- buildMachineLearning(cs, ensg_gene_set, gene_anno, species = "human", method = "neuralnetwork", p_validation = 0.2)
 #' 
-buildMachineLearning <- function(task, cs, ensg_gene_set, gene_anno, species = "human", method = "rf", p_validation = 0.2, ...){
+buildMachineLearning <- function(
+  cs,
+  ensg_gene_set,
+  gene_anno,
+  species = "human",
+  method = "rf",
+  p_validation = 0.2,
+  ...,
+  task = FALSE) {
   
   assignment <- XIFF::stackClasses(cs, return_factor = TRUE)
   
@@ -48,15 +56,13 @@ buildMachineLearning <- function(task, cs, ensg_gene_set, gene_anno, species = "
   if (is.null(res)) return() # handle the task cancel
   if (FutureManager::is.fmError(res)) return(res)
   
-  list(
-    model = res$model,
-    df = res$df,
-    trainingOutput = res$trainingOutput,
-    validationSet = validationSet,
-    species = species,
-    cs = cs,
-    featureSelectionResult = res$featureSelectionResult
-  )
+  res$cs <- cs
+  res$species <- species
+  res$validationSet <- validationSet
+  
+  class(res) <- c("XiffMachineLearningResult", class(res))
+  res
+  
 }
 
 #' Get a vector machine learning models that are supported by XIFF package.

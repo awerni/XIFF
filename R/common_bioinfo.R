@@ -418,133 +418,32 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
 
   progress$update(1.0, "job done")
 
-  list(
-    featureSelectionResult = selectedFeatures,
-    model = machineLearningResult(
-      res = list(
-        trainingOutput = trainingOutput,
-        df = df,
-        trainingSet = trainingSet$celllinename
-      ),
-      classLabel = classLabel
-    ),
-    df = df,
-    trainingOutput = trainingOutput
-  )
+  class(trainingOutput) <- c("MLXIFF", class(trainingOutput))
+  
+  trainingOutput$featureSelectionResult <- selectedFeatures
+  trainingOutput$df <- df
+  trainingOutput$classLabel <- classLabel
+  trainingOutput$bestFeatures <- df[["ensg"]]
+  trainingOutput$trainingSet <- trainingSet$celllinename
+  
+  trainingOutput
 }
 
-#' @export
-machineLearningResult <- function(res, classLabel){
-  output <- structure(
-    list(
-      model = res$trainingOutput$finalModel,
-      library = res$trainingOutput$modelInfo$library,
-      classLabel = classLabel,
-      bestFeatures = res$df[["ensg"]],
-      trainingSet = res$trainingSet
-    ),
-    class = "machineLearningResult"
-  )
+print.MLXIFF <- function(x, ...) {
+  
+  class(x) <- class(x)[-1]
+  cat("XIFF Raw Model\n\n")
+  print(x$classLabel)
+  
+  cat("caret part:\n")
+  print(x)
+  
 }
 
 #' @export
 `newClassLabel<-` <- function(x, value){
   x$classLabel <- value
   x
-}
-
-#' Function that reutrns the proper prediction function for given model
-#' 
-#' @noRd
-#' @noMd
-#' 
-.getPredictFunction <- function(model, library) {
-  
-  if (!packageInstalled(library)){
-    stop(paste0("Package '", library, "' is not available."))
-  }
-  
-  UseMethod(".getPredictFunction")
-}
-
-.getPredictFunction.default <- function(model, library) {
-  
-  modelClass <- class(model)
-  predFun <- getS3method(
-    f = "predict",
-    class = modelClass,
-    envir = asNamespace(library),
-    optional = TRUE
-  )
-  
-  if (is.null(predFun)){
-    stop(paste0("No predict() method found for ", modelClass, "-class object"))
-  }
-  
-  return(predFun)
-}
-
-.getPredictFunction.nn <- function(model, library) {
-  return(modelInfoNeuralNetwork()$predict)
-}
-
-#' @export
-loadMachineLearningModel <- function(filepath, object = NULL){
-  x <- if (is.null(object)){
-    readRDS(filepath)
-  } else {
-    object
-  }
-
-  if (!is(x, "machineLearningResult")){
-    stop("Incorrect input file. Please provide a file downloaded from the machine learning tab")
-  }
-  
-  x[[".predFun"]] <- .getPredictFunction(x$model, x$library)
-  class(x) <- "machineLearningResultReady"
-  x
-}
-
-#' @export
-predictFromModel <- function(x, df){
-  if (!is(x, "machineLearningResultReady")){
-    stop("Incorrect input object. Please provide an object returned by loadMachineLearningModel function")
-  }
-
-  predFun <- x[[".predFun"]]
-
-  missingFeatures <- setdiff(x$bestFeatures, names(df))
-  if (length(missingFeatures) > 0){
-    stop(paste("Missing features:", paste(missingFeatures, collapse = ", ")))
-  }
-
-  df <- preparePredictionData(df)
-  assignment <- try(predFun(x$model, df))
-  if (is(assignment, "try-error")){
-    stop("Error during prediction. Please contact the app author.")
-  }
-
-  if (is.list(assignment)){
-    assignment <- unlist(assignment, use.names = FALSE)
-  }
-  assignment <- as.character(assignment)
-
-  if (length(assignment) == 0 || any(! assignment %in% c("class1", "class2", NA))){
-    stop("Incorrect prediction format. Did you use a custom model? Please contact the app author.")
-  }
-
-  assignment
-}
-
-preparePredictionData <- function(df){
-  colname <- getOption("xiff.column")
-
-  if (colname %in% names(df)){
-    attr(df, "mlItems") <- df[[colname]]
-    df[[colname]] <- NULL
-  }
-
-  df
 }
 
 # Unbalanced tumortypes -------------------------------------------------------
