@@ -325,6 +325,7 @@ tbl2XiffImportanceTable <- function(tbl, name) {
 #' @importFrom dplyr rename arrange select
 #' @importFrom neuralnet neuralnet
 #' @importFrom NeuralNetTools olden
+#' @importFrom caret varImp
 #' 
 getVarImp <- function(model, stats){
   
