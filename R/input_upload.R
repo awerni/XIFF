@@ -493,16 +493,15 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
   Model <- reactive({
     info <- FileInfo()
     req(!is.null(info) && info[["isRds"]])
-
-    withProgress(
-      expr = withErrorHandler(
-        expr = loadMachineLearningModel(info$datapath), 
-        errorId = topErrorId, 
-        session = session
-      ),
+    
+    model <- withProgress(
+      expr = readRDS(info$datapath),
       value = 0.2,
       message = "loading ML model..."
     )
+    
+    validateXiffMachineLearningResult(model)
+    model
   })
 
   TrainingSet <- reactive({
@@ -588,7 +587,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
     assignment <- withProgress(
       expr = withErrorHandler(
-        expr = predictFromModel(m, df),
+        expr = predict(m, newdata = df),
         errorId = topErrorId, 
         session = session
       ),
