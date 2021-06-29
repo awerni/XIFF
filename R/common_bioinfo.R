@@ -337,7 +337,9 @@ getVarImp <- function(model, stats){
       tbl2XiffImportanceTable(name)
   }
   
-  if(length(class(model)) == 1) { # e.g. result of glmnet has 2 classes "lognet" and "glmnet"
+  if(length(class(model)) == 1) { 
+    # e.g. result of glmnet has 2 classes "lognet" and "glmnet"
+    # checks for custom implemented models
     result <- switch(
       EXPR = class(model),
       randomForest = varImp2table(model, "Mean decrease Gini"),
@@ -354,7 +356,7 @@ getVarImp <- function(model, stats){
       NULL
     )
     
-    return(result)
+    if(!is.null(result)) return(result)
   }
   
   result <- try(varImp2table(model, "Model Importance"))
