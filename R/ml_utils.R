@@ -97,16 +97,15 @@ prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds
 validateModel <- function(m, validationSet, anno){
   df <- getDataForModel(
     assignment = validationSet,
-    features = m$model$bestFeatures
+    features = m$bestFeatures
   )
   
   refs <- df$class
   celllinenames <- df$celllinename
   df <- df %>% select(-class, -celllinename)
-  modelReady <- loadMachineLearningModel(object = m$model)
-  preds <- predictFromModel(modelReady, df)
+  preds <- predict(m, newdata = df)
   
-  cl <- unlist(modelReady$classLabel, use.names = FALSE)
+  cl <- unlist(m$classLabel, use.names = FALSE)
   
   getPredictionSummary(
     celllinenames = celllinenames,
@@ -122,6 +121,9 @@ validateModel <- function(m, validationSet, anno){
 }
 
 #' @export
+#' 
+#' TODO: is this function even needed?
+#' 
 gatherPredictionResults <- function(predictions, ...){
   predictions %>%
     purrr::map_dfr(
