@@ -120,9 +120,12 @@ validateModel <- function(m, validationSet, anno){
   )
 }
 
+#' gatherPredictionResults
+#' 
+#' @details TODO: is this function even needed?
+#' 
 #' @export
 #' 
-#' TODO: is this function even needed?
 #' 
 gatherPredictionResults <- function(predictions, ...){
   predictions %>%
