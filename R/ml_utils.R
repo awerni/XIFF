@@ -143,3 +143,17 @@ gatherPredictionResults <- function(predictions, ...){
     ) %>%
     arrange(desc(Accuracy))
 }
+
+#' Utility function for checking if an object is XiffMachineLearningResult.
+#'
+#' @param model should be XiffMachineLearningResult
+#'
+#' @return nothing. Called for side effect in shiny.
+#' @importFrom shiny validate need
+#' @export
+#'
+validateXiffMachineLearningResult <- function(model) {
+  shiny::validate(shiny::need(inherits(model, "XiffMachineLearningResult"), paste0(
+    "Inccorect model format. Please provide a model created using CLIFF application",
+    " or XIFF::buildMachineLearning (if you were using R console to create model)")))
+}
