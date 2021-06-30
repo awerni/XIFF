@@ -163,8 +163,20 @@ getDataForModel <- function(assignment, features){
     left_join(assignment, by = "celllinename")
 }
 
+
 #' @export
-selectBestFeatures <- function(df, threshold = 0.05){
+selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
+  
+  if(is.numeric(threshold)) { 
+    warning("Opps! You've send the threshold as numeric value! Please use 'Confirmend' (default) or 'Tentative'.")
+    threshold <- "Confirmed" 
+  } # if CLIFF sends a numeric value
+  
+  selectBestFeaturesBoruta(df, threshold, maxFeatures)
+}
+
+#' @export
+selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
   ttRes <- genefilter::colttests(
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
@@ -172,69 +184,184 @@ selectBestFeatures <- function(df, threshold = 0.05){
   ) %>%
     tibble::rownames_to_column("ensg") %>%
     filter(p.value <= threshold) %>%
-    arrange(p.value)
-
+    arrange(p.value) %>%
+    head(maxFeatures)
+  
   bestFeatures <- ttRes %>% pull(ensg)
   df <- df %>% select_at(c("class", bestFeatures))
-
+  
   list(
     stats = ttRes,
-    df = df
+    df = df,
+    method = "genefilter::colttests"
   )
 }
 
+
+#' Use Bortua algorithm for feature selection.
+#'
+#' @param df 
+#' @param threshold 
+#' @param maxFeatures maximal number of features to be returned.
+#' @param threads number of threads to be used by Boruta algorithm.
+#' 
+#' 
+#' @return
 #' @export
-trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10){
-  fitControl <- caret::trainControl(
-    method = "repeatedcv",
-    number = number,
-    repeats = repeats,
-    savePredictions = "final"
-  )
-
-  args <- list(
-    as.formula("class ~ ."),
-    data = df,
-    method = method,
-    trControl = fitControl,
-    tuneLength = tuneLength
-  )
-
-  if (method == "rf"){
-    args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
+#' @importFrom Boruta Boruta
+#'
+#' @examples
+#' 
+#' data("feature_selection_data", package = "XIFF")
+#' featureFit <- selectBestFeaturesBoruta(feature_selection_data)
+#' plot(featureFit$fit, las = 1, horizontal = TRUE)
+#' 
+selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative"), maxFeatures = Inf, threads = getOption("xiff.boruta.threads", 2)) {
+  
+  threshold <- match.arg(threshold, c("Confirmed", "Tentative"))
+  if(threshold == "Tentative") threshold <- c("Confirmed", "Tentative")
+  if(maxFeatures < 1) {
+    warning("XIFF:::selectBestFeaturesBoruta - maxFeatures should not be lower than 1. The function will return all the features.")
+    maxFeatures <- Inf
   }
+  
+  fit <- Boruta::Boruta(class ~ ., df, num.threads = threads)
+  
+  fit$finalDecision <- fit$finalDecision[fit$finalDecision %in% threshold]
+  fit$ImpHistory <- fit$ImpHistory[,c(names(fit$finalDecision), "shadowMax", "shadowMean", "shadowMin")]
+  
+  pvals <- apply(fit$ImpHistory[,names(fit$finalDecision)], 2, function(x) t.test(x, fit$ImpHistory[,"shadowMax"])$p.value) * (ncol(df) - 1)
+  
+  stats <- tibble(
+    ensg = colnames(fit$ImpHistory[,names(fit$finalDecision)]),
+    p.value = pvals,
+    decision = fit$finalDecision 
+  )
+  
+  stats <- stats[order(stats$p.value),]
+  
+  # Select the values based on maxFeatures
+  stats <- head(stats, maxFeatures)
+  fit$finalDecision <- fit$finalDecision[stats$ensg]
+  fit$ImpHistory <- fit$ImpHistory[,c(stats$ensg, "shadowMax", "shadowMean", "shadowMin")]
+  
+  
+  df <- df[, c(stats$ensg, "class")]
+  list(
+    fit = fit,
+    stats = stats,
+    df = df,
+    method = "Boruta::Boruta"
+  )
+  
+}
 
+#' Train Machine Learning Models.
+#' 
+#' @param df 
+#' @param method 
+#' @param tuneLength 
+#' @param number 
+#' @param repeats 
+#'
+#' @export
+#' 
+#' @examples 
+#' 
+#' \dontrun{
+#'   data("train_model_data", package = "XIFF")
+#'   train_model_data <- train_model_data[,-1]
+#' 
+#'   fitRF  <- trainModel(train_model_data, method = "rf", tuneLength = 1)
+#'   fitSVM <- trainModel(train_model_data, method = "svmLinear2", tuneLength = 1)
+#'   fitNeuralnet <- trainModel(train_model_data, method = "neuralnetwork")
+#' }
+#' 
+#' 
+trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10){
+  
+  
+  if(method == "neuralnetwork") {
+    method <- modelInfoNeuralNetwork()
+  } 
+  
+    fitControl <- caret::trainControl(
+      method = "repeatedcv",
+      number = number,
+      repeats = repeats,
+      savePredictions = "final"
+    )
+    
+    args <- list(
+      as.formula("class ~ ."),
+      data = df,
+      method = method,
+      trControl = fitControl,
+      tuneLength = tuneLength
+    )
+    
+    if (is.character(method) && method == "rf"){
+      args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
+    }
+  
+  
   do.call(caret::train, args)
 }
 
 #' @export
+#' 
+#' @importFrom tibble rownames_to_column
+#' @importFrom dplyr rename arrange select
+#' @importFrom neuralnet neuralnet
+#' @importFrom NeuralNetTools olden
+#' 
 getVarImp <- function(model, stats){
+  
   switch(
     EXPR = class(model),
     randomForest = list(
       df = varImp(model) %>%
         tibble::rownames_to_column("ensg") %>%
-        rename(importance = Overall) %>%
-        arrange(desc(importance)),
+        dplyr::rename(importance = Overall) %>%
+        dplyr::arrange(desc(importance)),
       importanceName = "Mean decrease Gini"
     ),
     svm = list(
       df = stats %>%
-        select(ensg, importance = p.value) %>%
-        arrange(importance),
+        dplyr::select(ensg, importance = p.value) %>%
+        dplyr::arrange(importance),
       importanceName = "p.val"
     ),
-    list(
-      df = tibble(ensg = character(0), importance = NA),
-      importanceName = NA
-    )
+    nn = list(
+      df = modelInfoNeuralNetwork()$varImp(model) %>%
+        tibble::rownames_to_column("ensg") %>%
+        dplyr::arrange(desc(abs(importance))),
+        importanceName = "olden"
+    ),
+    stop(glue::glue("Variable imortance for {class(model)} not supported."))
   )
 }
 
+#' Create machine learning model using XIFF package.
+#' 
 #' @export
+#' 
+#' @examples 
+#' 
+#' data("data_createMachineLearningModel", package = "XIFF")
+#' trainingSet <- data_createMachineLearningModel$trainingSet
+#' geneSet     <- data_createMachineLearningModel$geneSet
+#' geneAnno    <- data_createMachineLearningModel$geneAnno
+#' 
+#' fit <- createMachineLearningModel(trainingSet, geneSet, geneAnno)
+#' fitNN <- createMachineLearningModel(trainingSet, geneSet, geneAnno, method = "neuralnetwork")
+#' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
-                                       method = "rf", tuneLength = 5, number = 10, repeats = 10, threshold = 0.05){
+                                       method = "rf", tuneLength = 5, number = 10, repeats = 10,
+                                       selectBestFeaturesFnc = selectBestFeatures, threshold = "Confirmed",
+                                       maxFeatures = "auto",
+                                       ...){
   progress <- ProcessProgress$new("Create ML model", p)
   progress$update(0.2, "fetching data...")
 
@@ -249,9 +376,22 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   # Feature selection
   progress$update(0.3, "selecting features...")
 
-  selectedFeatures <- selectBestFeatures(
+  if(maxFeatures == "auto") {
+    # selecting custom number of features for 'neuralnetwork' - note that other methods are not 
+    # constrained here. But if you want to make such constrain that is going to be a default for the users,
+    # please do that here.
+    maxFeatures <- case_when(
+      method == "neuralnetwork" ~ 5,
+      TRUE ~ Inf
+    )
+  } else if(!is.numeric(maxFeatures)) {
+    stop("XIFF::createMachineLearningModel - maxFeatures must be a numeric value greater than zero or 'auto' string.")
+  }
+  selectedFeatures <- selectBestFeaturesFnc(
     df = df,
-    threshold = threshold
+    threshold = threshold,
+    maxFeatures = maxFeatures,
+    ...
   )
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
@@ -279,6 +419,7 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   progress$update(1.0, "job done")
 
   list(
+    featureSelectionResult = selectedFeatures,
     model = machineLearningResult(
       res = list(
         trainingOutput = trainingOutput,
@@ -312,6 +453,41 @@ machineLearningResult <- function(res, classLabel){
   x
 }
 
+#' Function that reutrns the proper prediction function for given model
+#' 
+#' @noRd
+#' @noMd
+#' 
+.getPredictFunction <- function(model, library) {
+  
+  if (!packageInstalled(library)){
+    stop(paste0("Package '", library, "' is not available."))
+  }
+  
+  UseMethod(".getPredictFunction")
+}
+
+.getPredictFunction.default <- function(model, library) {
+  
+  modelClass <- class(model)
+  predFun <- getS3method(
+    f = "predict",
+    class = modelClass,
+    envir = asNamespace(library),
+    optional = TRUE
+  )
+  
+  if (is.null(predFun)){
+    stop(paste0("No predict() method found for ", modelClass, "-class object"))
+  }
+  
+  return(predFun)
+}
+
+.getPredictFunction.nn <- function(model, library) {
+  return(modelInfoNeuralNetwork()$predict)
+}
+
 #' @export
 loadMachineLearningModel <- function(filepath, object = NULL){
   x <- if (is.null(object)){
@@ -323,26 +499,8 @@ loadMachineLearningModel <- function(filepath, object = NULL){
   if (!is(x, "machineLearningResult")){
     stop("Incorrect input file. Please provide a file downloaded from the machine learning tab")
   }
-
-  modelLibrary <- x$library
-
-  if (!packageInstalled(modelLibrary)){
-    stop(paste0("Package '", modelLibrary, "' is not available."))
-  }
-
-  modelClass <- class(x$model)
-  predFun <- getS3method(
-    f = "predict",
-    class = modelClass,
-    envir = asNamespace(modelLibrary),
-    optional = TRUE
-  )
-
-  if (is.null(predFun)){
-    stop(paste0("No predict() method found for ", modelClass, "-class object"))
-  }
-
-  x[[".predFun"]] <- predFun
+  
+  x[[".predFun"]] <- .getPredictFunction(x$model, x$library)
   class(x) <- "machineLearningResultReady"
   x
 }

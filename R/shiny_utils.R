@@ -155,12 +155,42 @@ getEnsgRowCallback <- function(species, idx = 1){
 #' Set DB options
 #' 
 #' This function sets all R options required for DB connection based on the
-#' settings object.
+#' settings object or environment variables (dbhost, dbname, dbuser, dbpass, dbport).
 #' 
 #' @param settings list of settings
 #' @return nothing 
 #' @export
-setDbOptions <- function(settings){
+setDbOptions <- function(settings = NULL){
+  
+  if(is.null(settings)) {
+    
+    settings <- list(db = list(
+      dbhost = Sys.getenv("dbhost"),
+      dbname = Sys.getenv("dbname"),
+      dbuser = Sys.getenv("dbuser"),
+      dbpass = Sys.getenv("dbpass"),
+      dbport = as.numeric(Sys.getenv("dbport", unset = 5432))
+    ))
+    
+    dbConfigMissing <- vapply(settings[["db"]], function(x) x == "", FUN.VALUE = TRUE)
+    if(any(dbConfigMissing)) {
+      missingNames <- names(dbConfigMissing[dbConfigMissing])
+      stop(paste0(
+        "'settings' parameter was NULL. ", 
+        "XIFF::setDbOptions attempted to read the config from environment variables.\n",
+        "However, parameters ", paste(missingNames, collapse = ", "), 
+        " are missing.\n",
+        "Please set the proper values using either the '.Renviron' file (it requires the session restart)"),
+        " or by using Sys.setenv() function:\n",
+        paste(sprintf("Sys.setenv(%s = 'your-%s-here')", missingNames, missingNames), collapse = "\n")
+      )
+    }
+    
+    # Rename values to be settings compatible. Using verions with `db` prefix is better easier
+    # for rendering the error function (env names can be directry read from the list).
+    names(settings[["db"]]) <- c("host", "name", "user", "password", "port")
+  }
+  
   options("dbname" = settings[["db"]][["name"]])
   options("dbhost" = settings[["db"]][["host"]])
   options("dbport" = settings[["db"]][["port"]])

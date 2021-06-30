@@ -1,0 +1,74 @@
+---
+title: "Feature Selection"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Feature Selection}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Quick Intro
+
+Currently, the `XIFF` package implements two functions for feature selection:
+- `selectBestFeaturesBoruta` which uses `Boruta` package.
+  - see e.g. https://cran.r-project.org/web/packages/Boruta/vignettes/inahurry.pdf for more details.
+- `selectBestFeaturesTTest` which uses `genefilter::colttests`.
+  - run `?genefilter::colttests` for more details.
+
+The purpose of the example below is to show the basic API and execution time on some random data set.
+
+```{r setup}
+library(XIFF)
+library(dplyr)
+library(glue)
+
+# Utility function that shows the run time for passed expression
+test_time <- function(expr) {
+  cr <- match.call()
+  time <- system.time(res <- eval(expr))
+  message("Running ", cr, " took ", round(time[[3]], 2), "seconds")
+  res
+}
+
+data("feature_selection_data", package = "XIFF")
+
+# Some very basic example
+message(glue("Number of features: {ncol(feature_selection_data)}"))
+featureFit <- test_time(selectBestFeaturesBoruta(feature_selection_data))
+featureFitTTest <- test_time(selectBestFeaturesTTest(feature_selection_data))
+
+message(glue("Number of features selected by Boruta: {ncol(featureFit$df)-1}"))
+message(glue("Number of features selected by ColTest: {ncol(featureFitTTest$df)-1}"))
+```
+
+```{r}
+# Plot the result
+plot(featureFit$fit, las = 1, horizontal = TRUE)
+# Show resulting table
+featureFit$stats
+```
+###  Limit the number of features to be selected
+
+```{r}
+featureFit <- test_time(selectBestFeaturesBoruta(feature_selection_data, maxFeatures = 5))
+plot(featureFit$fit, las = 1, horizontal = TRUE)
+featureFitTTest <- test_time(selectBestFeaturesTTest(feature_selection_data, maxFeatures = 5))
+
+s1 <- featureFit$stats %>% select(ensg) %>% mutate(BorutaSelection = ensg)
+s2 <- featureFitTTest$stats %>% select(ensg) %>% mutate(TTestSelection = ensg)
+
+# Comparsion of the selected variables:
+full_join(s1, s2, by = "ensg")
+```
+
+# Notes:
+
+- `selectBestFeaturesBoruta` algorithm is much slower than `selectBestFeaturesTTest`.
+- The resulting variables are different.
