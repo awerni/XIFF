@@ -344,6 +344,7 @@ getVarImp <- function(model, stats){
 
 #' Create machine learning model using XIFF package.
 #' 
+#' @importFrom glue glue
 #' @export
 #' 
 #' @examples 
@@ -359,9 +360,14 @@ getVarImp <- function(model, stats){
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
                                        method = "rf", tuneLength = 5, number = 10, repeats = 10,
-                                       selectBestFeaturesFnc = selectBestFeatures, threshold = "Confirmed",
+                                       selectBestFeaturesFnc = "auto", threshold = "Confirmed",
                                        maxFeatures = "auto",
-                                       ...){
+                                       ...,
+                                       .verbose = TRUE
+                                       ){
+  
+  localMessage <- function(...) if(.verbose) message(glue::glue(...))
+  
   progress <- ProcessProgress$new("Create ML model", p)
   progress$update(0.2, "fetching data...")
 
@@ -374,7 +380,6 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   if (nrow(df) == 0) progress$error("No data available")
 
   # Feature selection
-  progress$update(0.3, "selecting features...")
 
   if(maxFeatures == "auto") {
     # selecting custom number of features for 'neuralnetwork' - note that other methods are not 
@@ -384,9 +389,50 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
       method == "neuralnetwork" ~ 5,
       TRUE ~ Inf
     )
+    
+    localMessage("Max features: {maxFeatures}")
   } else if(!is.numeric(maxFeatures)) {
     stop("XIFF::createMachineLearningModel - maxFeatures must be a numeric value greater than zero or 'auto' string.")
   }
+  
+  if(is.character(selectBestFeaturesFnc) && selectBestFeaturesFnc == "auto") {
+    localMessage("Selecting feature selection method using auto.")
+    if(method == "neuralnetwork") {
+      localMessage("Selecting Boruta feature selection method for {method}")
+      selectBestFeaturesFnc <- selectBestFeaturesBoruta
+      modelSelectionMethod <- "Boruta"
+      
+      if(is.numeric(threshold)) {
+        localMessage("Changing feature selection threshold from numeric",
+                     " {threshold} to 'Confirmed'"
+        )
+        threshold <- "Confirmed"
+      }
+      
+    } else {
+      localMessage("Selecting T-test feature selection method for {method}")
+      selectBestFeaturesFnc <- selectBestFeaturesTTest
+      modelSelectionMethod <- "T-test"
+      
+      if(is.character(threshold)) {
+        localMessage(
+          "Changing feature selection threshold from character",
+          " {threshold} to numeric '0.05'"
+        )
+        threshold <- 0.05
+      }
+    }
+    
+  } else {
+    modelSelectionMethod <- "custom"
+  }
+  
+  progress$update(
+    0.3,
+    glue::glue("selecting features (method: {modelSelectionMethod},",
+                      " Max features: {maxFeatures})...")
+  )
+  
   selectedFeatures <- selectBestFeaturesFnc(
     df = df,
     threshold = threshold,
