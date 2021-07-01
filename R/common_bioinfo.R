@@ -363,7 +363,7 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
                                        selectBestFeaturesFnc = "auto", threshold = "Confirmed",
                                        maxFeatures = "auto",
                                        ...,
-                                       .verbose = 1
+                                       .verbose = TRUE
                                        ){
   
   localMessage <- function(...) if(.verbose) message(glue::glue(...))
