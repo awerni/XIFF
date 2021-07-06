@@ -78,6 +78,7 @@ xiffSupportedModels <- function() {
   c(
     "Random forrest" = "rf",
     "SVM" = "svmLinear2",
-    "Neuralnetwork" = "neuralnetwork"
+    "Neuralnetwork" = "neuralnetwork",
+    "glmnet" = "glmnet"
   )
 }
