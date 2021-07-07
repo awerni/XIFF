@@ -375,16 +375,6 @@ getVarImp <- function(model, stats){
 #' @importFrom glue glue
 #' @export
 #' 
-#' @examples 
-#' 
-#' data("data_createMachineLearningModel", package = "XIFF")
-#' trainingSet <- data_createMachineLearningModel$trainingSet
-#' geneSet     <- data_createMachineLearningModel$geneSet
-#' geneAnno    <- data_createMachineLearningModel$geneAnno
-#' 
-#' fit <- createMachineLearningModel(trainingSet, geneSet, geneAnno)
-#' fitNN <- createMachineLearningModel(trainingSet, geneSet, geneAnno, method = "neuralnetwork")
-#' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
                                        method = "rf", tuneLength = 5, number = 10, repeats = 10,
