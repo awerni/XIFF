@@ -1,0 +1,222 @@
+---
+title: "E2E Machine Learning using XIFF"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{E2E Machine Learning using XIFF}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.height = 6,
+  fig.width = 7
+)
+```
+
+# Preparing data
+
+*Note that `CLIFF` package is used here.*
+
+```{r setup}
+library(XIFF)
+library(dplyr)
+setDbOptions()
+
+
+# Preparing data
+cellline <- CLIFF::getWaterfallDataDepletion(ensg = "ENSG00000135679", study = "Avana", score = "ceres")
+cellline <- cellline %>% filter(tumortype %in% c("skin cancer", "lung cancer",  "ovarian cancer", "pancreatic cancer"))
+cellline <- cellline %>% filter(var < 0)
+
+# Select sensitive and resistant celllines
+# note that the number of resistant celllines is selected to be the same as number of sensistve celllines 
+sensitive <- cellline %>% filter(var < -1) %>% select(celllinename) %>% pull %>% as.character()
+resistant <- cellline %>% arrange(desc(var)) %>% head(length(sensitive)) %>% select(celllinename) %>% pull %>% as.character()
+cs <- list(class1 = sensitive, class2 = resistant)
+
+# Hallmark gene set
+hallmarkGeneSet <- "P53_PATHWAY"
+geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+
+# Gene Annotation
+geneAnno <- CLIFF::getGeneAnno()[["human"]]
+```
+
+# Training the model using 
+
+```{r}
+set.seed(123)
+defaultFit <- XIFF::buildMachineLearning(
+  cs = cs,
+  ensg_gene_set = geneSet,
+  gene_anno = geneAnno,
+)
+
+nnFit <- XIFF::buildMachineLearning(
+  cs = cs,
+  ensg_gene_set = geneSet,
+  gene_anno = geneAnno,
+  method = "neuralnetwork"
+)
+
+# model using caret functionality. It does not implement 
+# model specific function is XIFF, but uses sensible defaults
+glmnetFit <- XIFF::buildMachineLearning(
+  cs = cs,
+  ensg_gene_set = geneSet,
+  gene_anno = geneAnno,
+  method = "glmnet"
+)
+```
+## Prediction
+
+Prediction just uses `S3 predict` method from `caret`.
+
+```{r}
+predict(defaultFit)
+predict(nnFit)
+predict(glmnetFit)
+```
+
+
+#### Plots
+
+```{r}
+library(tidyr)
+generatePerformancePlot(defaultFit)
+generatePerformancePlot(nnFit)
+generatePerformancePlot(glmnetFit)
+```
+
+```{r}
+generateVarImpPlot(defaultFit)
+generateVarImpPlot(nnFit)
+generateVarImpPlot(glmnetFit)
+```
+```{r}
+# For random foreset only
+generateErrorPlot(defaultFit)
+```
+
+```{r}
+makeClassAssignment(defaultFit$cs, list(class1_name = "sensitive", class2_name = "resistant"))
+classAssigment <- makeClassAssignment(defaultFit$cs, list(class1_name = "sensitive", class2_name = "resistant"))
+
+# cs also stands for `class selection`!
+modelData <- getDataForModel(assignment = stackClasses(cs), features = defaultFit$bestFeatures)
+annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(cs))
+
+
+predictionSummary <- getPredictionSummary(
+  celllinenames = modelData$celllinename,
+  preds = predict(defaultFit, newdata = modelData),
+  refs = modelData$class,
+  positive_model = "class1",
+  positive_cs = "class1",
+  classes = c("positive", "negative"),
+  classes_model = c("sensitive", "resistant"),
+  classes_cs = c("sensitive", "resistant"),
+  annoFocus = annoFocus
+)
+
+
+df <- prepareTablePlotData(
+  df = predictionSummary$data,
+  positive_preds = "class1",
+  positive_refs = "class1",
+  labels_preds = c("sensitive", "resistant"),
+  labels_refs = c("sensitive", "resistant"),
+  labels = c("positive", "negative")
+)
+generateTablePlot(df)
+
+df2 <- getPerformanceDataFrame(predictionSummary$res$table)
+generateApplyPerformancePlot(df2)
+
+
+# ???
+gatherPredictionResults(predictions = list(predictionSummary))
+
+
+validation <- validateModel(
+  defaultFit,
+  validationSet = stackClasses(defaultFit$validationSet),
+  anno = annoFocus)
+```
+
+
+```{r}
+makeModelPlots <- function(model, cs) {
+  
+  annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(cs))
+  
+  validation <- validateModel(
+    model,
+    validationSet = stackClasses(model$validationSet),
+    anno = annoFocus
+  )
+  
+  df <- prepareTablePlotData(
+    df = validation$data,
+    positive_preds = "class1",
+    positive_refs = "class1",
+    labels_preds = c("sensitive", "resistant"),
+    labels_refs = c("sensitive", "resistant"),
+    labels = c("positive", "negative")
+  )
+  
+  
+  
+  
+  df2 <- getPerformanceDataFrame(validation$res$table)
+  list(
+    TablePlot <- generateTablePlot(df),
+    ApplyPerformancePlot = generateApplyPerformancePlot(df2),
+    PerformancePlot = generatePerformancePlot(model),
+    VariableImportancePlot = generateVarImpPlot(model)
+  )
+}
+
+```
+
+
+```{r}
+makeModelPlots(defaultFit, cs = cs)
+makeModelPlots(nnFit, cs = cs)
+makeModelPlots(glmnetFit, cs = cs)
+```
+# More examples.
+
+## SVM
+
+```{r}
+svmFit <- XIFF::buildMachineLearning(
+  cs = cs,
+  ensg_gene_set = geneSet,
+  gene_anno = geneAnno,
+  method = "svmLinear2"
+)
+
+makeModelPlots(svmFit, cs = cs)
+```
+
+## CART
+
+```{r}
+
+if(XIFF::packageInstalled("rpart")) {
+  rpartFit <- XIFF::buildMachineLearning(
+    cs = cs,
+    ensg_gene_set = geneSet,
+    gene_anno = geneAnno,
+    method = "rpart"
+  )
+
+  makeModelPlots(rpartFit, cs = cs)
+  
+}
+
+```

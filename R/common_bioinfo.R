@@ -308,54 +308,72 @@ trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats =
   do.call(caret::train, args)
 }
 
+
+tbl2XiffImportanceTable <- function(tbl, name) {
+  class(tbl) <- c("XiffImportanceTable", class(tbl)[class(tbl) != "XiffImportanceTable"])
+  attr(tbl, "importanceName") <- name
+  tbl
+}
+
 #' @export
+#' 
+#' @details 
+#' 
+#' A function that returns formatted 
 #' 
 #' @importFrom tibble rownames_to_column
 #' @importFrom dplyr rename arrange select
 #' @importFrom neuralnet neuralnet
 #' @importFrom NeuralNetTools olden
+#' @importFrom caret varImp
 #' 
 getVarImp <- function(model, stats){
   
-  switch(
-    EXPR = class(model),
-    randomForest = list(
-      df = varImp(model) %>%
-        tibble::rownames_to_column("ensg") %>%
-        dplyr::rename(importance = Overall) %>%
-        dplyr::arrange(desc(importance)),
-      importanceName = "Mean decrease Gini"
-    ),
-    svm = list(
-      df = stats %>%
-        dplyr::select(ensg, importance = p.value) %>%
-        dplyr::arrange(importance),
-      importanceName = "p.val"
-    ),
-    nn = list(
-      df = modelInfoNeuralNetwork()$varImp(model) %>%
-        tibble::rownames_to_column("ensg") %>%
-        dplyr::arrange(desc(abs(importance))),
-        importanceName = "olden"
-    ),
+  varImp2table <- function(model, name) {
+    
+    tbl <- varImp(model) %>%
+      tibble::rownames_to_column("ensg") %>%
+      dplyr::rename(importance = Overall) %>%
+      dplyr::arrange(desc(importance)) %>%
+      tbl2XiffImportanceTable(name)
+  }
+  
+  if(length(class(model)) == 1) { 
+    # e.g. result of glmnet has 2 classes "lognet" and "glmnet"
+    # checks for custom implemented models
+    result <- switch(
+      EXPR = class(model),
+      randomForest = varImp2table(model, "Mean decrease Gini"),
+      svm = stats %>%
+          dplyr::select(ensg, importance = p.value) %>%
+          dplyr::arrange(importance) %>% 
+          tbl2XiffImportanceTable("p.val")
+      ,
+      nn = modelInfoNeuralNetwork()$varImp(model) %>%
+          tibble::rownames_to_column("ensg") %>%
+          dplyr::arrange(desc(abs(importance))) %>%
+          tbl2XiffImportanceTable("olden")
+      ,
+      NULL
+    )
+    
+    if(!is.null(result)) return(result)
+  }
+  
+  result <- try(varImp2table(model, "Model Importance"))
+  
+  if(inherits(result, "try-error")) {
     stop(glue::glue("Variable imortance for {class(model)} not supported."))
-  )
+  }
+  
+  return(result)
+    
 }
 
 #' Create machine learning model using XIFF package.
 #' 
 #' @importFrom glue glue
 #' @export
-#' 
-#' @examples 
-#' 
-#' data("data_createMachineLearningModel", package = "XIFF")
-#' trainingSet <- data_createMachineLearningModel$trainingSet
-#' geneSet     <- data_createMachineLearningModel$geneSet
-#' geneAnno    <- data_createMachineLearningModel$geneAnno
-#' 
-#' fit <- createMachineLearningModel(trainingSet, geneSet, geneAnno)
-#' fitNN <- createMachineLearningModel(trainingSet, geneSet, geneAnno, method = "neuralnetwork")
 #' 
 createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
                                        classLabel = list(class1_name = "class1", class2_name = "class2"),
@@ -459,138 +477,37 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   )
 
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
-  df <- importanceRes$df %>% left_join(geneAnno, by = "ensg")
-  attr(df, "importanceName") <- importanceRes$importanceName
+  df <- importanceRes %>% left_join(geneAnno, by = "ensg")
+  df <- tbl2XiffImportanceTable(df, attr(importanceRes, "importanceName"))
 
   progress$update(1.0, "job done")
 
-  list(
-    featureSelectionResult = selectedFeatures,
-    model = machineLearningResult(
-      res = list(
-        trainingOutput = trainingOutput,
-        df = df,
-        trainingSet = trainingSet$celllinename
-      ),
-      classLabel = classLabel
-    ),
-    df = df,
-    trainingOutput = trainingOutput
-  )
+  class(trainingOutput) <- c("MLXIFF", class(trainingOutput))
+  
+  trainingOutput$featureSelectionResult <- selectedFeatures
+  trainingOutput$df <- df
+  trainingOutput$classLabel <- classLabel
+  trainingOutput$bestFeatures <- df[["ensg"]]
+  trainingOutput$trainingSet <- trainingSet$celllinename
+  
+  trainingOutput
 }
 
-#' @export
-machineLearningResult <- function(res, classLabel){
-  output <- structure(
-    list(
-      model = res$trainingOutput$finalModel,
-      library = res$trainingOutput$modelInfo$library,
-      classLabel = classLabel,
-      bestFeatures = res$df[["ensg"]],
-      trainingSet = res$trainingSet
-    ),
-    class = "machineLearningResult"
-  )
+print.MLXIFF <- function(x, ...) {
+  
+  class(x) <- class(x)[-1]
+  cat("XIFF Raw Model\n\n")
+  print(x$classLabel)
+  
+  cat("caret part:\n")
+  print(x)
+  
 }
 
 #' @export
 `newClassLabel<-` <- function(x, value){
   x$classLabel <- value
   x
-}
-
-#' Function that reutrns the proper prediction function for given model
-#' 
-#' @noRd
-#' @noMd
-#' 
-.getPredictFunction <- function(model, library) {
-  
-  if (!packageInstalled(library)){
-    stop(paste0("Package '", library, "' is not available."))
-  }
-  
-  UseMethod(".getPredictFunction")
-}
-
-.getPredictFunction.default <- function(model, library) {
-  
-  modelClass <- class(model)
-  predFun <- getS3method(
-    f = "predict",
-    class = modelClass,
-    envir = asNamespace(library),
-    optional = TRUE
-  )
-  
-  if (is.null(predFun)){
-    stop(paste0("No predict() method found for ", modelClass, "-class object"))
-  }
-  
-  return(predFun)
-}
-
-.getPredictFunction.nn <- function(model, library) {
-  return(modelInfoNeuralNetwork()$predict)
-}
-
-#' @export
-loadMachineLearningModel <- function(filepath, object = NULL){
-  x <- if (is.null(object)){
-    readRDS(filepath)
-  } else {
-    object
-  }
-
-  if (!is(x, "machineLearningResult")){
-    stop("Incorrect input file. Please provide a file downloaded from the machine learning tab")
-  }
-  
-  x[[".predFun"]] <- .getPredictFunction(x$model, x$library)
-  class(x) <- "machineLearningResultReady"
-  x
-}
-
-#' @export
-predictFromModel <- function(x, df){
-  if (!is(x, "machineLearningResultReady")){
-    stop("Incorrect input object. Please provide an object returned by loadMachineLearningModel function")
-  }
-
-  predFun <- x[[".predFun"]]
-
-  missingFeatures <- setdiff(x$bestFeatures, names(df))
-  if (length(missingFeatures) > 0){
-    stop(paste("Missing features:", paste(missingFeatures, collapse = ", ")))
-  }
-
-  df <- preparePredictionData(df)
-  assignment <- try(predFun(x$model, df))
-  if (is(assignment, "try-error")){
-    stop("Error during prediction. Please contact the app author.")
-  }
-
-  if (is.list(assignment)){
-    assignment <- unlist(assignment, use.names = FALSE)
-  }
-  assignment <- as.character(assignment)
-
-  if (length(assignment) == 0 || any(! assignment %in% c("class1", "class2", NA))){
-    stop("Incorrect prediction format. Did you use a custom model? Please contact the app author.")
-  }
-
-  assignment
-}
-
-preparePredictionData <- function(df){
-  colname <- getOption("xiff.column")
-
-  if (colname %in% names(df)){
-    attr(df, "mlItems") <- df[[colname]]
-    df[[colname]] <- NULL
-  }
-
-  df
 }
 
 # Unbalanced tumortypes -------------------------------------------------------

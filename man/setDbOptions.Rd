@@ -4,7 +4,7 @@
 \alias{setDbOptions}
 \title{Set DB options}
 \usage{
-setDbOptions(settings)
+setDbOptions(settings = NULL)
 }
 \arguments{
 \item{settings}{list of settings}
@@ -14,5 +14,5 @@ nothing
 }
 \description{
 This function sets all R options required for DB connection based on the
-settings object.
+settings object or environment variables (dbhost, dbname, dbuser, dbpass, dbport).
 }
