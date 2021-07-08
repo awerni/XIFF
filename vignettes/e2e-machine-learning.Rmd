@@ -18,13 +18,14 @@ knitr::opts_chunk$set(
 
 # Preparing data
 
-*Note that `CLIFF` package is used here.*
-
-```{r setup}
+```{r}
 library(XIFF)
 library(dplyr)
 setDbOptions()
+```
 
+```{r setup, eval=FALSE}
+# Example based on the dbInfo2db
 
 # Preparing data
 cellline <- CLIFF::getWaterfallDataDepletion(ensg = "ENSG00000135679", study = "Avana", score = "ceres")
@@ -36,6 +37,19 @@ cellline <- cellline %>% filter(var < 0)
 sensitive <- cellline %>% filter(var < -1) %>% select(celllinename) %>% pull %>% as.character()
 resistant <- cellline %>% arrange(desc(var)) %>% head(length(sensitive)) %>% select(celllinename) %>% pull %>% as.character()
 cs <- list(class1 = sensitive, class2 = resistant)
+```
+
+```{r}
+cs <- getStashedData("0766b1")
+
+cs <- list(
+      class1 = cs %>% filter(MDM2_class == "resistant") %>% pull,
+      class2 = cs %>% filter(MDM2_class == "sensitive") %>% pull
+    )
+
+```
+
+```{r}
 
 # Hallmark gene set
 hallmarkGeneSet <- "P53_PATHWAY"

@@ -90,7 +90,13 @@ seeds <- tibble(N = 1:length(seeds), RandomSeed = seeds)
 allSimulations <- full_join(allCombs, seeds, by = character())
 
 
+allSimulations
 
+makeFilePath <- function(params, OUTPUT_PATH) {
+  
+  hash <- digest(params)
+  file.path(OUTPUT_PATH, paste0(digest::digest(params), ".rds"))
+}
 
 makeModel <- function(i, allSimulations, OUTPUT_PATH) {
   
@@ -111,8 +117,8 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
     
     # check file name
     params <- params %>% select(-cs, -geneSet, -geneAnno, -annoFocus)
+    filePath <- makeFilePath(params, OUTPUT_PATH)
     
-    filePath <- file.path(OUTPUT_PATH, paste0(digest::digest(params), ".rds"))
     if(file.exists(filePath)) return(NULL)
     
     
@@ -168,6 +174,15 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
  
   
 }
+
+
+tmp <- allSimulations %>% select(-cs, -geneSet, -geneAnno, -annoFocus)
+allPaths <- pbapply::pbsapply(1:nrow(allSimulations), function(i) makeFilePath(tmp[i,], OUTPUT_PATH))
+allSimulations <- allSimulations[!file.exists(allPaths),]
+
+allSimulations <- allSimulations[sample.int(nrow(allSimulations)),]
+
+message("Models left: ", nrow(allSimulations))
 
 library(parallel)
 x <- parallel::mclapply(X = 1:nrow(allSimulations), FUN = makeModel,
