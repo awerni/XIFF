@@ -14,23 +14,13 @@ createMachineLearningModel(
   tuneLength = 5,
   number = 10,
   repeats = 10,
-  selectBestFeaturesFnc = selectBestFeatures,
+  selectBestFeaturesFnc = "auto",
   threshold = "Confirmed",
   maxFeatures = "auto",
-  ...
+  ...,
+  .verbose = TRUE
 )
 }
 \description{
 Create machine learning model using XIFF package.
-}
-\examples{
-
-data("data_createMachineLearningModel", package = "XIFF")
-trainingSet <- data_createMachineLearningModel$trainingSet
-geneSet     <- data_createMachineLearningModel$geneSet
-geneAnno    <- data_createMachineLearningModel$geneAnno
-
-fit <- createMachineLearningModel(trainingSet, geneSet, geneAnno)
-fitNN <- createMachineLearningModel(trainingSet, geneSet, geneAnno, method = "neuralnetwork")
-
 }

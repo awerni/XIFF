@@ -14,14 +14,6 @@
 #' @export
 #' @return
 #'
-#' @examples
-#' 
-#' data(machine_learning_long_fun_example_data, package = "XIFF")
-#' attach(machine_learning_long_fun_example_data)
-#' 
-#' fit <- buildMachineLearning(cs, ensg_gene_set, gene_anno, species = "human", method = "rf", p_validation = 0.2)
-#' fitNN <- buildMachineLearning(cs, ensg_gene_set, gene_anno, species = "human", method = "neuralnetwork", p_validation = 0.2)
-#' 
 buildMachineLearning <- function(
   cs,
   ensg_gene_set,
@@ -78,6 +70,7 @@ xiffSupportedModels <- function() {
   c(
     "Random forrest" = "rf",
     "SVM" = "svmLinear2",
-    "Neuralnetwork" = "neuralnetwork"
+    "Neuralnetwork" = "neuralnetwork",
+    "glmnet" = "glmnet"
   )
 }

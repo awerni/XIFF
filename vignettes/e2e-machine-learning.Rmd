@@ -23,8 +23,7 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(XIFF)
 library(dplyr)
-# Note that CLIFF package is used only to prepare data
-CLIFF::setDbOptions(CLIFF::getSettings())
+setDbOptions()
 
 
 # Preparing data
