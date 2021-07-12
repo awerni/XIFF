@@ -35,21 +35,42 @@ tooltipPlot <- function(input, output, session, plotExpr, varDict,
       h / 72
     }
   })
+  
+  SvgData <- reactive({
+    p <- plotExpr()
+    req(Width(), p) # re-render on resize
+    res <- ggtips::getSvgAndTooltipdata(
+      plot = p, 
+      varDict = varDict,
+      callback = callback,
+      width = isolate(Width()),
+      height = isolate(Height()),
+      ...
+    )
+    res$svg <- removeSvgDimensions(res$svg)
+    res
+  })
 
-  output$plot <- ggtips::renderWithTooltips(
-    plot = {
-      p <- plotExpr()
-      req(Width(), p) # re-render on resize
-      p
-    },
-    varDict = varDict,
-    callback = callback,
-    width = isolate(Width()),
-    height = isolate(Height()),
-    ...
-  )
+  output$plot <- renderUI({
+    d <- SvgData()
+    req(d)
+    
+    ggtips::htmlWithGivenTooltips(
+      svg = d$svg,
+      data = d$data,
+      height = isolate(Height()),
+      width = isolate(Width())
+    )
+  })
 }
 
 tooltipCallbackFun <- function(x){
   x[[getOption("xiff.column")]]
+}
+
+removeSvgDimensions <- function(svg){
+  x <- xml2::read_xml(svg)
+  xml2::xml_set_attr(x, "width", NULL)
+  xml2::xml_set_attr(x, "height", NULL)
+  as.character(x)
 }

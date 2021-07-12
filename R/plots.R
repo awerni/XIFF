@@ -6,7 +6,7 @@ commonPlotTheme <- function(legend.position = "right", textSize = 16){
   theme(
     text = element_text(
       size = textSize,
-      family = "Helvetica"
+      family = "Roboto"
     ),
     legend.position = legend.position,
     plot.title = element_text(hjust = 0.5)
