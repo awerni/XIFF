@@ -48,7 +48,8 @@ Imports:
       xfun (>= 0.22),
       Boruta,
       neuralnet,
-      NeuralNetTools
+      NeuralNetTools,
+      systemfonts
 RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 2.1.0),
