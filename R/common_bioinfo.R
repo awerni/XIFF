@@ -143,24 +143,50 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
 }
 
 #' @export
-getRawDataForModel <- function(features, celllinenames = NULL){
-  clFilter <- if (length(celllinenames) > 0){
-    paste(" AND", getSQL_filter("celllinename", celllinenames))
+getRawDataForModel <- function(
+  features,
+  names = NULL,
+  schema = getOption("xiff.schema", "cellline"),
+  column = getOption("xiff.column")
+  ){
+  
+  clFilter <- if (length(names) > 0){
+    paste(" AND", getSQL_filter(column, names))
+  } else {
+    ""
   }
+  
+  ensgSql <- getSQL_filter("ensg", features)
+  
+  sql <- glue::glue("
+     SELECT 
+      {column}, ensg, log2tpm AS score 
+    FROM 
+      {schema}.processedrnaseqview                
+    WHERE
+      {ensgSql}
+      {clFilter}          
+  ")
 
-  sql <- paste0("SELECT celllinename, ensg, log2tpm AS score FROM cellline.processedrnaseqview ",
-                "WHERE ", getSQL_filter("ensg", features), clFilter)
+ 
   getPostgresql(sql)
 }
 
 #' @export
-getDataForModel <- function(assignment, features){
+getDataForModel <- function(
+  assignment,
+  features,
+  schema = getOption("xiff.schema", "cellline"),
+  column = getOption("xiff.column")
+  ){
   getRawDataForModel(
     features = features,
-    celllinenames =  assignment$celllinename
+    names    = assignment[[column]],
+    schema   = schema,
+    column   = column
   ) %>%
     tidyr::pivot_wider(names_from = ensg, values_from = score) %>%
-    left_join(assignment, by = "celllinename")
+    left_join(assignment, by = column)
 }
 
 
