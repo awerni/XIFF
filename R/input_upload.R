@@ -511,7 +511,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
     translated <- translationFun(tibble(!!colname := m$trainingSet), anno)
     if (is.null(translated)) return()
-    translated$df[[colname]]
+    translated
   })
 
   observeEvent(
@@ -520,7 +520,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
       m <- Model()
       req(m)
 
-      cl <- TrainingSet()
+      cl <- TrainingSet()$df[[colname]]
       req(length(cl) > 0)
 
       tt <- Annotation() %>%
@@ -552,8 +552,8 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     m <- Model()
     d <- DB_Data()
 
-    trainingSet <- TrainingSet()
-    req(d, m, trainingSet)
+    req(d, m, TrainingSet())
+    trainingSet <- TrainingSet()$df[[colname]]
 
     tumortypes <- input$tumortype
     if (length(tumortypes) == 0) return()
