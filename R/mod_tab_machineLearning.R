@@ -1,3 +1,10 @@
+#' Title
+#'
+#' @param id 
+#'
+#' @rdname machineLearningTab
+#' @export
+#'
 machineLearningTabUI_main <- function(id){
   ns <- NS(id)
   
@@ -21,6 +28,13 @@ machineLearningTabUI_main <- function(id){
   )
 }
 
+#' Title
+#'
+#' @param id 
+#'
+#' @rdname machineLearningTab
+#' @export
+#'
 machineLearningTabUI_sidebar <- function(id){
   ns <- NS(id)
   
@@ -45,6 +59,22 @@ machineLearningTabUI_sidebar <- function(id){
   )
 }
 
+#' Title
+#'
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param fm 
+#' @param classSelection 
+#' @param classLabel 
+#' @param gsea_data_hallmark 
+#' @param gene_anno 
+#' @param AnnotationFocus 
+#' @param Species 
+#'
+#' @rdname machineLearningTab
+#' @export
+#'
 machineLearningTab <- function(input, output, session, fm, classSelection, classLabel, 
                                gsea_data_hallmark, gene_anno, AnnotationFocus, Species){
   Results <- callModule(

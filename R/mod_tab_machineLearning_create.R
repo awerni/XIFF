@@ -33,7 +33,7 @@ getDataGeneExpressionById <- function(
     "FROM {schema}.processedrnaseqview"
   )
   
-  getCelllineDataCommonById(
+  getDataCommonById(
     sql = sql,
     celllines = celllineClasses,
     conditionSql = prepareConditionSql(ensg = ensg)
@@ -60,7 +60,6 @@ machineLearningCreateModelTabUI_main <- function(id){
 #' @param Species 
 #'
 #' @rdname machineLearningCreateModelTab
-#' @importFrom XIFF xiffSupportedModels
 #' @noMd
 #'
 #' @examples
@@ -190,7 +189,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
   # Layout --------------------------------------------------------------------
   plotFun <- function(plotType){
     res <- Results()
-    fmValidate(res)
+    FutureManager::fmValidate(res)
     
     res <- res[["value"]]
     cs <- res$cs
@@ -215,7 +214,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
   
   TableData <- reactive({
     res <- Results()
-    fmValidate(res)
+    FutureManager::fmValidate(res)
     sp <- res$species
     CurrentSpecies(sp)
     

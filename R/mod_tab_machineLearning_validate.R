@@ -15,7 +15,7 @@ machineLearningValidateModelTabUI_sidebar <- function(id){
 machineLearningValidateModelTab <- function(input, output, session, classLabel, Results, AnnotationFocus){
   classSelectionValidation <- reactiveValues(class1 = NULL, class2 = NULL)
   Model <- reactive({
-    fmValidate(Results())
+    FutureManager::fmValidate(Results())
     res <- Results()[["value"]]
     
     validationSet <- res$validationSet

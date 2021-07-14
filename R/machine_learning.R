@@ -40,8 +40,8 @@ buildMachineLearning <- function(
     trainingSet = trainingSet,
     geneSet = ensg_gene_set,
     geneAnno = gene_anno,
-    p = task,
     method = method,
+    .progress = task,
     ...
   )
   

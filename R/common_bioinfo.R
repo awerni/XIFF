@@ -462,7 +462,7 @@ createMachineLearningModel <- function(
     log_trace("xiffML: Fetching data using getDataForModelFnc.")
     
     dataParams <- c(
-      list(assignment = assignment, features = features),
+      list(assignment = trainingSet, features = geneSet),
       dataParams)
     
     df <- do.call(getDataForModelFnc, dataParams)
