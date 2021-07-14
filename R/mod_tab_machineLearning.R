@@ -46,7 +46,7 @@ machineLearningTabUI_sidebar <- function(id){
 }
 
 machineLearningTab <- function(input, output, session, fm, classSelection, classLabel, 
-                               gsea_data_hallmark, gene_anno, CelllineAnnotationFocus, Species){
+                               gsea_data_hallmark, gene_anno, AnnotationFocus, Species){
   Results <- callModule(
     module = machineLearningCreateModelTab,
     id = "create",
@@ -55,7 +55,7 @@ machineLearningTab <- function(input, output, session, fm, classSelection, class
     classLabel = classLabel, 
     gsea_data_hallmark = gsea_data_hallmark, 
     gene_anno = gene_anno, 
-    CelllineAnnotationFocus = CelllineAnnotationFocus,
+    AnnotationFocus = AnnotationFocus,
     Species = Species
   )
   
@@ -64,7 +64,7 @@ machineLearningTab <- function(input, output, session, fm, classSelection, class
     id = "validate",
     classLabel = classLabel,
     Results = Results,
-    CelllineAnnotationFocus = CelllineAnnotationFocus
+    AnnotationFocus = AnnotationFocus
   )
   
   callModule(
@@ -72,6 +72,6 @@ machineLearningTab <- function(input, output, session, fm, classSelection, class
     id = "apply",
     classSelection = classSelection,
     classLabel = classLabel,
-    CelllineAnnotationFocus = CelllineAnnotationFocus
+    AnnotationFocus = AnnotationFocus
   )
 }

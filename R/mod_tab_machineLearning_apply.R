@@ -23,7 +23,7 @@ machineLearningApplyModelTabUI_sidebar <- function(id){
   mlApplyModelUI_sidebar(ns("tab"))
 }
 
-machineLearningApplyModelTab <- function(input, output, session, classSelection, classLabel, CelllineAnnotationFocus){
+machineLearningApplyModelTab <- function(input, output, session, classSelection, classLabel, AnnotationFocus){
   ns <- session$ns
   
   Model <- reactive({
@@ -42,6 +42,6 @@ machineLearningApplyModelTab <- function(input, output, session, classSelection,
     Model = Model,
     classSelection = classSelection,
     classLabel = classLabel,
-    CelllineAnnotationFocus = CelllineAnnotationFocus
+    AnnotationFocus = AnnotationFocus
   )
 }

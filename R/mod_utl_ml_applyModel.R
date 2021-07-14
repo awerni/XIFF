@@ -20,7 +20,7 @@ mlApplyModelUI_header <- function(id){
   bsAlert(ns("error"))
 }
 
-mlApplyModel <- function(input, output, session, Model, classSelection, classLabel, CelllineAnnotationFocus){
+mlApplyModel <- function(input, output, session, Model, classSelection, classLabel, AnnotationFocus){
   ns <- session$ns
   
   Data <- reactive({
@@ -41,7 +41,8 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     df <- Data()
     m <- Model()
     req(df, m)
-    logger::log_trace("CLIFF::mlApplyModel predicting values for {nrow(df)} observations using {class(m)[1]} model.")
+    logger::log_trace("XLIFF::mlApplyModel predicting values for {nrow(df)}",
+                      " observations using {class(m)[1]} model.")
     withErrorHandler(
       expr = predict(m, newdata = df %>% select(-class)),
       errorId = ns("error"),
@@ -59,7 +60,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     
     d <- Data()
     XIFF::getPredictionSummary(
-      celllinenames = d$celllinename,
+      celllinenames = d[[getOption("xiff.column")]],
       preds = preds,
       refs = d$class,
       positive_model = positive_model,
@@ -67,7 +68,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
       classes = c("positive", "negative"),
       classes_model = names(Choices_model()),
       classes_cs = names(Choices_cs()),
-      annoFocus = CelllineAnnotationFocus()
+      annoFocus = AnnotationFocus()
     )
   })
   

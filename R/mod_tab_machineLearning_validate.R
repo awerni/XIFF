@@ -12,7 +12,7 @@ machineLearningValidateModelTabUI_sidebar <- function(id){
   mlApplyModelUI_sidebar(ns("tab"))
 }
 
-machineLearningValidateModelTab <- function(input, output, session, classLabel, Results, CelllineAnnotationFocus){
+machineLearningValidateModelTab <- function(input, output, session, classLabel, Results, AnnotationFocus){
   classSelectionValidation <- reactiveValues(class1 = NULL, class2 = NULL)
   Model <- reactive({
     fmValidate(Results())
@@ -36,6 +36,6 @@ machineLearningValidateModelTab <- function(input, output, session, classLabel, 
     Model = Model,
     classSelection = classSelectionValidation,
     classLabel = classLabel,
-    CelllineAnnotationFocus = CelllineAnnotationFocus
+    AnnotationFocus = AnnotationFocus
   )
 }
