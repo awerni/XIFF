@@ -396,35 +396,82 @@ getVarImp <- function(model, stats){
     
 }
 
+
 #' Create machine learning model using XIFF package.
-#' 
+#'
+#' @param trainingSet 
+#' @param geneSet 
+#' @param geneAnno 
+#' @param classLabel 
+#' @param trainingData data frame with training data. 
+#'                     If null \code{getDataForModelFnc} will be used.
+#' @param getDataForModelFnc function to extract training data.
+#' @param dataParams list with additional params for \code{getDataForModelFnc}.
+#' @param method 
+#' @param tuneLength 
+#' @param number 
+#' @param repeats 
+#' @param selectBestFeaturesFnc 
+#' @param threshold 
+#' @param maxFeatures 
+#' @param ... 
+#' @param .verbose 
+#' @param .progress 
+#'
 #' @importFrom glue glue
+#' @importFrom logger log_trace
 #' @export
 #' 
-createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
-                                       classLabel = list(class1_name = "class1", class2_name = "class2"),
-                                       method = "rf", tuneLength = 5, number = 10, repeats = 10,
-                                       selectBestFeaturesFnc = "auto", threshold = "Confirmed",
-                                       maxFeatures = "auto",
-                                       ...,
-                                       .verbose = TRUE
-                                       ){
+createMachineLearningModel <- function(
+  trainingSet,
+  geneSet,
+  geneAnno,
+  classLabel = list(class1_name = "class1", class2_name = "class2"),
+  #
+  trainingData = NULL, 
+  getDataForModelFnc = XIFF::getDataForModel,
+  dataParams = NULL,
+  # Caret params
+  method = "rf",
+  tuneLength = 5,
+  number = 10,
+  repeats = 10,
+  # Feature selection params
+  selectBestFeaturesFnc = "auto",
+  threshold = "Confirmed",
+  maxFeatures = "auto",
+  # Other params passed to caret::train
+  ...,
+  # misc parameters
+  .verbose = TRUE,
+  .progress = FALSE
+  ){
   
   localMessage <- function(...) if(.verbose) message(glue::glue(...))
   
-  progress <- ProcessProgress$new("Create ML model", p)
+  progress <- ProcessProgress$new("Create ML model", .progress)
   progress$update(0.2, "fetching data...")
-
-  df <- getDataForModel(
-    assignment = trainingSet,
-    features = geneSet
-  ) %>%
-    select(-celllinename)
-
+  
+  #------------- Prepare data -------------
+  if(is.null(trainingData)) {
+    log_trace("xiffML: Fetching data using getDataForModelFnc.")
+    
+    dataParams <- c(
+      list(assignment = assignment, features = features),
+      dataParams)
+    
+    df <- do.call(getDataForModelFnc, dataParams)
+    
+  } else if(inherits(trainingData, "data.frame")) {
+    df <- trainingData
+  } else {
+    stop("createMachineLearningModel: trainingData must be NULL or data.frame")
+  }
+  df <- df[, !colnames(df) %in% getOption("xiff.column"), drop = FALSE]
   if (nrow(df) == 0) progress$error("No data available")
 
-  # Feature selection
-
+  
+  #------------- Feature selection -------------
   if(maxFeatures == "auto") {
     # selecting custom number of features for 'neuralnetwork' - note that other methods are not 
     # constrained here. But if you want to make such constrain that is going to be a default for the users,
@@ -514,7 +561,7 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   trainingOutput$df <- df
   trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
-  trainingOutput$trainingSet <- trainingSet$celllinename
+  trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
   
   trainingOutput
 }
