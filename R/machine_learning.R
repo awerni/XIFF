@@ -31,7 +31,7 @@ buildMachineLearning <- function(
   validationSet <- sets$validation
   
   if (!is.null(validationSet)){
-    validationSet <- split(validationSet$celllinename, validationSet$class)
+    validationSet <- split(validationSet[[getOption("xiff.column")]], validationSet$class)
     cs$class1 <- setdiff(cs$class1, validationSet$class1)
     cs$class2 <- setdiff(cs$class2, validationSet$class2)
   }
