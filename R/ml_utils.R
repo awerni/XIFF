@@ -1,6 +1,19 @@
 #' @export
-getPredictionSummary <- function(celllinenames, preds, refs, positive_model, positive_cs, classes, 
-                                 classes_model, classes_cs, annoFocus){
+getPredictionSummary <- function(
+  items,
+  preds,
+  refs,
+  positive_model,
+  positive_cs,
+  classes, 
+  classes_model,
+  classes_cs,
+  annoFocus,
+  itemColumn = getOption("xiff.column")
+  ){
+  
+  itemColumnSymbol <- rlang::sym(itemColumn)
+  
   preds_pn <- ifelse(preds == positive_model, classes[1], classes[2]) %>%
     factor(levels = classes)
   
@@ -14,18 +27,18 @@ getPredictionSummary <- function(celllinenames, preds, refs, positive_model, pos
     mode = "sens_spec"
   )
   
-  anno <- annoFocus %>% select(celllinename, tumortype)
+  anno <- annoFocus %>% select(!!itemColumnSymbol, tumortype)
   
   df <- tibble(
-    celllinename = celllinenames,
+    !!itemColumnSymbol := items,
     predicted = preds_pn,
     reference = refs_pn,
     predicted_original = ifelse(preds == "class1", classes_model[1], classes_model[2]),
     reference_original = ifelse(refs == "class1", classes_cs[1], classes_cs[2]),
     correct = preds_pn == refs_pn,
   ) %>%
-    left_join(anno, by = "celllinename") %>%
-    relocate(tumortype, .after = celllinename)
+    left_join(anno, by = itemColumn) %>%
+    relocate(tumortype, .after = !!itemColumnSymbol)
   
   
   list(
@@ -94,21 +107,28 @@ prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds
 }
 
 #' @export
-validateModel <- function(m, validationSet, anno){
+validateModel <- function(
+  m,
+  validationSet,
+  anno,
+  itemColumn = getOption("xiff.column")
+){
+  itemColumnSymbol <- rlang::sym(itemColumn)
+  
   df <- getDataForModel(
     assignment = validationSet,
     features = m$bestFeatures
   )
   
   refs <- df$class
-  celllinenames <- df$celllinename
-  df <- df %>% select(-class, -celllinename)
+  items <- df[[itemColumn]]
+  df <- df %>% select(-class, -!!itemColumnSymbol)
   preds <- predict(m, newdata = df)
   
   cl <- unlist(m$classLabel, use.names = FALSE)
   
   getPredictionSummary(
-    celllinenames = celllinenames,
+    items = items,
     preds = preds,
     refs = refs,
     positive_model = "class1",

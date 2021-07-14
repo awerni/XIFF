@@ -111,7 +111,7 @@ annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in%
 
 
 predictionSummary <- getPredictionSummary(
-  celllinenames = modelData$celllinename,
+  items = modelData$celllinename,
   preds = predict(defaultFit, newdata = modelData),
   refs = modelData$class,
   positive_model = "class1",

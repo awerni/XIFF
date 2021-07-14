@@ -60,7 +60,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     
     d <- Data()
     XIFF::getPredictionSummary(
-      celllinenames = d[[getOption("xiff.column")]],
+      items = d[[getOption("xiff.column")]],
       preds = preds,
       refs = d$class,
       positive_model = positive_model,

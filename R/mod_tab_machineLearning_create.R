@@ -5,7 +5,7 @@ getDataCommonById <- function(sql, cs = NULL, conditionSql = NULL,
   }
   
   clSql <- if (length(cs) > 0){
-    paste0("WHERE ", getSQL_filter(getOption("column"), cs))
+    paste0("WHERE ", getSQL_filter(getOption("xiff.column"), cs))
   }
   
   if (!is.null(conditionSql)){
@@ -35,7 +35,7 @@ getDataGeneExpressionById <- function(
   
   getDataCommonById(
     sql = sql,
-    celllines = celllineClasses,
+    cs = cs,
     conditionSql = prepareConditionSql(ensg = ensg)
   )
 }
