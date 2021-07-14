@@ -414,6 +414,8 @@ getVarImp <- function(model, stats){
 #' @param selectBestFeaturesFnc 
 #' @param threshold 
 #' @param maxFeatures 
+#' @param featuresParams list with custom params passed to 
+#'                       selectBestFeaturesFnc
 #' @param ... 
 #' @param .verbose 
 #' @param .progress 
@@ -440,6 +442,7 @@ createMachineLearningModel <- function(
   selectBestFeaturesFnc = "auto",
   threshold = "Confirmed",
   maxFeatures = "auto",
+  featuresParams = NULL,
   # Other params passed to caret::train
   ...,
   # misc parameters
@@ -524,12 +527,16 @@ createMachineLearningModel <- function(
                       " Max features: {maxFeatures})...")
   )
   
-  selectedFeatures <- selectBestFeaturesFnc(
-    df = df,
-    threshold = threshold,
-    maxFeatures = maxFeatures,
-    ...
+  featuresParams <- c(
+    list(
+      df = df,
+      threshold = threshold,
+      maxFeatures = maxFeatures
+    ),
+    featuresParams
   )
+  
+  selectedFeatures <- do.call(selectBestFeaturesFnc, featuresParams)
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
 
@@ -546,7 +553,8 @@ createMachineLearningModel <- function(
     method = method,
     tuneLength = tuneLength,
     number = number,
-    repeats = repeats
+    repeats = repeats,
+    ...
   )
 
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
