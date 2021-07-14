@@ -1,3 +1,45 @@
+getDataCommonById <- function(sql, cs = NULL, conditionSql = NULL, 
+                                      idCol = NULL, callback = NULL){
+  if (is.list(cs)){
+    cs <- c(cs$class1, cs$class2)
+  }
+  
+  clSql <- if (length(cs) > 0){
+    paste0("WHERE ", getSQL_filter(getOption("column"), cs))
+  }
+  
+  if (!is.null(conditionSql)){
+    conditionSql <- paste("AND", conditionSql)
+  }
+  
+  fullSql <- paste(sql, clSql, conditionSql)
+  df <- getPostgresql(fullSql)
+  
+  if (is.function(callback)){
+    df <- callback(df)
+  }
+  
+  df
+}
+
+getDataGeneExpressionById <- function(
+  ensg,
+  cs,
+  schema = getOption("xiff.schema", "cellline"),
+  column = getOption("xiff.column")
+  ) {
+  sql <- glue::glue(
+    "SELECT {column}, ensg, 2^log2tpm AS tpm ",
+    "FROM {schema}.processedrnaseqview"
+  )
+  
+  getCelllineDataCommonById(
+    sql = sql,
+    celllines = celllineClasses,
+    conditionSql = prepareConditionSql(ensg = ensg)
+  )
+}
+
 machineLearningCreateModelTabUI_main <- function(id){
   ns <- NS(id)
   tabLayoutUI_main(ns("tab"))
@@ -14,7 +56,7 @@ machineLearningCreateModelTabUI_main <- function(id){
 #' @param classLabel 
 #' @param gsea_data_hallmark 
 #' @param gene_anno 
-#' @param CelllineAnnotationFocus 
+#' @param AnnotationFocus 
 #' @param Species 
 #'
 #' @rdname machineLearningCreateModelTab
@@ -84,7 +126,7 @@ machineLearningCreateModelTabUI_sidebar <- function(id){
 
 #' @rdname machineLearningCreateModelTab
 machineLearningCreateModelTab <- function(input, output, session, fm, classSelection, classLabel, 
-                                          gsea_data_hallmark, gene_anno, CelllineAnnotationFocus, Species){
+                                          gsea_data_hallmark, gene_anno, AnnotationFocus, Species){
   # Sidebar --------------------------------------------------------------------
   ns <- session$ns
   output$sidebar_run <- renderUI({
@@ -137,12 +179,12 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
     as.list(Results()$df[s, c("ensg", "symbol")])
   })
   
-  TpmCellline <- reactive({
+  Tpm <- reactive({
     ensg <- ExpressionGene()$ensg
     cs <- Results()$cs
     
-    getCelllineDataGeneExpressionById(ensg, cs) %>% 
-      addTumortypes(isolate(CelllineAnnotationFocus()))
+    getDataGeneExpressionById(ensg, cs) %>% 
+      addTumortypes(isolate(AnnotationFocus()))
   })
   
   # Layout --------------------------------------------------------------------
@@ -161,7 +203,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
       {
         gene <- ExpressionGene()
         generateExpressionPlot(
-          df = TpmCellline(), 
+          df = Tpm(), 
           ca = makeClassAssignment(cs, cl), 
           plotType = plotType,
           paste("\n", gene$symbol, "-", gene$ensg)
