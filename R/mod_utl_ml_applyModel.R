@@ -122,8 +122,10 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     res <- Results()
     req(res)
     
+    name <- rlang::sym(getOption("xiff.column"))
+    
     res$data %>% select(
-      celllinename,
+      !!name,
       tumortype,
       predicted = predicted_original,
       reference = reference_original,
