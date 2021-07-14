@@ -13,7 +13,22 @@
     directoryPath = system.file("www", package = "XIFF")
   )
 
+  fontDir <- system.file("fonts", package = "XIFF")
+  getRobotoDir <- function(type){
+    glue::glue("{fontDir}/roboto_{type}.ttf")
+  }
+
+  if (!isFontInstalled("Roboto")){
+    systemfonts::register_font(
+      name = "Roboto",
+      plain = list(getRobotoDir("regular"), 0),
+      bold = list(getRobotoDir("bold"), 0),
+      italic = list(getRobotoDir("italic"), 0),
+      bolditalic = list(getRobotoDir("bolditalic"), 0)
+    )
+  }
+
   t <- theme_get()
-  t$text$family <- "Helvetica"
+  t$text$family <- "Roboto"
   theme_set(t)
 }

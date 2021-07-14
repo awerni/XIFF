@@ -15,6 +15,11 @@ useXIFF <- function(){
         wwwPath = "xiff/common.css"
       )
     ),
+    tags$link(
+      rel = "stylesheet",
+      type = "text/css",
+      href = "http://fonts.googleapis.com/css?family=Roboto"
+    ),
     tags$script(src = withHash(
       filePath = system.file("www/common.js", package = "XIFF"),
       wwwPath = "xiff/common.js"
