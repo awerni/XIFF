@@ -1,0 +1,221 @@
+machineLearningCreateModelTabUI_main <- function(id){
+  ns <- NS(id)
+  tabLayoutUI_main(ns("tab"))
+}
+
+#' Title
+#'
+#' @param id
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param fm 
+#' @param classSelection 
+#' @param classLabel 
+#' @param gsea_data_hallmark 
+#' @param gene_anno 
+#' @param CelllineAnnotationFocus 
+#' @param Species 
+#'
+#' @rdname machineLearningCreateModelTab
+#' @importFrom XIFF xiffSupportedModels
+#' @noMd
+#'
+#' @examples
+#' 
+machineLearningCreateModelTabUI_sidebar <- function(id){
+  ns <- NS(id)
+  
+  ret <- div(
+    selectInput(
+      inputId = ns("gene_set"), 
+      label = "Hallmark gene set:", 
+      choices = NULL,
+      selectize = FALSE
+    ),
+    selectInput(
+      input = ns("method"),
+      label = "Method",
+      choices = XIFF::xiffSupportedModels(),
+      selected = XIFF::xiffSupportedModels()[1]
+    ),
+    hr(),
+    tabLayoutUI_sidebar(
+      id = ns("tab"),
+      defaults = list(
+        left = "performance",
+        middle = "point",
+        right = "violin"
+      ),
+      additionalChoices = c(
+        "Performance" = "performance",
+        "Variable importance" = "varimp",
+        "Error rates" = "errplot"
+      ),
+      hidden = "coverage"
+    ),
+    hr(),
+    sliderInput(
+      inputId = ns("validation_size"),
+      label = "% data for validation set",
+      min = 0,
+      max = 50,
+      value = 20
+    ),
+    hr(),
+    textInput(
+      inputId = ns("filename"), 
+      label = "Choose file name", 
+      value = "ml_model"
+    ),
+    downloadButton(
+      outputId = ns("download"),
+      label = "Download final model"
+    )
+  )
+  
+  div(
+    uiOutput(ns("sidebar_run")),
+    hr(),
+    ret,
+    uiOutput(ns("indicator"))
+  )
+}
+
+#' @rdname machineLearningCreateModelTab
+machineLearningCreateModelTab <- function(input, output, session, fm, classSelection, classLabel, 
+                                          gsea_data_hallmark, gene_anno, CelllineAnnotationFocus, Species){
+  # Sidebar --------------------------------------------------------------------
+  ns <- session$ns
+  output$sidebar_run <- renderUI({
+    fmButtonOneClass(ns("run"), fm, classSelection)
+  })
+  
+  output$indicator <- renderUI({
+    hallmark_names <- names(gsea_data_hallmark())
+    
+    updateSelectInput(
+      session = session,
+      inputId = "gene_set",
+      choices = getHallmarkGeneSetChoices(sort(hallmark_names)),
+      selected = isolate(input$gene_set) %||% "HALLMARK_APOPTOSIS"
+    )
+    
+    NULL
+  })
+  
+  # FutureManager -------------------------------------------------------------
+  Results <- reactiveVal()
+  Args <- reactive({
+    req(input$gene_set)
+    
+    list(
+      cs = reactiveValuesToList(classSelection),
+      ensg_gene_set = gsea_data_hallmark()[[input$gene_set]],
+      method = input$method,
+      gene_anno = gene_anno(),
+      species = Species(),
+      p_validation = input$validation_size / 100
+    )
+  })
+  
+  fm$registerRunObserver(
+    inputId = ns("run"),
+    label = "Machine Learning",
+    statusVar = Results,
+    longFun = XIFF::buildMachineLearning,
+    Args = Args
+  )
+  
+  # Reactives -----------------------------------------------------------------
+  CurrentSpecies <- reactiveVal()
+  
+  ExpressionGene <- reactive({
+    s <- SelectedRow()
+    validate(need(s, "no gene selected"))
+    
+    as.list(Results()$df[s, c("ensg", "symbol")])
+  })
+  
+  TpmCellline <- reactive({
+    ensg <- ExpressionGene()$ensg
+    cs <- Results()$cs
+    
+    getCelllineDataGeneExpressionById(ensg, cs) %>% 
+      addTumortypes(isolate(CelllineAnnotationFocus()))
+  })
+  
+  # Layout --------------------------------------------------------------------
+  plotFun <- function(plotType){
+    res <- Results()
+    fmValidate(res)
+    
+    res <- res[["value"]]
+    cs <- res$cs
+    cl <- reactiveValuesToList(classLabel)
+    switch(
+      EXPR = plotType,
+      "varimp" = XIFF::generateVarImpPlot(res),
+      "performance" = XIFF::generatePerformancePlot(res),
+      "errplot" = XIFF::generateErrorPlot(res, cl),
+      {
+        gene <- ExpressionGene()
+        generateExpressionPlot(
+          df = TpmCellline(), 
+          ca = makeClassAssignment(cs, cl), 
+          plotType = plotType,
+          paste("\n", gene$symbol, "-", gene$ensg)
+        )
+      }
+      
+    )
+  }
+  
+  TableData <- reactive({
+    res <- Results()
+    fmValidate(res)
+    sp <- res$species
+    CurrentSpecies(sp)
+    
+    importanceName <- attr(res$df, "importanceName")
+    importanceLabel <- paste0("importance (", importanceName, ")")
+    
+    res$df %>%
+      mutate(location = getEnsemblLocationLink(location, sp)) %>%
+      mutate(importance = signif(importance, 3)) %>%
+      rename(!!importanceLabel := importance)
+  })
+  
+  RowCallback <- reactive({
+    sp <- CurrentSpecies()
+    req(sp)
+    getEnsgRowCallback(sp)
+  })
+  
+  rowInfo <- callModule(
+    module = tabLayout,
+    id = "tab",
+    plotFun = plotFun, 
+    TableData = TableData,
+    jsRowCallback = RowCallback
+  )
+  SelectedRow <- rowInfo$SelectedRow
+  
+  # Download ------------------------------------------------------------------
+  output$download <- downloadHandler(
+    filename = function() { 
+      paste0(input$filename, ".rds") 
+    },
+    content = function(file){
+      model <- Results()[["value"]]
+      newClassLabel(model) <- reactiveValuesToList(classLabel)
+      
+      saveRDS(
+        object = model, 
+        file = file
+      )
+    }
+  )
+  
+  Results
+}
