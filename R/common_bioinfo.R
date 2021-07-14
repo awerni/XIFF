@@ -304,31 +304,33 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
 #' }
 #' 
 #' 
-trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10){
+trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10, ...){
   
   
   if(method == "neuralnetwork") {
     method <- modelInfoNeuralNetwork()
   } 
   
-    fitControl <- caret::trainControl(
-      method = "repeatedcv",
-      number = number,
-      repeats = repeats,
-      savePredictions = "final"
-    )
+  fitControl <- caret::trainControl(
+    method = "repeatedcv",
+    number = number,
+    repeats = repeats,
+    savePredictions = "final"
+  )
+  
+  args <- list(
+    as.formula("class ~ ."),
+    data = df,
+    method = method,
+    trControl = fitControl,
+    tuneLength = tuneLength
+  )
+  
+  if (is.character(method) && method == "rf"){
+    args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
+  }
     
-    args <- list(
-      as.formula("class ~ ."),
-      data = df,
-      method = method,
-      trControl = fitControl,
-      tuneLength = tuneLength
-    )
-    
-    if (is.character(method) && method == "rf"){
-      args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
-    }
+  args <- c(args, list(...))
   
   
   do.call(caret::train, args)
