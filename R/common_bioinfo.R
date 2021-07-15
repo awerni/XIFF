@@ -457,6 +457,11 @@ createMachineLearningModel <- function(
   progress <- ProcessProgress$new("Create ML model", .progress)
   progress$update(0.2, "fetching data...")
   
+  if(is.list(trainingSet)) {
+    # allow user to pass simple list
+    trainingSet <- XIFF::stackClasses(trainingSet, return_factor = TRUE)
+  }
+  
   #------------- Prepare data -------------
   if(is.null(trainingData)) {
     log_trace("xiffML: Fetching data using getDataForModelFnc.")
