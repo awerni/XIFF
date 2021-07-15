@@ -1,10 +1,10 @@
 # SECRET FILE
-
+.libPaths("~/R/fixedXIFF")
 library(XIFF)
 library(digest)
 library(dplyr)
 
-WORKERS <- 12
+WORKERS <- 16
 N_ITERATIONS <-  50
 OUTPUT_PATH <- "~/ml-simulation"
 
@@ -33,6 +33,11 @@ getData <- function(hash, hallmarkGeneSet = "P53_PATHWAY") {
       class1 = cs %>% filter(E2F_class == "low_score") %>% pull,
       class2 = cs %>% filter(E2F_class == "high_score") %>% pull
     )
+  } else if(hash %in% c("2ef471", "eb1e71")) {
+    cs <- list(
+      class1 = cs %>% filter(class == "class1") %>% pull,
+      class2 = cs %>% filter(class == "class2") %>% pull
+    )
   } else {
     stop("Hash not supported.")
   }
@@ -55,24 +60,30 @@ getData <- function(hash, hallmarkGeneSet = "P53_PATHWAY") {
 }
 
 allData <- bind_rows(
-  expand.grid(hash = c("0766b1"), geneSet = c("P53_PATHWAY", "APOPTOSIS")),
-  expand.grid(hash = c("81c5cc"), geneSet = c("EPITHELIAL_MESENCHYMAL_TRANSITION", "E2F_TARGETS", "G2M_CHECKPOINT"))
+  expand.grid(hash = c("0766b1"), geneSet = c("P53_PATHWAY")),
+  #expand.grid(hash = c("81c5cc"), geneSet = c("EPITHELIAL_MESENCHYMAL_TRANSITION", "E2F_TARGETS", "G2M_CHECKPOINT")),
+  expand.grid(hash = c("81c5cc"), geneSet = c("EPITHELIAL_MESENCHYMAL_TRANSITION")),
+  expand.grid(hash = c("2ef471"), geneSet = c("KRAS_SIGNALING_UP")),
+  expand.grid(hash = c("eb1e71"), geneSet = c("KRAS_SIGNALING_UP"))
 )
 
 allDataList <- mapply(getData, allData$hash, allData$geneSet, SIMPLIFY = FALSE)
 allData <- bind_rows(allDataList)
 
 featureSelectionModels <- c("TTest", "BorutaTentative", "BorutaConfirmed")
-featureSelectionNumbnerOfFeatures <- c(5, 50, Inf)
+featureSelectionNumbnerOfFeatures <- c(5, 25, 50, Inf)
 featuresCombinations <- expand.grid(
   FeatureAlgo = featureSelectionModels,
   FeatureNumbers = featureSelectionNumbnerOfFeatures
 )
 
+models <- unique(c(xiffSupportedModels(), "glmnet"))
+if(any(models == "neuralnetwork")) {
+  models <- models[models != "neuralnetwork"]
+  models <- c(models, "nn", "nn-scaled")
+}
 
-modelsWithFeatures <- dplyr::full_join(tibble(Models = unique(c(xiffSupportedModels()), "glmnet")), featuresCombinations, by = character())
-
-
+modelsWithFeatures <- dplyr::full_join(tibble(Models = models), featuresCombinations, by = character())
 
 allCombs <- full_join(modelsWithFeatures, allData, by = character())
 
@@ -89,9 +100,6 @@ seeds <- tibble(N = 1:length(seeds), RandomSeed = seeds)
 
 allSimulations <- full_join(allCombs, seeds, by = character())
 
-
-allSimulations
-
 makeFilePath <- function(params, OUTPUT_PATH) {
   
   hash <- digest(params)
@@ -101,6 +109,8 @@ makeFilePath <- function(params, OUTPUT_PATH) {
 makeModel <- function(i, allSimulations, OUTPUT_PATH) {
   
   try({
+    
+    .libPaths("~/R/fixedXIFF")
     library(XIFF)
     library(dplyr)
     XIFF::setDbOptions()
@@ -136,17 +146,35 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
       stop("Not supported")
     }
     
-    
-    time <- system.time(model <- try(XIFF::buildMachineLearning(
-      cs = cs,
-      ensg_gene_set = geneSet,
-      gene_anno = geneAnno,
-      method = params$Models,
-      maxFeatures = params$FeatureNumbers,
-      threshold = featureThreshold,
-      selectBestFeaturesFnc = featureFnc
-    )))
-    
+    if(params$Models %in% c("nn", "nn-scaled")) {
+      
+      prepProc <- if(params$Models == "nn-scaled") {
+        "scale"
+      } else {
+        NULL
+      }
+      
+      time <- system.time(model <- try(XIFF::buildMachineLearning(
+        cs = cs,
+        geneSet = geneSet,
+        geneAnno = geneAnno,
+        method = "neuralnetwork",
+        maxFeatures = params$FeatureNumbers,
+        threshold = featureThreshold,
+        selectBestFeaturesFnc = featureFnc,
+        preProcess = prepProc
+      )))
+    } else {
+      time <- system.time(model <- try(XIFF::buildMachineLearning(
+        cs = cs,
+        geneSet = geneSet,
+        geneAnno = geneAnno,
+        method = params$Models,
+        maxFeatures = params$FeatureNumbers,
+        threshold = featureThreshold,
+        selectBestFeaturesFnc = featureFnc
+      )))
+    }
     
     validation <- try(validateModel(
       model,
@@ -170,8 +198,6 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
     
     saveRDS(allResult, file = filePath)
   })
-  
- 
   
 }
 
