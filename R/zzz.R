@@ -3,6 +3,7 @@
 #' @import ggplot2
 .onLoad <- function(libname, pkgname){
   options(xiff.column = "celllinename")
+  options(xiff.schema = "cellline")
   options(xiff.label = "cell line")
   options(xiff.name = "celllines")
   options(xiff.tooltipCallbackFun = tooltipCallbackFun)

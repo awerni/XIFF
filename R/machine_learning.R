@@ -1,8 +1,8 @@
 #' Workhorse for machine learning.
 #'
 #' @param cs 
-#' @param ensg_gene_set 
-#' @param gene_anno 
+#' @param geneSet 
+#' @param geneAnno 
 #' @param species 
 #' @param method 
 #' @param p_validation 
@@ -16,8 +16,8 @@
 #'
 buildMachineLearning <- function(
   cs,
-  ensg_gene_set,
-  gene_anno,
+  geneSet,
+  geneAnno,
   species = "human",
   method = "rf",
   p_validation = 0.2,
@@ -31,17 +31,17 @@ buildMachineLearning <- function(
   validationSet <- sets$validation
   
   if (!is.null(validationSet)){
-    validationSet <- split(validationSet$celllinename, validationSet$class)
+    validationSet <- split(validationSet[[getOption("xiff.column")]], validationSet$class)
     cs$class1 <- setdiff(cs$class1, validationSet$class1)
     cs$class2 <- setdiff(cs$class2, validationSet$class2)
   }
   
   res <- createMachineLearningModel(
     trainingSet = trainingSet,
-    geneSet = ensg_gene_set,
-    geneAnno = gene_anno,
-    p = task,
+    geneSet = geneSet,
+    geneAnno = geneAnno,
     method = method,
+    .progress = task,
     ...
   )
   

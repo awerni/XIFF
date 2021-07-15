@@ -18,7 +18,7 @@ programmerImportInputMode <- function(input, output, session, Annotation){
   colname <- getOption("xiff.column")
   
   StashedData <- reactive({
-    hash <- input$hash
+    hash <- gsub(input$hash, pattern = "[[:space:]]", replacement = "")
     validate(need(
       is.character(hash) && nchar(hash) == 6, "please provide 6-character ID"
     ))
