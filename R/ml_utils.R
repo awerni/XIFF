@@ -173,7 +173,15 @@ gatherPredictionResults <- function(predictions, ...){
 #' @export
 #'
 validateXiffMachineLearningResult <- function(model) {
-  shiny::validate(shiny::need(inherits(model, "XiffMachineLearningResult"), paste0(
-    "Inccorect model format. Please provide a model created using CLIFF application",
-    " or XIFF::buildMachineLearning (if you were using R console to create model)")))
+  shiny::validate(
+    shiny::need(
+      inherits(model, "MLXIFF"), 
+      paste0(
+        "Inccorect model format.",
+        " Please provide a model created using CLIFF application",
+        " or if you were using R console to create model -",
+        " XIFF::buildMachineLearning or XIFF::createMachineLearningModel"
+      )
+    )
+  )
 }
