@@ -1,0 +1,57 @@
+---
+title: "ml-interfaces"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(XIFF)
+library(dplyr)
+XIFF::setDbOptions()
+cs <- getStashedData("0766b1")
+cs <- list(
+      class1 = cs %>% filter(MDM2_class == "sensitive") %>% pull,
+      class2 = cs %>% filter(MDM2_class == "resistant") %>% pull
+    )
+
+hallmarkGeneSet <- "P53_PATHWAY"
+geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+
+# Gene Annotation
+geneAnno <- CLIFF::getGeneAnno()[["human"]]
+```
+
+# `buildMachineLearning` interface.
+
+- used in `CLIFF` and `TIFF` apps.
+- creates validation set.
+- it uses `createMachineLearningModel` inside.
+
+```{r}
+set.seed(123)
+defaultFit <- XIFF::buildMachineLearning(
+  cs = cs,
+  ensg_gene_set = geneSet,
+  gene_anno = geneAnno,
+  method = "glmnet"
+)
+
+```
+
+# `createMachineLearningModel` interface.
+
+- Does not contain validation data.
+- Has more options directly exposed to the user.
+
+```{r}
+buildInterface <- XIFF::createMachineLearningModel(
+  trainingSet = cs,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glmnet"
+)
+
+```
