@@ -501,6 +501,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     )
     
     validateXiffMachineLearningResult(model)
+    log_trace("mlUploadInput: model loaded.")
     model
   })
 
@@ -508,9 +509,10 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     m <- Model()
     anno <- Annotation()
     req(m, anno)
-
+    log_trace("mlUploadInput: Training Set - translating")
     translated <- translationFun(tibble(!!colname := m$trainingSet), anno)
     if (is.null(translated)) return()
+    log_trace("mlUploadInput: Training Set - translated.")
     translated
   })
 
@@ -527,7 +529,8 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
         filter(!!colname %in% cl) %>%
         pull(tumortype) %>%
         unique()
-
+      
+      log_trace("mlUploadInput: Updating the tumors")
       updateSelectInput(
         session = session,
         inputId = "tumortype",
@@ -638,7 +641,19 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
   })
 
   UploadPlotCheck <- reactive({
-    !is.null(Data()) && !is.null(input$tumortype)
+    
+    validate(need(!is.null(Model()), "Please Load model."))
+    validate(need(length(input$tumortype) > 0, "Please select tumors."))
+    validate(
+      need(!is.null(Data()), 
+        paste(
+          "No data for model.", 
+          "If this is not expected please contact the app authors"
+        )
+      )
+    )
+    
+    TRUE
   })
 
   ML_items <- callModule(
