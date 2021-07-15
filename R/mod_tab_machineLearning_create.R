@@ -152,9 +152,9 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
     
     list(
       cs = reactiveValuesToList(classSelection),
-      ensg_gene_set = gsea_data_hallmark()[[input$gene_set]],
+      geneSet = gsea_data_hallmark()[[input$gene_set]],
       method = input$method,
-      gene_anno = gene_anno(),
+      geneAnno = gene_anno(),
       species = Species(),
       p_validation = input$validation_size / 100
     )

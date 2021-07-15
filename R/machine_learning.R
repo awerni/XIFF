@@ -1,8 +1,8 @@
 #' Workhorse for machine learning.
 #'
 #' @param cs 
-#' @param ensg_gene_set 
-#' @param gene_anno 
+#' @param geneSet 
+#' @param geneAnno 
 #' @param species 
 #' @param method 
 #' @param p_validation 
@@ -16,8 +16,8 @@
 #'
 buildMachineLearning <- function(
   cs,
-  ensg_gene_set,
-  gene_anno,
+  geneSet,
+  geneAnno,
   species = "human",
   method = "rf",
   p_validation = 0.2,
@@ -38,8 +38,8 @@ buildMachineLearning <- function(
   
   res <- createMachineLearningModel(
     trainingSet = trainingSet,
-    geneSet = ensg_gene_set,
-    geneAnno = gene_anno,
+    geneSet = geneSet,
+    geneAnno = geneAnno,
     method = method,
     .progress = task,
     ...

@@ -51,14 +51,14 @@ geneAnno <- CLIFF::getGeneAnno()[["human"]]
 set.seed(123)
 defaultFit <- XIFF::buildMachineLearning(
   cs = cs,
-  ensg_gene_set = geneSet,
-  gene_anno = geneAnno,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
 )
 
 nnFit <- XIFF::buildMachineLearning(
   cs = cs,
-  ensg_gene_set = geneSet,
-  gene_anno = geneAnno,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
   method = "neuralnetwork"
 )
 
@@ -66,8 +66,8 @@ nnFit <- XIFF::buildMachineLearning(
 # model specific function is XIFF, but uses sensible defaults
 glmnetFit <- XIFF::buildMachineLearning(
   cs = cs,
-  ensg_gene_set = geneSet,
-  gene_anno = geneAnno,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
   method = "glmnet"
 )
 ```
@@ -195,8 +195,8 @@ makeModelPlots(glmnetFit, cs = cs)
 ```{r}
 svmFit <- XIFF::buildMachineLearning(
   cs = cs,
-  ensg_gene_set = geneSet,
-  gene_anno = geneAnno,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
   method = "svmLinear2"
 )
 
@@ -210,8 +210,8 @@ makeModelPlots(svmFit, cs = cs)
 if(XIFF::packageInstalled("rpart")) {
   rpartFit <- XIFF::buildMachineLearning(
     cs = cs,
-    ensg_gene_set = geneSet,
-    gene_anno = geneAnno,
+    geneSet = geneSet,
+    geneAnno = geneAnno,
     method = "rpart"
   )
 
