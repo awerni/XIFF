@@ -457,7 +457,7 @@ createMachineLearningModel <- function(
   progress <- ProcessProgress$new("Create ML model", .progress)
   progress$update(0.2, "fetching data...")
   
-  if(is.list(trainingSet)) {
+  if(is.list(trainingSet) && !is.data.frame(trainingSet)) {
     # allow user to pass simple list
     trainingSet <- XIFF::stackClasses(trainingSet, return_factor = TRUE)
   }

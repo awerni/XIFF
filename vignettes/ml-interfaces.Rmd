@@ -34,8 +34,8 @@ geneAnno <- CLIFF::getGeneAnno()[["human"]]
 set.seed(123)
 defaultFit <- XIFF::buildMachineLearning(
   cs = cs,
-  ensg_gene_set = geneSet,
-  gene_anno = geneAnno,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
   method = "glmnet"
 )
 
