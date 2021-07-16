@@ -1,16 +1,15 @@
 #' @export
-getPredictionSummary <- function(
-  items,
-  preds,
-  refs,
-  positive_model,
-  positive_cs,
-  classes, 
-  classes_model,
-  classes_cs,
-  annoFocus,
-  itemColumn = getOption("xiff.column")
-  ){
+getPredictionSummary <- function(items,
+                                 preds,
+                                 refs,
+                                 positive_model,
+                                 positive_cs,
+                                 classes,
+                                 classes_model,
+                                 classes_cs,
+                                 annoFocus,
+                                 itemColumn = getOption("xiff.column")) {
+  
   
   itemColumnSymbol <- rlang::sym(itemColumn)
   
@@ -107,12 +106,11 @@ prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds
 }
 
 #' @export
-validateModel <- function(
-  m,
-  validationSet,
-  anno,
-  itemColumn = getOption("xiff.column")
-){
+validateModel <- function(m,
+                          validationSet,
+                          anno,
+                          itemColumn = getOption("xiff.column")) {
+  
   itemColumnSymbol <- rlang::sym(itemColumn)
   
   df <- getDataForModel(

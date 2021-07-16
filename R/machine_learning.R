@@ -14,15 +14,15 @@
 #' @export
 #' @return
 #'
-buildMachineLearning <- function(
-  cs,
-  geneSet,
-  geneAnno,
-  species = "human",
-  method = "rf",
-  p_validation = 0.2,
-  ...,
-  task = FALSE) {
+buildMachineLearning <- function(cs,
+                                 geneSet,
+                                 geneAnno,
+                                 species = "human",
+                                 method = "rf",
+                                 p_validation = 0.2,
+                                 ...,
+                                 task = FALSE) {
+  
   
   assignment <- XIFF::stackClasses(cs, return_factor = TRUE)
   
