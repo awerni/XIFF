@@ -47,7 +47,7 @@ Each model was trained 50 times with different random.seed.
 # Results
 
 ```{r}
-simulationResult <- readRDS("simulation-result-v1-2021-07-09.rds")
+simulationResult <- readRDS("simulation-result-v2-2021-07-16.rds")
 
 makeSummaryTable <- function(tbl, stat) {
 
@@ -84,6 +84,31 @@ makePlot <- function(tbl, stat) {
   p <- ggplot(tbl) + 
   geom_line(aes(FeatureNumbers, !!stat, color = Models, linetype = FeatureAlgo)) + 
   facet_wrap(c("hash", "hallmarkGeneSet"))
+
+  p <- p +
+    theme_bw() +
+    scale_x_continuous(breaks = c(1,2,3), labels = c("5", "50", "Inf")) + 
+    scale_color_manual(values = MODEL_COLORS) + 
+    scale_y_continuous(labels = scales::percent)
+  
+  
+  p
+}
+
+makeBoxPlot <- function(tbl, stat) {
+  
+  stat = enquo(stat)
+  
+  tbl <- tbl %>% mutate(
+    FeatureNumbers = as.numeric(as.factor(FeatureNumbers))
+  )
+  
+  tbl <- tbl %>% mutate(Model = paste(Models, FeatureAlgo, sep = " - "))
+  
+  p <- ggplot(tbl) + 
+  geom_boxplot(aes(Model, !!stat)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet", "FeatureNumbers")) + 
+    coord_flip()
 
   p <- p +
     theme_bw() +
