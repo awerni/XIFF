@@ -68,9 +68,9 @@ buildMachineLearning <- function(
 #' @examples
 xiffSupportedModels <- function() {
   c(
-    "Random forrest" = "rf",
+    "Random Forest" = "rf",
     "SVM" = "svmLinear2",
-    "Neuralnetwork" = "neuralnetwork",
-    "glmnet" = "glmnet"
+    "Neural Network" = "neuralnetwork",
+    "Regularized Logistic Regression" = "glmnet"
   )
 }
