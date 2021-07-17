@@ -143,24 +143,46 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
 }
 
 #' @export
-getRawDataForModel <- function(features, celllinenames = NULL){
-  clFilter <- if (length(celllinenames) > 0){
-    paste(" AND", getSQL_filter("celllinename", celllinenames))
+getRawDataForModel <- function(features,
+                               names = NULL,
+                               schema = getOption("xiff.schema"),
+                               column = getOption("xiff.column")) {
+  
+  clFilter <- if (length(names) > 0){
+    paste(" AND", getSQL_filter(column, names))
+  } else {
+    ""
   }
+  
+  ensgSql <- getSQL_filter("ensg", features)
+  
+  sql <- glue::glue("
+     SELECT 
+      {column}, ensg, log2tpm AS score 
+    FROM 
+      {schema}.processedrnaseqview                
+    WHERE
+      {ensgSql}
+      {clFilter}          
+  ")
 
-  sql <- paste0("SELECT celllinename, ensg, log2tpm AS score FROM cellline.processedrnaseqview ",
-                "WHERE ", getSQL_filter("ensg", features), clFilter)
+ 
   getPostgresql(sql)
 }
 
 #' @export
-getDataForModel <- function(assignment, features){
+getDataForModel <- function(assignment,
+                            features,
+                            schema = getOption("xiff.schema"),
+                            column = getOption("xiff.column")) {
   getRawDataForModel(
     features = features,
-    celllinenames =  assignment$celllinename
+    names    = assignment[[column]],
+    schema   = schema,
+    column   = column
   ) %>%
     tidyr::pivot_wider(names_from = ensg, values_from = score) %>%
-    left_join(assignment, by = "celllinename")
+    left_join(assignment, by = column)
 }
 
 
@@ -278,31 +300,33 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
 #' }
 #' 
 #' 
-trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10){
+trainModel <- function(df, method = "rf", tuneLength = 5, number = 10, repeats = 10, ...){
   
   
   if(method == "neuralnetwork") {
     method <- modelInfoNeuralNetwork()
   } 
   
-    fitControl <- caret::trainControl(
-      method = "repeatedcv",
-      number = number,
-      repeats = repeats,
-      savePredictions = "final"
-    )
+  fitControl <- caret::trainControl(
+    method = "repeatedcv",
+    number = number,
+    repeats = repeats,
+    savePredictions = "final"
+  )
+  
+  args <- list(
+    as.formula("class ~ ."),
+    data = df,
+    method = method,
+    trControl = fitControl,
+    tuneLength = tuneLength
+  )
+  
+  if (is.character(method) && method == "rf"){
+    args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
+  }
     
-    args <- list(
-      as.formula("class ~ ."),
-      data = df,
-      method = method,
-      trControl = fitControl,
-      tuneLength = tuneLength
-    )
-    
-    if (is.character(method) && method == "rf"){
-      args[["ntree"]] <- 501 # odd number to make sure there won't be 50:50 votes
-    }
+  args <- c(args, list(...))
   
   
   do.call(caret::train, args)
@@ -370,35 +394,89 @@ getVarImp <- function(model, stats){
     
 }
 
+
 #' Create machine learning model using XIFF package.
-#' 
+#'
+#' @param trainingSet 
+#' @param geneSet 
+#' @param geneAnno 
+#' @param classLabel 
+#' @param trainingData data frame with training data. 
+#'                     If null \code{getDataForModelFnc} will be used.
+#' @param getDataForModelFnc function to extract training data.
+#' @param dataParams list with additional params for \code{getDataForModelFnc}.
+#' @param method 
+#' @param tuneLength 
+#' @param number 
+#' @param repeats 
+#' @param selectBestFeaturesFnc 
+#' @param threshold 
+#' @param maxFeatures 
+#' @param featuresParams list with custom params passed to 
+#'                       selectBestFeaturesFnc
+#' @param ... 
+#' @param .verbose 
+#' @param .progress 
+#'
 #' @importFrom glue glue
+#' @importFrom logger log_trace
 #' @export
 #' 
-createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE,
-                                       classLabel = list(class1_name = "class1", class2_name = "class2"),
-                                       method = "rf", tuneLength = 5, number = 10, repeats = 10,
-                                       selectBestFeaturesFnc = "auto", threshold = "Confirmed",
+createMachineLearningModel <- function(trainingSet,
+                                       geneSet,
+                                       geneAnno,
+                                       classLabel = list(class1_name = "class1",
+                                                         class2_name = "class2"),
+                                       # Training data params
+                                       trainingData = NULL,
+                                       getDataForModelFnc = getDataForModel,
+                                       dataParams = NULL,
+                                       # Caret params
+                                       method = "rf",
+                                       tuneLength = 5,
+                                       number = 10,
+                                       repeats = 10,
+                                       # Feature selection params
+                                       selectBestFeaturesFnc = "auto",
+                                       threshold = "Confirmed",
                                        maxFeatures = "auto",
+                                       featuresParams = NULL,
+                                       # Other params passed to caret::train
                                        ...,
-                                       .verbose = TRUE
-                                       ){
+                                       # misc parameters
+                                       .verbose = TRUE,
+                                       .progress = FALSE) {
   
   localMessage <- function(...) if(.verbose) message(glue::glue(...))
   
-  progress <- ProcessProgress$new("Create ML model", p)
+  progress <- ProcessProgress$new("Create ML model", .progress)
   progress$update(0.2, "fetching data...")
-
-  df <- getDataForModel(
-    assignment = trainingSet,
-    features = geneSet
-  ) %>%
-    select(-celllinename)
-
+  
+  if(is.list(trainingSet) && !is.data.frame(trainingSet)) {
+    # allow user to pass simple list
+    trainingSet <- XIFF::stackClasses(trainingSet, return_factor = TRUE)
+  }
+  
+  #------------- Prepare data -------------
+  if(is.null(trainingData)) {
+    log_trace("xiffML: Fetching data using getDataForModelFnc.")
+    
+    dataParams <- c(
+      list(assignment = trainingSet, features = geneSet),
+      dataParams)
+    
+    df <- do.call(getDataForModelFnc, dataParams)
+    
+  } else if(inherits(trainingData, "data.frame")) {
+    df <- trainingData
+  } else {
+    stop("createMachineLearningModel: trainingData must be NULL or data.frame")
+  }
+  df <- df[, !colnames(df) %in% getOption("xiff.column"), drop = FALSE]
   if (nrow(df) == 0) progress$error("No data available")
 
-  # Feature selection
-
+  
+  #------------- Feature selection -------------
   if(maxFeatures == "auto") {
     # selecting custom number of features for 'neuralnetwork' - note that other methods are not 
     # constrained here. But if you want to make such constrain that is going to be a default for the users,
@@ -451,12 +529,16 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
                       " Max features: {maxFeatures})...")
   )
   
-  selectedFeatures <- selectBestFeaturesFnc(
-    df = df,
-    threshold = threshold,
-    maxFeatures = maxFeatures,
-    ...
+  featuresParams <- c(
+    list(
+      df = df,
+      threshold = threshold,
+      maxFeatures = maxFeatures
+    ),
+    featuresParams
   )
+  
+  selectedFeatures <- do.call(selectBestFeaturesFnc, featuresParams)
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
 
@@ -473,7 +555,8 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
     method = method,
     tuneLength = tuneLength,
     number = number,
-    repeats = repeats
+    repeats = repeats,
+    ...
   )
 
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
@@ -488,7 +571,7 @@ createMachineLearningModel <- function(trainingSet, geneSet, geneAnno, p = FALSE
   trainingOutput$df <- df
   trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
-  trainingOutput$trainingSet <- trainingSet$celllinename
+  trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
   
   trainingOutput
 }
