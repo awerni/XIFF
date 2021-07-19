@@ -5,7 +5,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.height=7, fig.width = 12)
 library(dplyr)
 library(ggplot2)
 ```
@@ -16,38 +16,44 @@ For each model:
 
   - Random Forest (rf)
   - SVM (svmLinear2)
-  - Neural Network (neuralnetwork)
+  - Neural Network (nn) - without scaling the input data
+  - Neural Network (nn-scaled) - with scaling the input data
   - Regularized Logistic Regression (glmnet)
   
 two feature selection algorithms were tested:
 
   - Boruta - using two thresholds:
     - Confirmed - more conservative, selects only the features that was able to confirm.
-    - Tentative - selects even the features which thier importance is uncertain.
+    - Tentative - selects even the features which their importance is uncertain.
   - T-test filter with threshold = `0.05`
     - implementation based on `genefilter::colttests`.
     
-and 3 thresholds for number of features:
+and 4 thresholds for number of features:
 
   - 5
   - 50
+  - 25
   - unlimited (any number that came from feature selection algorithm).
   
-This lead to `4 (models) x 3 (feature selection methods) x 3 (feature thresholds) = 36 combinations`.
+This lead to `5 (models) x 3 (feature selection methods) x 4 (feature thresholds) = 60 combinations`.
 
-Each simulation was conducted for 5 data sets:
+Each simulation was conducted for 4 data sets:
 
-  - Programmer's import: 0766b1 using gene sets P53_PATHWAY or APOPTOSIS
-  - Programmer's import: 81c5cc using gene set EPITHELIAL_MESENCHYMAL_TRANSITION, E2F_TARGETS and G2M_CHECKPOINT.
+|hash   |geneSet                           |
+|:------|:---------------------------------|
+|0766b1 |P53_PATHWAY                       |
+|81c5cc |EPITHELIAL_MESENCHYMAL_TRANSITION |
+|2ef471 |KRAS_SIGNALING_UP                 |
+|eb1e71 |KRAS_SIGNALING_UP                 |
 
-giving `36 combinations x 5 = 180` different combinations.
+giving `60 combinations x 4 = 240` different combinations.
 
 Each model was trained 50 times with different random.seed.
 
 # Results
 
 ```{r}
-simulationResult <- readRDS("simulation-result-v2-2021-07-16.rds")
+simulationResult <- readRDS("simulation-result-v2-2021-07-19.rds")
 
 makeSummaryTable <- function(tbl, stat) {
 
@@ -87,7 +93,7 @@ makePlot <- function(tbl, stat) {
 
   p <- p +
     theme_bw() +
-    scale_x_continuous(breaks = c(1,2,3), labels = c("5", "50", "Inf")) + 
+    scale_x_continuous(breaks = c(1,2,3,4), labels = c("5", "25", "50", "Inf")) + 
     scale_color_manual(values = MODEL_COLORS) + 
     scale_y_continuous(labels = scales::percent)
   
@@ -100,23 +106,19 @@ makeBoxPlot <- function(tbl, stat) {
   stat = enquo(stat)
   
   tbl <- tbl %>% mutate(
-    FeatureNumbers = as.numeric(as.factor(FeatureNumbers))
+    FeatureNumbers = as.factor(FeatureNumbers)
   )
   
   tbl <- tbl %>% mutate(Model = paste(Models, FeatureAlgo, sep = " - "))
   
   p <- ggplot(tbl) + 
-  geom_boxplot(aes(Model, !!stat)) + 
-  facet_wrap(c("hash", "hallmarkGeneSet", "FeatureNumbers")) + 
+  geom_boxplot(aes(Model, !!stat, color = FeatureNumbers)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet")) + 
     coord_flip()
 
   p <- p +
     theme_bw() +
-    scale_x_continuous(breaks = c(1,2,3), labels = c("5", "50", "Inf")) + 
-    scale_color_manual(values = MODEL_COLORS) + 
     scale_y_continuous(labels = scales::percent)
-  
-  
   p
 }
 
@@ -135,75 +137,111 @@ makePlot(accuracyTable, stat = Q05) + ggtitle("Accuracy - Q05")
 makePlot(accuracyTable, stat = IQR) + ggtitle("Accuracy - IQR")
 ```
 
-Observation:
+Without random models (which looks random)
 
-- Neural Network seems to be the worst model in all scenarios. There must be some problem with preprocessing or data scaling. Some difference between models is expected, but not that big.
-- The good news is that it is clearly visible that adding more features to Neural Network decrease the performance.
-  - For future simulations there's no need to use more than 50 features (we can run the more granular simulation in the low range e.g. for 5, 10, 15 features).
-- There's nearly no difference between models in `81c5cc x (E2F_TARGETS or G2M_CHECKPOINT)` scenario.
-
-Let's zoom a little bit into data without Neural Network and `81c5cc x (E2F_TARGETS or G2M_CHECKPOINT)`:
-
-```{r, fig.width=14, fig.height=6}
-filteredData <- accuracyTable %>%
-  filter(
-    Models != "neuralnetwork",
-     !(
-       hash  == "81c5cc" & 
-         hallmarkGeneSet %in% c("E2F_TARGETS", "G2M_CHECKPOINT")
-      )
-  )
-
-makePlot(filteredData, stat = MEAN) + ggtitle("Accuracy - Mean")
-makePlot(filteredData, stat = Q05) + ggtitle("Accuracy - Q05")
-makePlot(filteredData, stat = IQR) + ggtitle("Accuracy - IQR")
+```{r, fig.width=12, fig.height=10}
+accuracyTable2 <- accuracyTable %>% filter(hash != "eb1e71")
+makePlot(accuracyTable2, stat = MEAN) + ggtitle("Accuracy - Mean")
+makePlot(accuracyTable2, stat = Q05) + ggtitle("Accuracy - Q05")
+makePlot(accuracyTable2, stat = IQR) + ggtitle("Accuracy - IQR")
 ```
-Observations:
+## All boxplots
 
-- GLMNET has good performance in each scenario, however the differences between models are not that big (1%-2% point).
-- More features seems to (on average) imporves the model, which makes sense from  the thoeretical stand point:
- - GLMNET has an implicit feature selection method, which takes care of getting the most information from the data in the given context. For that model using any feature selection algorithm might help to speed up the computation time by removing *obvious* non-required features.
- - In our case, using the `fastest` method might be a good idea.
- 
-# Conclusions:
 
-- There's some issue with the current NN implementation - it's unstable and gives poor results (I'll loook into that, probably some data preprocessing is required, glmnet does its own preprocessing and it seems to work well).
-- Feature selection method seems to not provide that much difference. However, the `t-test` prefers variables that are linearly separable and in some cases might not be optimal. See the example below.
-- Number of features matter - most algos prefer more features.
-  - My guess is that there's no visible difference between the `50` and `Inf` thresholds for number of features, because in most cases the feature selection algorithm returns `~50` variables.
-  
+```{r, fig.height=8}
+makeBoxPlot(simulationResult, Accuracy)
+```
 
-Example of non-linear relation:
-  
-```{r}
-set.seed(123)
+```{r, fig.height=8, fig.width=12}
+simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
+makeBoxPlot(simulationResult2, Accuracy)
+```
 
-n <- 50
-x <- c(rnorm(n, mean = 0), rnorm(n, mean = 10))
-y <- rnorm(2*n, mean = 5, sd = sd(x))
+## SVM vs GLMNET
 
-# T-test shows no-difference
-t.test(x,y)
+It might be worth to have a closer look into difference between SVN and GLMNET - both are somewhat linear models (svm has a linear kernel), so having two of them might be redundant.
 
-xy <- tibble(
-  class = c(rep("x", 2*n), rep("y", 2*n)),
-  value = c(x,y)
-)
+```{r, fig.height=7}
+cmpTable <- accuracyTable %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71")
 
-#  Class y dominates in the middle of the plot 
-ggplot(xy) + geom_density(aes(value, color = class)) + theme_bw()
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == Inf)
 
-if(require("FSelectorRcpp")) {
-  
-  # Simple discretization algorithm is able to catch
-  # the non-linearlity in the data
-  xy <- xy %>% mutate(class = factor(class), value = round(value, 3))
-  
-  ggplot(FSelectorRcpp::discretize(class ~ value, xy)) +
-    geom_bar(aes(value, fill = class))
-  
-}
+makePlot(cmpTable, stat = MEAN) + ggtitle("Accuracy - Mean")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Accuracy, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on models difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on feature selection difference")
 
 ```
-  
-  
+In fact, there's no much difference (by looking at the boxplots, one can see that there's a lot of variability there) - `glmnet` is only a slightly better (on average). There's also no major difference between feature selection algos, so we can stick with TTest for `glmnet` (this makes sense, becasue `glmnet` has it own feature selection algorithm built in).
+
+## Random forest
+
+There's zoom into Random Forrest results.
+
+It' seems that there's no that big difference between different feature selection algorithms (as in the `glmnet` case - random forest has an included feature selection algorithm, so the most important thing is that the most important features pass the feature selection algo, and `rf` will find them and base its prediction on them).
+
+So definitely, the limit of 5 features from feature selection is not enough for using the full capabilities of random forest. 
+
+```{r, fig.height=7}
+cmpTable <- accuracyTable %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+makePlot(cmpTable, stat = MEAN) + ggtitle("Accuracy - Mean")
+
+
+cmpAll <- cmpAll %>% mutate(FeatureNumbers = as.factor(FeatureNumbers))
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureNumbers, Accuracy, color = FeatureAlgo), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on feature selection difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Accuracy, color = FeatureNumbers), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on number of features")
+
+
+```
+
+## Comparision of the NN models
+
+The question was if there's a need for feature scaling before traing the Neural Network model. In theory it should improve the model (scaled data is easier for backpropagation). It seems that it does not change nearly anything, so keeping the current version seems to be resonable.
+
+Investigating the plots below also shows that there's no definitive answer to the question about which feature algorithm is better for NN. In some cases the TTest is a little bit more accurate, in others Boruta.
+
+```{r, fig.height=7}
+nnTable <- accuracyTable %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71")
+
+nnAll <- simulationResult %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == 5)
+
+makePlot(nnTable, stat = MEAN) + ggtitle("Accuracy - Mean")
+
+ggplot(nnAll) + geom_boxplot(aes(FeatureAlgo, Accuracy, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+ggplot(nnAll) + geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+```
+
+# Summary
+
+- There's no big difference between `glmnet` and `SVM` - keeping only one of them might be a good idea (preferably `glmnet`).
+- Neuralnets works pretty bad (worse than other models - probably they overfit or don't have enough data points, or they need more special treatment (dropouts?)?).
+- It seems that there's no need to impose the limit of number of features resulting from feature selection (except for neaurlnet).
+- Boruta might not be necessary if we want ot keep everything as simple as possible.
