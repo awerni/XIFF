@@ -18,4 +18,4 @@ readMetrics <- function(path) {
 
 result <- purrr::map_dfr(allModels, readMetrics)
 
-saveRDS(result, "inst/projects/simulation-result-v2-2021-07-16.rds")
+saveRDS(result, "inst/projects/simulation-result-v2-2021-07-19.rds")
