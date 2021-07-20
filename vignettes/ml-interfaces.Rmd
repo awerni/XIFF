@@ -3,8 +3,14 @@ title: "ml-interfaces"
 output: html_document
 ---
 
+*The code in this vignette is not evaluated because it takes too much time to run. It is here only as a reference.*
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = FALSE,
+  dev = "CairoPNG"
+)
 ```
 
 ```{r}
