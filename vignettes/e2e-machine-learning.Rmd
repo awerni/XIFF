@@ -11,14 +11,16 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  dev = "CairoPNG",
   fig.height = 6,
-  fig.width = 7
+  fig.width = 7,
+  eval = FALSE
 )
 ```
 
-# Preparing data
+*The code in this vignette is not evaluated because it takes too much time to run. It is here only as a reference.*
 
-*Note that `CLIFF` package is used here.*
+# Preparing data
 
 ```{r setup}
 library(XIFF)
@@ -137,7 +139,6 @@ df2 <- getPerformanceDataFrame(predictionSummary$res$table)
 generateApplyPerformancePlot(df2)
 
 
-# ???
 gatherPredictionResults(predictions = list(predictionSummary))
 
 

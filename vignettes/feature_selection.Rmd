@@ -10,7 +10,10 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  dev = "CairoPNG",
+  fig.width = 7,
+  fig.height = 6
 )
 ```
 
@@ -38,6 +41,7 @@ test_time <- function(expr) {
 }
 
 data("feature_selection_data", package = "XIFF")
+feature_selection_data <- feature_selection_data[,1:21]
 
 # Some very basic example
 message(glue("Number of features: {ncol(feature_selection_data)}"))
