@@ -39,12 +39,12 @@ This lead to `5 (models) x 3 (feature selection methods) x 4 (feature thresholds
 
 Each simulation was conducted for 4 data sets:
 
-|hash   |geneSet                           |
-|:------|:---------------------------------|
-|0766b1 |P53_PATHWAY                       |
-|81c5cc |EPITHELIAL_MESENCHYMAL_TRANSITION |
-|2ef471 |KRAS_SIGNALING_UP                 |
-|eb1e71 |KRAS_SIGNALING_UP                 |
+|hash   |description                                              |geneSet                           |positive class|
+|:------|:--------------------------------------------------------|:---------------------------------|:-------------|
+|0766b1 |sensitivity/resistance to MDM2 CRISPR knockout           |P53_PATHWAY                       |sensitive     |
+|81c5cc |high vs. low EMT score                                   |EPITHELIAL_MESENCHYMAL_TRANSITION |high_score    |
+|2ef471 |KRAS sensitivity (class1 = resistant, class2 = sensitive)|KRAS_SIGNALING_UP                 |class2        |
+|eb1e71 |Random Dataset                                           |KRAS_SIGNALING_UP                 |class1        |
 
 giving `60 combinations x 4 = 240` different combinations.
 
