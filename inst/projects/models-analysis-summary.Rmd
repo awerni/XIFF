@@ -53,7 +53,7 @@ Each model was trained 50 times with different random.seed.
 # Results
 
 ```{r}
-simulationResult <- readRDS("simulation-result-v2-2021-07-19.rds")
+simulationResult <- readRDS("simulation-result-v2-2021-07-21.rds")
 
 makeSummaryTable <- function(tbl, stat) {
 
@@ -79,6 +79,7 @@ MODEL_COLORS = setNames(
   MODEL_NAMES)
 
 library(ggplot2)
+library(glue)
 makePlot <- function(tbl, stat) {
   
   stat = enquo(stat)
@@ -124,6 +125,13 @@ makeBoxPlot <- function(tbl, stat) {
 
 
 accuracyTable <- makeSummaryTable(simulationResult, Accuracy)
+sensitivityTable <- makeSummaryTable(simulationResult, Sensitivity)
+
+makeLinePlots <- function(tbl, stat = "Accuracy") {
+  (makePlot(tbl, stat = MEAN) + ggtitle(glue("{stat} - Mean"))) %>% print
+  (makePlot(tbl, stat = Q05) + ggtitle(glue("{stat} - Q05")))   %>% print
+  (makePlot(tbl, stat = IQR) + ggtitle(glue("{stat} - IQR")))   %>% print
+}
 
 ```
 
@@ -132,21 +140,17 @@ accuracyTable <- makeSummaryTable(simulationResult, Accuracy)
 All models:
 
 ```{r, fig.width=12, fig.height=10}
-makePlot(accuracyTable, stat = MEAN) + ggtitle("Accuracy - Mean")
-makePlot(accuracyTable, stat = Q05) + ggtitle("Accuracy - Q05")
-makePlot(accuracyTable, stat = IQR) + ggtitle("Accuracy - IQR")
+makeLinePlots(accuracyTable, "Accuracy")
 ```
 
 Without random models (which looks random)
 
 ```{r, fig.width=12, fig.height=10}
 accuracyTable2 <- accuracyTable %>% filter(hash != "eb1e71")
-makePlot(accuracyTable2, stat = MEAN) + ggtitle("Accuracy - Mean")
-makePlot(accuracyTable2, stat = Q05) + ggtitle("Accuracy - Q05")
-makePlot(accuracyTable2, stat = IQR) + ggtitle("Accuracy - IQR")
+makeLinePlots(accuracyTable2, "Accuracy")
 ```
-## All boxplots
 
+###  All boxplots
 
 ```{r, fig.height=8}
 makeBoxPlot(simulationResult, Accuracy)
@@ -157,7 +161,7 @@ simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
 makeBoxPlot(simulationResult2, Accuracy)
 ```
 
-## SVM vs GLMNET
+### SVM vs GLMNET
 
 It might be worth to have a closer look into difference between SVN and GLMNET - both are somewhat linear models (svm has a linear kernel), so having two of them might be redundant.
 
@@ -182,7 +186,7 @@ ggplot(cmpAll) + geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) +
 ```
 In fact, there's no much difference (by looking at the boxplots, one can see that there's a lot of variability there) - `glmnet` is only a slightly better (on average). There's also no major difference between feature selection algos, so we can stick with TTest for `glmnet` (this makes sense, becasue `glmnet` has it own feature selection algorithm built in).
 
-## Random forest
+### Random forest
 
 There's zoom into Random Forrest results.
 
@@ -213,7 +217,7 @@ ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Accuracy, color = FeatureNumbers)
 
 ```
 
-## Comparision of the NN models
+### Comparision of the NN models
 
 The question was if there's a need for feature scaling before traing the Neural Network model. In theory it should improve the model (scaled data is easier for backpropagation). It seems that it does not change nearly anything, so keeping the current version seems to be resonable.
 
@@ -239,9 +243,109 @@ ggplot(nnAll) + geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) +
 
 ```
 
-# Summary
+### Accuracy - Summary
 
 - There's no big difference between `glmnet` and `SVM` - keeping only one of them might be a good idea (preferably `glmnet`).
 - Neuralnets works pretty bad (worse than other models - probably they overfit or don't have enough data points, or they need more special treatment (dropouts?)?).
 - It seems that there's no need to impose the limit of number of features resulting from feature selection (except for neaurlnet).
 - Boruta might not be necessary if we want ot keep everything as simple as possible.
+
+## Sensitivity 
+
+All models:
+
+```{r, fig.width=12, fig.height=10}
+makeLinePlots(sensitivityTable, "Sensitivity")
+```
+
+Without random models:
+
+```{r, fig.width=12, fig.height=10}
+sensitivityTable2 <- sensitivityTable %>% filter(hash != "eb1e71")
+makeLinePlots(sensitivityTable2, "Sensitivity")
+```
+
+###  All boxplots
+
+```{r, fig.height=8}
+makeBoxPlot(simulationResult, Sensitivity)
+```
+
+```{r, fig.height=8, fig.width=12}
+simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
+makeBoxPlot(simulationResult2, Sensitivity)
+```
+
+### SVM vs GLMNET
+
+SVM vs GLMNET from the sensitivity perspective:
+
+```{r, fig.height=7}
+cmpTable <- sensitivityTable %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71")
+
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == Inf)
+
+makePlot(cmpTable, stat = MEAN) + ggtitle("Sensitivity - Mean")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Sensitivity, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on models difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(Models, Sensitivity, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on feature selection difference")
+
+```
+
+### Random forest
+
+There's zoom into Random Forrest results.
+
+```{r, fig.height=7}
+cmpTable <- sensitivityTable %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+makePlot(cmpTable, stat = MEAN) + ggtitle("Sensitivity - Mean")
+
+
+cmpAll <- cmpAll %>% mutate(FeatureNumbers = as.factor(FeatureNumbers))
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureNumbers, Sensitivity, color = FeatureAlgo), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on feature selection difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Sensitivity, color = FeatureNumbers), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on number of features")
+
+
+```
+
+### Comparision of the NN models
+
+
+```{r, fig.height=7}
+nnTable <- sensitivityTable %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71")
+
+nnAll <- simulationResult %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == 5)
+
+makePlot(nnTable, stat = MEAN) + ggtitle("Sensitivity - Mean")
+
+ggplot(nnAll) + geom_boxplot(aes(FeatureAlgo, Sensitivity, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+ggplot(nnAll) + geom_boxplot(aes(Models, Sensitivity, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+```
