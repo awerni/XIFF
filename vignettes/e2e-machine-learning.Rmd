@@ -11,21 +11,22 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  dev = "CairoPNG",
   fig.height = 6,
-  fig.width = 7
+  fig.width = 7,
+  eval = FALSE
 )
 ```
 
+*The code in this vignette is not evaluated because it takes too much time to run. It is here only as a reference.*
+
 # Preparing data
 
-```{r}
+```{r setup}
 library(XIFF)
 library(dplyr)
 setDbOptions()
-```
 
-```{r setup, eval=FALSE}
-# Example based on the dbInfo2db
 
 # Preparing data
 cellline <- CLIFF::getWaterfallDataDepletion(ensg = "ENSG00000135679", study = "Avana", score = "ceres")
@@ -151,7 +152,6 @@ df2 <- getPerformanceDataFrame(predictionSummary$res$table)
 generateApplyPerformancePlot(df2)
 
 
-# ???
 gatherPredictionResults(predictions = list(predictionSummary))
 
 

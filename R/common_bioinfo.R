@@ -143,12 +143,10 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
 }
 
 #' @export
-getRawDataForModel <- function(
-  features,
-  names = NULL,
-  schema = getOption("xiff.schema", "cellline"),
-  column = getOption("xiff.column")
-  ){
+getRawDataForModel <- function(features,
+                               names = NULL,
+                               schema = getOption("xiff.schema"),
+                               column = getOption("xiff.column")) {
   
   clFilter <- if (length(names) > 0){
     paste(" AND", getSQL_filter(column, names))
@@ -173,12 +171,10 @@ getRawDataForModel <- function(
 }
 
 #' @export
-getDataForModel <- function(
-  assignment,
-  features,
-  schema = getOption("xiff.schema", "cellline"),
-  column = getOption("xiff.column")
-  ){
+getDataForModel <- function(assignment,
+                            features,
+                            schema = getOption("xiff.schema"),
+                            column = getOption("xiff.column")) {
   getRawDataForModel(
     features = features,
     names    = assignment[[column]],
@@ -426,31 +422,30 @@ getVarImp <- function(model, stats){
 #' @importFrom logger log_trace
 #' @export
 #' 
-createMachineLearningModel <- function(
-  trainingSet,
-  geneSet,
-  geneAnno,
-  classLabel = list(class1_name = "class1", class2_name = "class2"),
-  #
-  trainingData = NULL, 
-  getDataForModelFnc = XIFF::getDataForModel,
-  dataParams = NULL,
-  # Caret params
-  method = "rf",
-  tuneLength = 5,
-  number = 10,
-  repeats = 10,
-  # Feature selection params
-  selectBestFeaturesFnc = "auto",
-  threshold = "Confirmed",
-  maxFeatures = "auto",
-  featuresParams = NULL,
-  # Other params passed to caret::train
-  ...,
-  # misc parameters
-  .verbose = TRUE,
-  .progress = FALSE
-  ){
+createMachineLearningModel <- function(trainingSet,
+                                       geneSet,
+                                       geneAnno,
+                                       classLabel = list(class1_name = "class1",
+                                                         class2_name = "class2"),
+                                       # Training data params
+                                       trainingData = NULL,
+                                       getDataForModelFnc = getDataForModel,
+                                       dataParams = NULL,
+                                       # Caret params
+                                       method = "rf",
+                                       tuneLength = 5,
+                                       number = 10,
+                                       repeats = 10,
+                                       # Feature selection params
+                                       selectBestFeaturesFnc = "auto",
+                                       threshold = "Confirmed",
+                                       maxFeatures = "auto",
+                                       featuresParams = NULL,
+                                       # Other params passed to caret::train
+                                       ...,
+                                       # misc parameters
+                                       .verbose = TRUE,
+                                       .progress = FALSE) {
   
   localMessage <- function(...) if(.verbose) message(glue::glue(...))
   

@@ -22,12 +22,11 @@ getDataCommonById <- function(sql, cs = NULL, conditionSql = NULL,
   df
 }
 
-getDataGeneExpressionById <- function(
-  ensg,
-  cs,
-  schema = getOption("xiff.schema", "cellline"),
-  column = getOption("xiff.column")
-  ) {
+getDataGeneExpressionById <- function(ensg,
+                                      cs,
+                                      schema = getOption("xiff.schema"),
+                                      column = getOption("xiff.column")) {
+  
   sql <- glue::glue(
     "SELECT {column}, ensg, 2^log2tpm AS tpm ",
     "FROM {schema}.processedrnaseqview"

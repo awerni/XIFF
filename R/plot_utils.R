@@ -19,7 +19,7 @@ getPheatmap <- function(mat, ..., silent = TRUE,
   oldDev <- grDevices::dev.cur()
   x <- pheatmap::pheatmap(
     mat = mat,
-    ..., 
+    ...,
     show_rownames = show_rownames,
     show_colnames = show_colnames,
     silent = silent
@@ -45,4 +45,9 @@ guessAxisScale <- function(values){
 ggColorHue <- function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+isFontInstalled <- function(name){
+  fonts <- systemfonts::system_fonts()
+  name %in% fonts$family
 }

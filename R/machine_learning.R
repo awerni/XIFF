@@ -14,15 +14,15 @@
 #' @export
 #' @return
 #'
-buildMachineLearning <- function(
-  cs,
-  geneSet,
-  geneAnno,
-  species = "human",
-  method = "rf",
-  p_validation = 0.2,
-  ...,
-  task = FALSE) {
+buildMachineLearning <- function(cs,
+                                 geneSet,
+                                 geneAnno,
+                                 species = "human",
+                                 method = "rf",
+                                 p_validation = 0.2,
+                                 ...,
+                                 task = FALSE) {
+  
   
   assignment <- XIFF::stackClasses(cs, return_factor = TRUE)
   
@@ -68,9 +68,9 @@ buildMachineLearning <- function(
 #' @examples
 xiffSupportedModels <- function() {
   c(
-    "Random forrest" = "rf",
+    "Random Forest" = "rf",
     "SVM" = "svmLinear2",
-    "Neuralnetwork" = "neuralnetwork",
-    "glmnet" = "glmnet"
+    "Neural Network" = "neuralnetwork",
+    "Regularized Logistic Regression" = "glmnet"
   )
 }

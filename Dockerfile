@@ -15,7 +15,6 @@ libcairo2-dev
 RUN R -e 'install.packages(c("remotes", "BiocManager"))'
 RUN R -e 'remotes::install_github("Roche/ggtips")'
 RUN R -e 'remotes::install_github("Boehringer-Ingelheim/FutureManager")'
-RUN R -e 'remotes::install_version("svglite", version = "1.2.3")'
 
 RUN mkdir /install
 COPY DESCRIPTION /install/DESCRIPTION
