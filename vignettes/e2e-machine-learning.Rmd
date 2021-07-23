@@ -286,3 +286,65 @@ if(XIFF::packageInstalled("rpart")) {
 }
 
 ```
+
+
+# Custom feature selection function
+
+```{r}
+fitAffinity <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glmnet",
+  selectBestFeaturesFnc = XIFF::selectBestFeaturesAffinity
+)
+
+fitAffinity$featureSelectionResult$method
+fitAffinity$bestFeatures
+```
+
+# Custom data function
+
+```{r}
+
+assignment <- trainingSet
+features <- geneSet
+getModelWithRatio <- function(assignment, features) {
+  
+  dt <- getDataForModel(assignment, features)
+  
+  prefilteredFeatures <- selectBestFeaturesTTest(dt %>%
+                                        select(-celllinename) %>%
+                                        mutate(class = as.factor(class)),
+                                        maxFeatures = 20)
+  prefilteredFeatures <- prefilteredFeatures$stats$ensg
+  
+  numDt <- colnames(dt  %>% select_at(prefilteredFeatures) %>% select_if(is.numeric))
+  numDt <- sort(numDt)
+  
+  dts <- expand.grid(numDt, numDt) %>% filter(Var1 != Var2) %>%
+    mutate_all(as.character) %>%
+    filter(Var1 < Var2)
+  
+  matx <- dt %>% select_if(is.numeric) %>% as.matrix()
+  matx[matx == 0] <- 0.0001
+  ratio <- matx[,dts$Var1] / matx[,dts$Var1]
+  colnames(ratio) <- paste(dts$Var1, dts$Var2, sep = "_")
+  ratioDf <- as.data.frame(ratio)
+  result <- bind_cols(dt, ratioDf)
+  result
+}
+
+fitAffinityWithRatio <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glmnet",
+  selectBestFeaturesFnc = XIFF::selectBestFeaturesAffinity,
+  getDataForModelFnc = getModelWithRatio
+)
+
+fitAffinityWithRatio$featureSelectionResult$method
+fitAffinityWithRatio$bestFeatures
+
+```

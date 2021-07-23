@@ -228,6 +228,30 @@ selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
   )
 }
 
+#' @export
+#' @importFrom FSelectorRcpp information_gain
+#' @importFrom apcluster apcluster
+selectBestFeaturesAffinity <- function(df, threshold = 0.00, maxFeatures = Inf) {
+  
+  numericDt <- t(df %>% select(-class) %>% select_if(is.numeric))
+  apres <- apcluster::apcluster(apcluster::negDistMat(numericDt, r = 2))
+  
+  df2 <- df %>% select_if(function(x) !is.numeric(x))
+  
+  finalDt <- bind_cols(df2, df[,apres@exemplars])
+  
+  infGain <- FSelectorRcpp::information_gain(class ~ ., finalDt)
+  infGain <- infGain %>% arrange(desc(importance)) %>%
+    rename(ensg = attributes) %>% head(maxFeatures)
+  
+  finalDt <- finalDt[,c("class", infGain$ensg)]
+  
+  list(
+    stats = infGain,
+    df = finalDt,
+    method = "apcluster::affinity-propagation"
+  )
+}
 
 #' Use Bortua algorithm for feature selection.
 #'
