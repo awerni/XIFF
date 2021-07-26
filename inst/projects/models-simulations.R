@@ -38,11 +38,22 @@ getData <- function(hash, hallmarkGeneSet = "P53_PATHWAY") {
       class1 = cs %>% filter(class == "class1") %>% pull,
       class2 = cs %>% filter(class == "class2") %>% pull
     )
+  } else if(hash == "06bd26") {
+    cs <- list(
+      class1 = cs %>% filter(consensus_sensitivity == "Resistant") %>% pull(celllinename),
+      class2 = cs %>% filter(consensus_sensitivity == "Sensitive") %>% pull(celllinename)
+    )
+    
   } else {
     stop("Hash not supported.")
   }
   
-  geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+  if(hallmarkGeneSet == "WP_APOPTOSIS_MODULATION_AND_SIGNALING") {
+    geneSet <- CLIFF::getGSEAdata("human","mSigDB")[[hallmarkGeneSet]]
+  } else {
+    geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+  }
+  
   geneAnno <- CLIFF::getGeneAnno()[["human"]]
   
   
@@ -61,7 +72,6 @@ getData <- function(hash, hallmarkGeneSet = "P53_PATHWAY") {
 
 allData <- bind_rows(
   expand.grid(hash = c("0766b1"), geneSet = c("P53_PATHWAY")),
-  #expand.grid(hash = c("81c5cc"), geneSet = c("EPITHELIAL_MESENCHYMAL_TRANSITION", "E2F_TARGETS", "G2M_CHECKPOINT")),
   expand.grid(hash = c("06bd26"), geneSet = c("WP_APOPTOSIS_MODULATION_AND_SIGNALING")),
   expand.grid(hash = c("2ef471"), geneSet = c("KRAS_SIGNALING_UP")),
   expand.grid(hash = c("eb1e71"), geneSet = c("KRAS_SIGNALING_UP"))
@@ -70,13 +80,27 @@ allData <- bind_rows(
 allDataList <- mapply(getData, allData$hash, allData$geneSet, SIMPLIFY = FALSE)
 allData <- bind_rows(allDataList)
 
-featureSelectionModels <- c("TTest", "BorutaTentative", "BorutaConfirmed")
+################## Feature selection models ##############
+featureSelectionModels <- c("TTest", "PrefilterAffinity", "AffinityPostfilter", "GLMNET")
+featureSelectionFunctions  <- tibble::tibble(
+  FeatureAlgo = featureSelectionModels,
+  FeatureAlgoFunction = c(
+    XIFF::selectBestFeaturesTTest,
+    XIFF::selectBestFeaturesAffinityPrefilter,
+    XIFF::selectBestFeaturesAffinityPostfilter,
+    XIFF::selectBestFeaturesGlmnet
+  ),
+  FeatureSelectionThreshold = list(0.05,0.05,0.05,"auto")
+)
+
 featureSelectionNumbnerOfFeatures <- c(5, 25, 50, Inf)
 featuresCombinations <- expand.grid(
   FeatureAlgo = featureSelectionModels,
   FeatureNumbers = featureSelectionNumbnerOfFeatures
 )
+featuresCombinations <- inner_join(as_tibble(featuresCombinations), featureSelectionFunctions)
 
+################# ML models ################# 
 models <- unique(c(xiffSupportedModels(), "glmnet"))
 if(any(models == "neuralnetwork")) {
   models <- models[models != "neuralnetwork"]
@@ -99,12 +123,14 @@ seeds <- generateSeeds(N_ITERATIONS)
 seeds <- tibble(N = 1:length(seeds), RandomSeed = seeds)
 
 allSimulations <- full_join(allCombs, seeds, by = character())
+allSimulations <- allSimulations %>% mutate_if(is.factor, as.character)
 
 makeFilePath <- function(params, OUTPUT_PATH) {
   
   hash <- digest(params)
   file.path(OUTPUT_PATH, paste0(digest::digest(params), ".rds"))
 }
+
 
 makeModel <- function(i, allSimulations, OUTPUT_PATH) {
   
@@ -124,27 +150,22 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
     geneSet <- params$geneSet[[1]]
     geneAnno <- params$geneAnno[[1]]
     annoFocus <- params$annoFocus[[1]]
+    featureAlgoFunction <- params$FeatureAlgoFunction[[1]]
+    featureSelectionThreshold <- params$FeatureSelectionThreshold[[1]]
     
     # check file name
-    params <- params %>% select(-cs, -geneSet, -geneAnno, -annoFocus)
+    params <- params %>% select(
+      -cs,
+      -geneSet,
+      -geneAnno,
+      -annoFocus,
+      -FeatureAlgoFunction,
+      -FeatureSelectionThreshold
+    )
     filePath <- makeFilePath(params, OUTPUT_PATH)
     
     if(file.exists(filePath)) return(NULL)
     
-    
-    # prepare   
-    if(params$FeatureAlgo == "TTest") {
-      featureFnc <- XIFF::selectBestFeaturesTTest
-      featureThreshold  <- 0.05
-    } else if(params$FeatureAlgo == "BorutaTentative") {
-      featureThreshold <- "Tentative"
-      featureFnc <- XIFF::selectBestFeaturesBoruta
-    } else if(params$FeatureAlgo == "BorutaConfirmed") {
-      featureThreshold <- "Confirmed"
-      featureFnc <- XIFF::selectBestFeaturesBoruta
-    } else {
-      stop("Not supported")
-    }
     
     if(params$Models %in% c("nn", "nn-scaled")) {
       
@@ -160,8 +181,8 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
         geneAnno = geneAnno,
         method = "neuralnetwork",
         maxFeatures = params$FeatureNumbers,
-        threshold = featureThreshold,
-        selectBestFeaturesFnc = featureFnc,
+        threshold = featureSelectionThreshold,
+        selectBestFeaturesFnc = featureAlgoFunction,
         preProcess = prepProc
       )))
     } else {
@@ -171,8 +192,8 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
         geneAnno = geneAnno,
         method = params$Models,
         maxFeatures = params$FeatureNumbers,
-        threshold = featureThreshold,
-        selectBestFeaturesFnc = featureFnc
+        threshold = featureSelectionThreshold,
+        selectBestFeaturesFnc = featureAlgoFunction
       )))
     }
     
@@ -202,7 +223,13 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
 }
 
 
-tmp <- allSimulations %>% select(-cs, -geneSet, -geneAnno, -annoFocus)
+tmp <- allSimulations  %>% select(-cs,
+                                  -geneSet,
+                                  -geneAnno,
+                                  -annoFocus,
+                                  -FeatureAlgoFunction,
+                                  -FeatureSelectionThreshold)
+
 allPaths <- pbapply::pbsapply(1:nrow(allSimulations), function(i) makeFilePath(tmp[i,], OUTPUT_PATH))
 allSimulations <- allSimulations[!file.exists(allPaths),]
 
