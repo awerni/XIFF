@@ -328,6 +328,19 @@ fitAffinityPostfilter$featureSelectionResult$method
 fitAffinityPostfilter$bestFeatures
 ```
 
+```{r}
+fitGlmnet <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glmnet",
+  selectBestFeaturesFnc = selectBestFeaturesGlmnet,
+  threshold = "auto"
+)
+
+```
+
+
 # Custom data function
 
 ```{r}

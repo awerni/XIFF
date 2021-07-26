@@ -290,6 +290,41 @@ selectBestFeaturesAffinityPostfilter <- function(df, threshold = 0.05, maxFeatur
   postfilter
 }
 
+#' @export
+#' @importFrom glmnet cv.glmnet glmnet
+selectBestFeaturesGlmnet <- function(df, threshold = 0.05, maxFeatures = Inf) {
+  
+  x <- as.matrix(df %>% select(-class))
+  
+  if(is.numeric(threshold)) {
+    fit <- glmnet::glmnet(x, df$class, family = "binomial", lambda = threshold) 
+    coef <- coefficients(fit)
+  } else {
+    log_trace("selectBestFeaturesGlmnet - Using cv.glmnet for feature selection")
+    fit <- glmnet::cv.glmnet(x, df$class, family = "binomial") 
+    coef <- coefficients(fit, fit$lambda.1se)
+  }
+  
+  coef <- as.matrix(coef)
+  coef <- coef[coef != 0,][-1]
+  
+  if(length(coef) == 0) {
+    stop("selectBestFeaturesGlmnet: cannot find any meaningful features")
+  }
+  
+  stats <- tibble(ensg = names(coef), coef = coef) %>%
+    arrange(desc(abs(coef))) %>% head(maxFeatures)
+  
+  finalDt <- df[, c("class", stats$ensg)]
+  
+  list(
+    stats = stats,
+    df = finalDt,
+    method = "glmnet::glmnet"
+  )
+  
+}
+
 #' Use Bortua algorithm for feature selection.
 #'
 #' @param df 
