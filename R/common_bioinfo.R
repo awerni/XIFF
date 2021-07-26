@@ -175,6 +175,15 @@ getDataForModel <- function(assignment,
                             features,
                             schema = getOption("xiff.schema"),
                             column = getOption("xiff.column")) {
+  
+  if(is.list(assignment) && !is.data.frame(assignment)) {
+    assignment <- stackClasses(assignment)
+  }
+  
+  if(inherits(features, "MLXIFF")) {
+    features <- features$bestFeatures
+  }
+  
   getRawDataForModel(
     features = features,
     names    = assignment[[column]],
@@ -199,6 +208,12 @@ selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
 
 #' @export
 selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
+  
+  stopifnot(
+    "selectBestFeaturesTTest: threshold must be numeric" =
+    is.numeric(threshold)
+  )
+  
   ttRes <- genefilter::colttests(
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
@@ -219,6 +234,61 @@ selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
   )
 }
 
+#' @export
+#' @importFrom apcluster apcluster
+selectBestFeaturesAffinityPrefilter <- function(df, threshold = 0.05, maxFeatures = Inf) {
+  
+  if(is.character(threshold)) {
+    threshold <- 0.05
+  }
+  
+  # Prefilter features using TTest
+  prefilter <- selectBestFeaturesTTest(df, threshold = threshold)
+  
+  # Prepare affinity exemplars
+  numericDt <- t(prefilter$df %>% select(-class) %>% select_if(is.numeric))
+  apres <- apcluster::apcluster(apcluster::negDistMat(numericDt, r = 2))
+  
+  dfNotNumeric <- df %>% select_if(function(x) !is.numeric(x))
+  dfSelected <- df[,names(apres@exemplars)]
+  
+  stats <- prefilter$stats %>% filter(ensg %in% names(dfSelected)) %>%
+    arrange(p.value) %>% head(maxFeatures)
+  dfSelected <- dfSelected[, stats$ensg]
+  
+  finalDt <- bind_cols(dfNotNumeric, dfSelected)
+  
+  list(
+    stats = stats,
+    df = finalDt,
+    method = "apcluster::affinity-propagation-prefilter"
+  )
+}
+
+#' @export
+#' @importFrom apcluster apcluster
+selectBestFeaturesAffinityPostfilter <- function(df, threshold = 0.05, maxFeatures = Inf) {
+  
+  if(is.character(threshold)) {
+    threshold <- 0.05
+  }
+  
+  # Prepare affinity exemplars
+  numericDt <- t(df %>% select(-class) %>% select_if(is.numeric))
+  apres <- apcluster::apcluster(apcluster::negDistMat(numericDt, r = 2))
+  
+  dfNotNumeric <- df %>% select_if(function(x) !is.numeric(x))
+  dfSelected <- df[,names(apres@exemplars)]
+  
+  finalDt <- bind_cols(dfNotNumeric, dfSelected)
+  
+  postfilter <- selectBestFeaturesTTest(finalDt,
+                                        threshold = threshold,
+                                        maxFeatures = maxFeatures)
+  
+  postfilter$method <- "apcluster::affinity-propagation-postfilter"
+  postfilter
+}
 
 #' Use Bortua algorithm for feature selection.
 #'
@@ -585,6 +655,15 @@ print.MLXIFF <- function(x, ...) {
   cat("caret part:\n")
   print(x)
   
+}
+
+
+#' @exportS3Method
+predict.MLXIFF <- function(x, newdata = NULL, ...) {
+  
+  class(x) <- class(x)[!class(x) %in% c("XiffMachineLearningResult", "MLXIFF")]
+  predict(x, newdata = newdata, ...)  
+    
 }
 
 #' @export

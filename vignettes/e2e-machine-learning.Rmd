@@ -20,13 +20,13 @@ knitr::opts_chunk$set(
 
 *The code in this vignette is not evaluated because it takes too much time to run. It is here only as a reference.*
 
-# Preparing data
+# Preparing the data
 
 ```{r setup}
 library(XIFF)
 library(dplyr)
 setDbOptions()
-
+set.seed(123)
 
 # Preparing data
 cellline <- CLIFF::getWaterfallDataDepletion(ensg = "ENSG00000135679", study = "Avana", score = "ceres")
@@ -52,6 +52,12 @@ cs <- list(
 
 ```{r}
 
+sets <- XIFF::splitTrainingValidationSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
+sets$training
+
+trainingSet <- with(sets$training, split(celllinename, class))
+validationSet <- with(sets$validation, split(celllinename, class))
+
 # Hallmark gene set
 hallmarkGeneSet <- "P53_PATHWAY"
 geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
@@ -60,18 +66,18 @@ geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmark
 geneAnno <- CLIFF::getGeneAnno()[["human"]]
 ```
 
-# Training the model using 
+# Training the model using `buildMachineLearning`
 
 ```{r}
 set.seed(123)
 defaultFit <- XIFF::buildMachineLearning(
-  cs = cs,
+  cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
 )
 
 nnFit <- XIFF::buildMachineLearning(
-  cs = cs,
+  cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
   method = "neuralnetwork"
@@ -80,15 +86,15 @@ nnFit <- XIFF::buildMachineLearning(
 # model using caret functionality. It does not implement 
 # model specific function is XIFF, but uses sensible defaults
 glmnetFit <- XIFF::buildMachineLearning(
-  cs = cs,
+  cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
   method = "glmnet"
 )
 ```
-## Prediction
+# Making Predictions
 
-Prediction just uses `S3 predict` method from `caret`.
+### Prediction just uses `S3 predict` method from `caret`.
 
 ```{r}
 predict(defaultFit)
@@ -96,8 +102,48 @@ predict(nnFit)
 predict(glmnetFit)
 ```
 
+### Prediction on model's validation set (note that each model has it's own validation created before training):
 
-#### Plots
+```{r}
+# Random forest
+## Getting data
+modelValidationData <- getDataForModel(assignment = defaultFit$validationSet,
+                                       features = defaultFit)
+## Making predition
+predict(defaultFit, newdata = modelValidationData)
+
+# GLMNET
+## Getting data
+modelValidationDataGlmnet <- getDataForModel(assignment = glmnetFit$validationSet,
+                                       features = glmnetFit)
+## Making predition
+predict(glmnetFit, newdata = modelValidationDataGlmnet)
+```
+### Using the validation set created at the beginning.
+
+```{r}
+# Getting all features from rf and glmnet models
+# so the same data can be used in prediction
+allFeatures <- list(defaultFit, glmnetFit) %>% 
+  sapply("[[", "bestFeatures") %>%
+  unlist() %>% unique()
+
+modelValidationData <- getDataForModel(assignment = validationSet,
+                                       features = allFeatures)
+
+# Making the prediction for two models
+prf <- predict(defaultFit, newdata = modelValidationData)
+pglm <- predict(glmnetFit, newdata = modelValidationData)
+
+# Adding the predictions to the table with celllinename and class
+modelValidationData %>% dplyr::select(celllinename, class) %>%
+  mutate(RandomForest = prf, Glmnet = pglm)
+
+```
+
+# Plots
+
+## Basic Performance Plots
 
 ```{r}
 library(tidyr)
@@ -105,30 +151,32 @@ generatePerformancePlot(defaultFit)
 generatePerformancePlot(nnFit)
 generatePerformancePlot(glmnetFit)
 ```
+## Variable importance
 
 ```{r}
 generateVarImpPlot(defaultFit)
 generateVarImpPlot(nnFit)
 generateVarImpPlot(glmnetFit)
 ```
+
+## Error plot (random forest only)
+
 ```{r}
-# For random foreset only
+# For random forest only
 generateErrorPlot(defaultFit)
 ```
 
-```{r}
-makeClassAssignment(defaultFit$cs, list(class1_name = "sensitive", class2_name = "resistant"))
-classAssigment <- makeClassAssignment(defaultFit$cs, list(class1_name = "sensitive", class2_name = "resistant"))
 
-# cs also stands for `class selection`!
-modelData <- getDataForModel(assignment = stackClasses(cs), features = defaultFit$bestFeatures)
-annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(cs))
+
+```{r}
+validationData <- getDataForModel(assignment = validationSet, features = defaultFit)
+annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(validationSet))
 
 
 predictionSummary <- getPredictionSummary(
-  items = modelData$celllinename,
-  preds = predict(defaultFit, newdata = modelData),
-  refs = modelData$class,
+  items = validationData$celllinename,
+  preds = predict(defaultFit, newdata = validationData),
+  refs = validationData$class,
   positive_model = "class1",
   positive_cs = "class1",
   classes = c("positive", "negative"),
@@ -137,7 +185,13 @@ predictionSummary <- getPredictionSummary(
   annoFocus = annoFocus
 )
 
+predictionSummary$res
 
+predictionSummary$data
+```
+
+
+```{r}
 df <- prepareTablePlotData(
   df = predictionSummary$data,
   positive_preds = "class1",
@@ -157,19 +211,19 @@ gatherPredictionResults(predictions = list(predictionSummary))
 
 validation <- validateModel(
   defaultFit,
-  validationSet = stackClasses(defaultFit$validationSet),
+  validationSet = stackClasses(validationSet),
   anno = annoFocus)
 ```
 
 
 ```{r}
-makeModelPlots <- function(model, cs) {
+makeModelPlots <- function(model, validationSet) {
   
-  annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(cs))
+  annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(validationSet))
   
   validation <- validateModel(
     model,
-    validationSet = stackClasses(model$validationSet),
+    validationSet = stackClasses(validationSet),
     anno = annoFocus
   )
   
@@ -197,11 +251,24 @@ makeModelPlots <- function(model, cs) {
 ```
 
 
+### Random Forest
+
 ```{r}
-makeModelPlots(defaultFit, cs = cs)
-makeModelPlots(nnFit, cs = cs)
-makeModelPlots(glmnetFit, cs = cs)
+makeModelPlots(defaultFit, validationSet)
 ```
+
+### Neural Network
+
+```{r}
+makeModelPlots(nnFit, validationSet)
+```
+
+### Glmnet
+
+```{r}
+makeModelPlots(glmnetFit, validationSet)
+```
+
 # More examples.
 
 ## SVM
@@ -214,7 +281,7 @@ svmFit <- XIFF::buildMachineLearning(
   method = "svmLinear2"
 )
 
-makeModelPlots(svmFit, cs = cs)
+makeModelPlots(svmFit, validationSet)
 ```
 
 ## CART
@@ -228,9 +295,81 @@ if(XIFF::packageInstalled("rpart")) {
     geneAnno = geneAnno,
     method = "rpart"
   )
-
-  makeModelPlots(rpartFit, cs = cs)
-  
+  makeModelPlots(rpartFit, validationSet)
 }
+
+```
+
+
+# Custom feature selection function
+
+```{r}
+fitAffinity <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glmnet",
+  selectBestFeaturesFnc = XIFF::selectBestFeaturesAffinityPrefilter,
+  threshold = 0.05
+)
+
+fitAffinity$featureSelectionResult$method
+fitAffinity$bestFeatures
+
+fitAffinityPostfilter <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glmnet",
+  selectBestFeaturesFnc = XIFF::selectBestFeaturesAffinityPostfilter,
+  threshold = 0.05
+)
+fitAffinityPostfilter$featureSelectionResult$method
+fitAffinityPostfilter$bestFeatures
+```
+
+# Custom data function
+
+```{r}
+
+assignment <- trainingSet
+features <- geneSet
+getModelWithRatio <- function(assignment, features) {
+  
+  dt <- getDataForModel(assignment, features)
+  
+  prefilteredFeatures <- selectBestFeaturesTTest(dt %>%
+                                        select(-celllinename) %>%
+                                        mutate(class = as.factor(class)),
+                                        maxFeatures = 20)
+  prefilteredFeatures <- prefilteredFeatures$stats$ensg
+  
+  numDt <- colnames(dt  %>% select_at(prefilteredFeatures) %>% select_if(is.numeric))
+  numDt <- sort(numDt)
+  
+  dts <- expand.grid(numDt, numDt) %>% filter(Var1 != Var2) %>%
+    mutate_all(as.character) %>%
+    filter(Var1 < Var2)
+  
+  matx <- dt %>% select_if(is.numeric) %>% as.matrix()
+  matx[matx == 0] <- 0.0001
+  ratio <- matx[,dts$Var1] / matx[,dts$Var1]
+  colnames(ratio) <- paste(dts$Var1, dts$Var2, sep = "_")
+  ratioDf <- as.data.frame(ratio)
+  result <- bind_cols(dt, ratioDf)
+  result
+}
+
+fitAffinityWithRatio <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glmnet",
+  selectBestFeaturesFnc = XIFF::selectBestFeaturesAffinity,
+  getDataForModelFnc = getModelWithRatio
+)
+
+fitAffinityWithRatio$featureSelectionResult$method
+fitAffinityWithRatio$bestFeatures
 
 ```
