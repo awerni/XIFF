@@ -62,7 +62,7 @@ getData <- function(hash, hallmarkGeneSet = "P53_PATHWAY") {
 allData <- bind_rows(
   expand.grid(hash = c("0766b1"), geneSet = c("P53_PATHWAY")),
   #expand.grid(hash = c("81c5cc"), geneSet = c("EPITHELIAL_MESENCHYMAL_TRANSITION", "E2F_TARGETS", "G2M_CHECKPOINT")),
-  expand.grid(hash = c("81c5cc"), geneSet = c("EPITHELIAL_MESENCHYMAL_TRANSITION")),
+  expand.grid(hash = c("06bd26"), geneSet = c("WP_APOPTOSIS_MODULATION_AND_SIGNALING")),
   expand.grid(hash = c("2ef471"), geneSet = c("KRAS_SIGNALING_UP")),
   expand.grid(hash = c("eb1e71"), geneSet = c("KRAS_SIGNALING_UP"))
 )
