@@ -175,6 +175,15 @@ getDataForModel <- function(assignment,
                             features,
                             schema = getOption("xiff.schema"),
                             column = getOption("xiff.column")) {
+  
+  if(is.list(assignment) && !is.data.frame(assignment)) {
+    assignment <- stackClasses(assignment)
+  }
+  
+  if(inherits(features, "MLXIFF")) {
+    features <- features$bestFeatures
+  }
+  
   getRawDataForModel(
     features = features,
     names    = assignment[[column]],
