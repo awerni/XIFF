@@ -1,0 +1,104 @@
+---
+title: "Programming with CLIFF and TIFF"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Programming with CLIFF and TIFF}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(XIFF)
+
+getXIFFOptions <- function() {
+  glue::glue("Column: {getOption('xiff.column')},",
+             " Schema: {getOption('xiff.schema')}")
+}
+
+XIFF::setDbOptions()
+getXIFFOptions() # read options
+
+# Call function from TIFF
+geneAnno <- TIFF::getGeneAnno("human")
+## read options
+## they are the options from TIFF
+## TIFF overwritten XIFF defaults
+getXIFFOptions() 
+
+# Call function from CLIFF
+genAnnoCLIFF <- CLIFF::getGeneAnno()
+
+## read options
+## they are the options from CLIFF
+## meaning that CLIFF overwritten
+## options set by cliff
+getXIFFOptions()
+
+```
+The behaviour as presented above might pose serious risks to the validity of the scripts that contains both `TIFF` and `CLIFF` code. What's even more, when loading both `CLIFF` and `TIFF` there are multiple function name clashes:
+
+```r
+Attaching package: ‘TIFF’
+
+The following objects are masked from ‘package:CLIFF’:
+
+    app, appUI_main, appUI_sidebar, differentialGeneExpression_LimmaVoom, differentialGeneSignature,
+    differentialHallmarkSets, differentialProteinExpression, generateCopynumberPlot,
+    generateCopynumberWaterfallPlot, generateExpressionHeatmap, generateExpressionPlot,
+```
+
+To solve the namespace and options issue two approaches are provided:
+
+### Based on the `withr` package
+
+The package specific code is evaluated in 
+special function that takes care about setting the proper options and namespace.
+
+```{r, message=FALSE, warning=FALSE}
+library(CLIFF)
+library(TIFF)
+
+withCLIFF({
+  print(getOption("xiff.column"))    # "celllinename"
+  print(environment(getInformation)) # <environment: namespace:CLIFF>
+  y <- getOption("xiff.column")
+})
+
+print(y) # value from withCLIFF
+
+withTIFF({
+  print(getOption("xiff.column"))        # "tissuename"
+  print(environment(getInformation)) # <environment: namespace:TIFF>
+  y <- getOption("xiff.column")
+})
+
+print(y) # value from withTIFF
+
+```
+
+### By setting the global options using `setCLIFF` and `setTIFF`
+
+Note that for package specific functions using the `::` is recommended.
+
+```{r}
+setCLIFF()
+
+### CLIFF code goes here ###
+print(getOption("xiff.column"))
+print(environment(CLIFF::getInformation))
+
+setTIFF()
+
+### TIFF code goes here ###
+print(getOption("xiff.column"))
+print(environment(TIFF::getInformation))
+
+```
+
