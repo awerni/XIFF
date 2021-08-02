@@ -4,11 +4,11 @@ allModels <- dir("~/ml-simulation/", full.names = TRUE)
 message("Number of models: ", length(allModels))
 
 tbl <- "
-|hash   |description                                              |geneSet                           |positive class|
-|0766b1 |sensitivity/resistance to MDM2 CRISPR knockout           |P53_PATHWAY                       |sensitive     |
-|81c5cc |high vs. low EMT score                                   |EPITHELIAL_MESENCHYMAL_TRANSITION |high_score    |
-|2ef471 |KRAS sensitivity (class1 = resistant, class2 = sensitive)|KRAS_SIGNALING_UP                 |class2        |
-|eb1e71 |Random Dataset                                           |KRAS_SIGNALING_UP                 |class1        |
+|hash   |description                                              |geneSet                               |positive class|
+|0766b1 |sensitivity/resistance to MDM2 CRISPR knockout           |P53_PATHWAY                           |sensitive     |
+|06bd26 |DR5 = TRAILR2 sensitivity (Reddy et al.)                 |WP_APOPTOSIS_MODULATION_AND_SIGNALING |Sensitive     |
+|2ef471 |KRAS sensitivity (class1 = resistant, class2 = sensitive)|KRAS_SIGNALING_UP                     |class2        |
+|eb1e71 |Random Dataset                                           |KRAS_SIGNALING_UP                     |class1        |
 "
 
 dataTbl <- read.delim(text = tbl, sep = "|") %>% select(hash, hallmarkGeneSet = geneSet, positive.class)
@@ -48,6 +48,8 @@ readMetrics <- function(path) {
     positiveClass <- "class2"
   } else if(hash == "eb1e71") {
     positiveClass <- "class1"
+  } else if(hash == "06bd26") {
+    positiveClass <- "Sensitive"
   } else {
     stop("Hash not supported.")
   }
