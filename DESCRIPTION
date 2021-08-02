@@ -1,8 +1,8 @@
 Package: XIFF
 Type: Package
 Title: Common Modules And Functions For xIFF Apps 
-Version: 0.1.18
-Author: Michal Jakubczak
+Version: 0.1.19
+Author: Michal Jakubczak, Zygmunt Zawadzki
 Maintainer: Michal Jakubczak <michal.jakubczak@ardigen.com>
 Description: Common modules and functions for xIFF apps
 License: What license is it under?
