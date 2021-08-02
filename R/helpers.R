@@ -318,8 +318,9 @@ getEnsemblSpecies <- function(species){
 }
 
 #' @export
-getGeneSetLink <- function(geneset, msigDBLink){
-  paste0('<a href="', msigDBLink, geneset, '" target="_blank">', geneset, '</a>')
+getGeneSetLink <- function(geneset, msigDBLink, rawGeneset = NULL){
+  if(is.null(rawGeneset)) rawGeneset <- geneset
+  paste0('<a href="', msigDBLink, rawGeneset, '" target="_blank">', geneset, '</a>')
 }
 
 #' @export
