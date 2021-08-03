@@ -8,7 +8,6 @@ WORKERS <- 16
 N_ITERATIONS <-  50
 OUTPUT_PATH <- "~/ml-simulation"
 
-
 initOutputDirectory <- function(path  = "~/ml-simulation") {
   dir.create(path, showWarnings = FALSE, recursive = TRUE)
   invisible(path)
@@ -77,8 +76,10 @@ allData <- bind_rows(
   expand.grid(hash = c("eb1e71"), geneSet = c("KRAS_SIGNALING_UP"))
 )
 
+allData <- allData %>% mutate_all(as.character)
+
 allDataList <- mapply(getData, allData$hash, allData$geneSet, SIMPLIFY = FALSE)
-allData <- bind_rows(allDataList)
+allData     <- bind_rows(allDataList)
 
 ################## Feature selection models ##############
 featureSelectionModels <- c("TTest", "PrefilterAffinity", "AffinityPostfilter", "GLMNET")
