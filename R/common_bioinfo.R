@@ -181,10 +181,15 @@ getDataForModel <- function(assignment,
   }
   
   if(inherits(features, "MLXIFF")) {
-    features <- features$bestFeatures
+    model <- features
+    features <- model$getBestFeaturesFnc(model$bestFeatures)
+    transformFeaturesFnc <- model$transformFeaturesFnc
+  } else {
+    transformFeaturesFnc <- function(x, model) x
+    model <- NULL
   }
   
-  getRawDataForModel(
+  res <- getRawDataForModel(
     features = features,
     names    = assignment[[column]],
     schema   = schema,
@@ -192,6 +197,8 @@ getDataForModel <- function(assignment,
   ) %>%
     tidyr::pivot_wider(names_from = ensg, values_from = score) %>%
     left_join(assignment, by = column)
+  
+  transformFeaturesFnc(res, model)
 }
 
 
@@ -548,6 +555,9 @@ createMachineLearningModel <- function(trainingSet,
                                        featuresParams = NULL,
                                        # Other params passed to caret::train
                                        ...,
+                                       # Parameters for data transformation
+                                       getBestFeaturesFnc = function(x) x,
+                                       transformFeaturesFnc = function(x, model) x,
                                        # misc parameters
                                        .verbose = TRUE,
                                        .progress = FALSE) {
@@ -677,6 +687,9 @@ createMachineLearningModel <- function(trainingSet,
   trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
   trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
+  
+  trainingOutput$getBestFeaturesFnc   <- getBestFeaturesFnc
+  trainingOutput$transformFeaturesFnc <- transformFeaturesFnc
   
   trainingOutput
 }

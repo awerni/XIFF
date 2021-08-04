@@ -115,7 +115,7 @@ validateModel <- function(m,
   
   df <- getDataForModel(
     assignment = validationSet,
-    features = m$bestFeatures
+    features = m
   )
   
   refs <- df$class
