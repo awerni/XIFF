@@ -3,6 +3,8 @@
 library(XIFF)
 library(digest)
 library(dplyr)
+library(BIAutils)
+library(BIClass)
 
 WORKERS <- 16
 N_ITERATIONS <-  50
@@ -82,16 +84,28 @@ allDataList <- mapply(getData, allData$hash, allData$geneSet, SIMPLIFY = FALSE)
 allData     <- bind_rows(allDataList)
 
 ################## Feature selection models ##############
-featureSelectionModels <- c("TTest", "PrefilterAffinity", "AffinityPostfilter", "GLMNET")
+featureSelectionModels <- c("TTest", "PrefilterAffinity", "AffinityPostfilter", "GLMNET", "Ratio")
 featureSelectionFunctions  <- tibble::tibble(
   FeatureAlgo = featureSelectionModels,
   FeatureAlgoFunction = c(
     XIFF::selectBestFeaturesTTest,
     XIFF::selectBestFeaturesAffinityPrefilter,
     XIFF::selectBestFeaturesAffinityPostfilter,
-    XIFF::selectBestFeaturesGlmnet
+    XIFF::selectBestFeaturesGlmnet,
+    function(df, threshold = 0.05, maxFeatures = Inf, minFeatures = 15) {
+      
+      dfSelected <- get_representative_features(
+        df, "class", pmin(minFeatures, ncol(df) * 0.8))
+      
+      dfSelected <- dfSelected %>% rename(class = classification)
+      res <- XIFF::selectBestFeaturesTTest(dfSelected, threshold = 1, maxFeatures = Inf)
+      
+      res$method <- "get_representative_features"
+      res  
+    }
+    
   ),
-  FeatureSelectionThreshold = list(0.05,0.05,0.05,"auto")
+  FeatureSelectionThreshold = list(0.05,0.05,0.05,"auto",1)
 )
 
 featureSelectionNumbnerOfFeatures <- c(5, 25, 50, Inf)
@@ -102,7 +116,7 @@ featuresCombinations <- expand.grid(
 featuresCombinations <- inner_join(as_tibble(featuresCombinations), featureSelectionFunctions)
 
 ################# ML models ################# 
-models <- unique(c(xiffSupportedModels(), "glmnet"))
+models <- unique(c(xiffSupportedModels(), "glmnet", "glm"))
 if(any(models == "neuralnetwork")) {
   models <- models[models != "neuralnetwork"]
   models <- c(models, "nn", "nn-scaled")
@@ -132,6 +146,10 @@ makeFilePath <- function(params, OUTPUT_PATH) {
   file.path(OUTPUT_PATH, paste0(digest::digest(params), ".rds"))
 }
 
+standardSimulations <- allSimulations %>% filter(Models != "glm" & FeatureAlgo != "Ratio")
+ratioSimulations <- allSimulations %>% filter(FeatureAlgo == "Ratio", FeatureNumbers == max(FeatureNumbers))
+
+allSimulations <- bind_rows(standardSimulations, ratioSimulations)
 
 makeModel <- function(i, allSimulations, OUTPUT_PATH) {
   
@@ -140,6 +158,8 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
     .libPaths("~/R/fixedXIFF")
     library(XIFF)
     library(dplyr)
+    library(BIAutils)
+    library(BIClass)
     XIFF::setDbOptions()
     
     params <- allSimulations[i,]
@@ -167,6 +187,76 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
     
     if(file.exists(filePath)) return(NULL)
     
+    getBestFeaturesFnc <- function(x) x
+    transformFeaturesFnc <- function(x, model) x
+    getDataForModelFnc <- XIFF::getDataForModel
+    
+    if(params$FeatureAlgo == "Ratio") {
+      
+      getBestFeaturesFnc <- function(x) {
+        unique(strsplit(x, split = "\\.") %>% unlist)
+      }
+      
+      
+      transformFeaturesFnc <- function(x, model) {
+        
+        dt2 <- x %>% mutate_if(is.numeric, function(x) 2^x)
+        
+        expr_RNAseq2 <- dt2 %>% select(-!!rlang::sym(getOption("xiff.column")))
+        epsilon_RNAseq <- 5
+        
+        quotientMatrix <- get_log2_ratios(expr_RNAseq2, class_col = "class", epsilon_RNAseq)
+        
+        if(!all(model$bestFeatures %in%colnames(quotientMatrix))) {
+          stop("Some ratios not available")
+        }
+        
+        features <- as_tibble(as.data.frame(quotientMatrix[,model$bestFeatures]))
+        
+        res <- dt2 %>% select(class, !!rlang::sym(getOption("xiff.column")))
+        bind_cols(res, features)  
+      }
+      
+      ml_get_significant_features <- function (df, class_col = "classification", fdr = 0.05, max_n = 500) 
+      {
+        class_col <- sym(class_col)
+        df <- select(df, !!class_col, dplyr::everything())
+        data <- BIClass::class_feature_split(df)
+        stats <- BIClass::calc_significant_features(data$features, data$outcome)
+        stats <- stats %>% filter(p_adj <= fdr) %>% arrange(p_adj) %>% head(max_n)
+        
+        bind_cols(
+          tibble(!!class_col := data$outcome),
+          as.data.frame(data$features[, stats$feature])
+        )
+      }
+      
+      getDataRatios <- function(assignment, features, maxN = 500) {
+        
+        dt <- getDataForModel(assignment, features)
+        dt2 <- dt %>% mutate_if(is.numeric, function(x) 2^x)
+        
+        expr_RNAseq2 <- dt2 %>% select(-!!rlang::sym(getOption("xiff.column")))
+        epsilon_RNAseq <- 5
+        
+        quotientMatrix <- get_log2_ratios(expr_RNAseq2, class_col = "class", epsilon_RNAseq)
+        quotientMatrix <- quotientMatrix %>% mutate(classification = as.factor(classification))
+        
+        sigQuotientMatrix <- ml_get_significant_features(
+          quotientMatrix,
+          fdr = 0.01,
+          class_col = "classification",
+          max_n = maxN)
+        
+        
+        dt <- bind_cols(dt %>% select(!!rlang::sym(getOption("xiff.column"))), sigQuotientMatrix)
+        dt <- dt %>% rename(class = classification)
+        dt
+      }
+      
+      getDataForModelFnc <- getDataRatios
+    }
+    
     
     if(params$Models %in% c("nn", "nn-scaled")) {
       
@@ -184,7 +274,10 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
         maxFeatures = params$FeatureNumbers,
         threshold = featureSelectionThreshold,
         selectBestFeaturesFnc = featureAlgoFunction,
-        preProcess = prepProc
+        preProcess = prepProc,
+        getBestFeaturesFnc = getBestFeaturesFnc,
+        transformFeaturesFnc = transformFeaturesFnc,
+        getDataForModelFnc = getDataForModelFnc
       )))
     } else {
       time <- system.time(model <- try(XIFF::buildMachineLearning(
@@ -194,7 +287,10 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
         method = params$Models,
         maxFeatures = params$FeatureNumbers,
         threshold = featureSelectionThreshold,
-        selectBestFeaturesFnc = featureAlgoFunction
+        selectBestFeaturesFnc = featureAlgoFunction,
+        getBestFeaturesFnc = getBestFeaturesFnc,
+        transformFeaturesFnc = transformFeaturesFnc,
+        getDataForModelFnc = getDataForModelFnc
       )))
     }
     
@@ -222,7 +318,6 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
   })
   
 }
-
 
 tmp <- allSimulations  %>% select(-cs,
                                   -geneSet,
