@@ -307,7 +307,7 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
     
     allResult <- list(
       params = params,
-      model = model,
+      #model = model,
       time = time,
       validation = validation,
       performanceData = performanceData

@@ -153,7 +153,8 @@ makeLinePlots(accuracyTable2, "Accuracy")
 ###  All boxplots
 
 ```{r, fig.height=8}
-makeBoxPlot(simulationResult, Accuracy)
+res <- simulationResult %>% filter(!grepl(FeatureAlgo, pattern = "Affinity"))
+makeBoxPlot(res, Accuracy)
 ```
 
 ```{r, fig.height=8, fig.width=12}
