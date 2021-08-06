@@ -71,6 +71,7 @@ xiffSupportedModels <- function() {
     "Random Forest" = "rf",
     "SVM" = "svmLinear2",
     "Neural Network" = "neuralnetwork",
-    "Regularized Logistic Regression" = "glmnet"
+    "Regularized Logistic Regression" = "glmnet",
+    "GREP" = "GREP"
   )
 }

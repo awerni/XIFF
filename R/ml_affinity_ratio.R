@@ -13,7 +13,7 @@
 getGrepFeatureSelection <- function(df,
                                     threshold = 0.01,
                                     maxFeatures = 750,
-                                    maxGenes = 200,
+                                    maxGenes = 300,
                                     minFeatures = 15,
                                     epsilonRNAseq = 10,
                                     cor.method = "pearson") {

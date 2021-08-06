@@ -302,6 +302,32 @@ if(XIFF::packageInstalled("rpart")) {
 
 # GREP method
 
+### Auto verion
+
+```{r}
+set.seed(123)
+logger::log_threshold(logger::TRACE)
+
+grepFit <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "GREP"
+)
+
+annoFocus <- CLIFF::getCellLineAnno("human") %>%
+  dplyr::filter(celllinename %in% unlist(validationSet))
+  
+validation <- validateModel(
+  grepFit,
+  validationSet = stackClasses(validationSet),
+  anno = annoFocus
+)
+
+```
+
+### Raw version
+
 ```{r}
 set.seed(123)
 logger::log_threshold(logger::TRACE)

@@ -502,11 +502,12 @@ createMachineLearningModel <- function(trainingSet,
                                        # Other params passed to caret::train
                                        ...,
                                        # Parameters for data transformation
-                                       getBestFeaturesFnc = function(x) x,
-                                       transformFeaturesFnc = function(x, model) x,
+                                       getBestFeaturesFnc = NULL, #function(x) x,
+                                       transformFeaturesFnc = NULL, #function(x, model) x,
                                        # misc parameters
                                        .verbose = TRUE,
-                                       .progress = FALSE) {
+                                       .progress = FALSE,
+                                       .epsilonRNAseq = 10) {
   
   localMessage <- function(...) if(.verbose) message(glue::glue(...))
   
@@ -536,6 +537,29 @@ createMachineLearningModel <- function(trainingSet,
   df <- df[, !colnames(df) %in% getOption("xiff.column"), drop = FALSE]
   if (nrow(df) == 0) progress$error("No data available")
 
+  #------------- GREP specific code ------------
+  if(method == "GREP") {
+    selectBestFeaturesFnc <- getGrepFeatureSelection
+    if(is.character(threshold)) threshold <- 0.01
+    if(maxFeatures == "auto") {
+      maxFeatures <- 750
+    }
+    
+    if(is.null(getBestFeaturesFnc)) {
+      getBestFeaturesFnc <- mlGrepGetBestFeatures
+    } else {
+      stop("Setting custom getBestFeaturesFnc function is not supported in GREP")
+    }
+    if(is.null(transformFeaturesFnc)) {
+      log_trace("GREP: Setting expression epsilon to {.epsilonRNAseq}")
+      transformFeaturesFnc = mlGrepMakeTransformExpr2RatioFunction(.epsilonRNAseq)
+    } else {
+      stop("Setting custom getBestFeaturesFnc function is not supported in GREP")
+    }
+    
+    log_trace("GREP: Max Features: {maxFeatures}, fdr threshold: {threshold}")
+    method <- "glm"
+  }
   
   #------------- Feature selection -------------
   if(maxFeatures == "auto") {
@@ -633,6 +657,11 @@ createMachineLearningModel <- function(trainingSet,
   trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
   trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
+  
+  # If getBestFeaturesFnc or transformFeaturesFnc are empty, 
+  # then they require to have placeholder functions.
+  if(is.null(getBestFeaturesFnc)) getBestFeaturesFnc <- function(x) x
+  if(is.null(transformFeaturesFnc)) transformFeaturesFnc <- function(x, model) x
   
   trainingOutput$getBestFeaturesFnc   <- getBestFeaturesFnc
   trainingOutput$transformFeaturesFnc <- transformFeaturesFnc
