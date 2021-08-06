@@ -172,6 +172,7 @@ mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
   mat[,featuresInfo$feature, drop = FALSE]
 }
 
+#' @importFrom apcluster apclusterK
 mlGrepAffinityPropagation <- function (mat, n, cor.method = "pearson") {
   n <- pmax(2, n)
   distance <- 1 - abs(cor(mat, method = cor.method))
