@@ -221,6 +221,8 @@ selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
     is.numeric(threshold)
   )
   
+  if(is.character(df$class)) df$class <- as.factor(df$class)
+  
   ttRes <- genefilter::colttests(
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
