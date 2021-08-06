@@ -11,7 +11,7 @@
 #'
 #' @examples
 getGrepFeatureSelection <- function(df,
-                                    threshold = 0.01,
+                                    threshold = 0.1,
                                     maxFeatures = 750,
                                     maxGenes = 300,
                                     minFeatures = 15,
@@ -19,12 +19,14 @@ getGrepFeatureSelection <- function(df,
                                     cor.method = "pearson") {
   
   dfNum <- df %>% select_if(is.numeric)
+  log_trace("GREP: Feature Selection - start: {ncol(dfNum)}")
   
   dfNum <- mlGrepFilterLowExpressionAndVariabilityGenes(
     dfNum,
     maxGenes,
     epsilonRNAseq
   )
+  log_trace("GREP: Feature Selection - after low expression: {ncol(dfNum)}")
     
   ratioMatrix <- mlGetLog2RatiosMatrix(dfNum, epsilonRNAseq = epsilonRNAseq)
   
@@ -165,6 +167,8 @@ mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
   
   log_trace(
     "GREP - Significant features, ",
+    " fdr: {fdr}",
+    " maxN: {maxN}",
     " Before: {ncol(mat)}",
     " After: {nrow(featuresInfo)}"
   )

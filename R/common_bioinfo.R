@@ -540,7 +540,7 @@ createMachineLearningModel <- function(trainingSet,
   #------------- GREP specific code ------------
   if(method == "GREP") {
     selectBestFeaturesFnc <- getGrepFeatureSelection
-    if(is.character(threshold)) threshold <- 0.01
+    if(is.character(threshold)) threshold <- 0.1
     if(maxFeatures == "auto") {
       maxFeatures <- 750
     }
