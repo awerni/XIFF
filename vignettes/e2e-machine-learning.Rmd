@@ -387,7 +387,35 @@ fitAffinityWithRatio$bestFeatures
 
 ```
 
+# GREP method
 
+```{r}
+set.seed(123)
+logger::log_threshold(logger::TRACE)
+
+grepFit <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glm",
+  selectBestFeaturesFnc = getGrepFeatureSelection,
+  threshold = 0.01,
+  maxFeatures = 750,
+  getBestFeaturesFnc = mlGrepGetBestFeatures,
+  transformFeaturesFnc = mlGrepMakeTransformExpr2RatioFunction()
+)
+
+annoFocus <- CLIFF::getCellLineAnno("human") %>%
+  dplyr::filter(celllinename %in% unlist(validationSet))
+  
+validation <- validateModel(
+  grepFit,
+  validationSet = stackClasses(validationSet),
+  anno = annoFocus
+)
+
+
+```
 
 # Custom data function - GREP
 

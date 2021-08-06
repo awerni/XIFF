@@ -18,8 +18,6 @@ getGrepFeatureSelection <- function(df,
                                     epsilonRNAseq = 10,
                                     cor.method = "pearson") {
   
-  df <- getDataForModel(assignment, features)
-  
   dfNum <- df %>% select_if(is.numeric)
   
   dfNum <- mlGrepFilterLowExpressionAndVariabilityGenes(
@@ -63,6 +61,10 @@ getGrepFeatureSelection <- function(df,
 #' @return
 #' @export
 mlGrepGetBestFeatures = function(x) {
+  
+  log_trace(
+    "mlGrepGetBestFeatures",
+    " - example: {paste(head(x,2), collapse = ', ')}")
   unique(strsplit(x, split = "\\.") %>% unlist)
 }
 
@@ -85,6 +87,7 @@ mlGrepMakeTransformExpr2RatioFunction <- function(epsilonRNAseq = 10) {
   
   transformFeaturesFnc <- function(x, model) {
     
+    log_trace("GREP - transform prediction epsilonRNAseq: {epsilonRNAseq}")
     quotientMatrix <- mlGetLog2RatiosMatrix(x, epsilonRNAseq)
     
     if(!all(model$bestFeatures %in% colnames(quotientMatrix))) {
@@ -93,7 +96,7 @@ mlGrepMakeTransformExpr2RatioFunction <- function(epsilonRNAseq = 10) {
     
     features <- as_tibble(as.data.frame(quotientMatrix[, model$bestFeatures]))
     
-    res <- dt2 %>% select(class, !!rlang::sym(getOption("xiff.column")))
+    res <- x %>% select(class, !!rlang::sym(getOption("xiff.column")))
     bind_cols(res, features)  
   }
   
@@ -117,6 +120,13 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
   
   varCoef <- sort(varCoef, decreasing = TRUE) %>% head(maxFeatures)
   
+  log_trace(
+    "GREP - prefilter genes:",
+    " Before filtering: {length(maxExprAboveTreshold)}",
+    " , After expression filter: {sum(maxExprAboveTreshold)}",
+    " , Final: {length(varCoef)} "
+  )
+  
   dfNum <- dfNum[,names(varCoef)]
   dfNum
 }
@@ -128,11 +138,14 @@ mlGetLog2RatiosMatrix <- function (df, epsilonRNAseq = 10) {
   # other features are dropped silently.
   df <- df %>% select_if(is.numeric)
   
+  
   mat <- as.matrix(df)
   mat <- 2^mat
   mat <- log2(mat + epsilonRNAseq)
   
-  combs <- combn(colnames(mat), m = 2)
+  combs <- combn(sort(colnames(mat)), m = 2)
+  log_trace("GREP - number of ratios: {ncol(combs)}")
+  
   ratios <- mat[,combs[1,], drop = FALSE] - mat[,combs[2,], drop = FALSE]
   colnames(ratios) <- paste(combs[1,], combs[2,], sep = ".")
   ratios
@@ -149,6 +162,12 @@ mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
   
   
   featuresInfo <- featuresInfo %>% filter(p_adj <= fdr) %>% arrange(p_adj) %>% head(maxN)
+  
+  log_trace(
+    "GREP - Significant features, ",
+    " Before: {ncol(mat)}",
+    " After: {nrow(featuresInfo)}"
+  )
   
   mat[,featuresInfo$feature, drop = FALSE]
 }
