@@ -53,7 +53,8 @@ Each model was trained 50 times with different random.seed.
 # Results
 
 ```{r}
-simulationResult <- readRDS("simulation-result-v2-2021-08-02.rds")
+simulationResult <- readRDS("simulation-result-v2-2021-08-06.rds")
+simulationResult <- simulationResult %>% filter(!grepl(FeatureAlgo, pattern = "Affinity"))
 
 makeSummaryTable <- function(tbl, stat) {
 
@@ -153,14 +154,33 @@ makeLinePlots(accuracyTable2, "Accuracy")
 ###  All boxplots
 
 ```{r, fig.height=8}
-res <- simulationResult %>% filter(!grepl(FeatureAlgo, pattern = "Affinity"))
-makeBoxPlot(res, Accuracy)
+makeBoxPlot(simulationResult, Accuracy)
 ```
 
 ```{r, fig.height=8, fig.width=12}
 simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
 makeBoxPlot(simulationResult2, Accuracy)
 ```
+
+
+
+```{r, fig.height=8, fig.width=12}
+simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
+simulationResultInf <- simulationResult2 %>% filter(FeatureNumbers == Inf)
+makeBoxPlot(simulationResultInf, Accuracy)
+
+p <- ggplot(simulationResultInf) + 
+  geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet")) + 
+    coord_flip()
+
+p <- p +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent)
+p + ggtitle("Models by Feature Algo (only without feature number limit)")
+
+```
+
 
 ### SVM vs GLMNET
 
@@ -191,9 +211,8 @@ In fact, there's no much difference (by looking at the boxplots, one can see tha
 
 There's zoom into Random Forrest results.
 
-It' seems that there's no that big difference between different feature selection algorithms (as in the `glmnet` case - random forest has an included feature selection algorithm, so the most important thing is that the most important features pass the feature selection algo, and `rf` will find them and base its prediction on them).
 
-So definitely, the limit of 5 features from feature selection is not enough for using the full capabilities of random forest. 
+*It seems that GREP (Ratios) does not changes Random Forest performance that much.*
 
 ```{r, fig.height=7}
 cmpTable <- accuracyTable %>%

@@ -23,9 +23,6 @@ readMetrics <- function(path) {
     select(metric, value) %>%
     tidyr::pivot_wider(names_from = metric, values_from = value)
   
-  
-  
-  
   params <- inner_join(res$params, dataTbl, by = c("hash", "hallmarkGeneSet"))
   
   if(nrow(params) == 0) {
@@ -49,7 +46,7 @@ readMetrics <- function(path) {
   } else if(hash == "eb1e71") {
     positiveClass <- "class1"
   } else if(hash == "06bd26") {
-    positiveClass <- "Sensitive"
+    positiveClass <- "class2"
   } else {
     stop("Hash not supported.")
   }
@@ -91,4 +88,4 @@ for(i in seq_along(allModels)) {
 
 result <- bind_rows(allDtsList)
 
-saveRDS(result, "inst/projects/simulation-result-v2-2021-08-02.rds")
+saveRDS(result, "inst/projects/simulation-result-v2-2021-08-06.rds")
