@@ -170,37 +170,6 @@ getRawDataForModel <- function(features,
   getPostgresql(sql)
 }
 
-#' @export
-getDataForModel <- function(assignment,
-                            features,
-                            schema = getOption("xiff.schema"),
-                            column = getOption("xiff.column")) {
-  
-  if(is.list(assignment) && !is.data.frame(assignment)) {
-    assignment <- stackClasses(assignment)
-  }
-  
-  if(inherits(features, "MLXIFF")) {
-    model <- features
-    features <- model$getBestFeaturesFnc(model$bestFeatures)
-    transformFeaturesFnc <- model$transformFeaturesFnc
-  } else {
-    transformFeaturesFnc <- function(x, model) x
-    model <- NULL
-  }
-  
-  res <- getRawDataForModel(
-    features = features,
-    names    = assignment[[column]],
-    schema   = schema,
-    column   = column
-  ) %>%
-    tidyr::pivot_wider(names_from = ensg, values_from = score) %>%
-    left_join(assignment, by = column)
-  
-  transformFeaturesFnc(res, model)
-}
-
 
 #' @export
 selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
@@ -501,13 +470,13 @@ createMachineLearningModel <- function(trainingSet,
                                        featuresParams = NULL,
                                        # Other params passed to caret::train
                                        ...,
-                                       # Parameters for data transformation
-                                       getBestFeaturesFnc = NULL, #function(x) x,
-                                       transformFeaturesFnc = NULL, #function(x, model) x,
                                        # misc parameters
                                        .verbose = TRUE,
                                        .progress = FALSE,
-                                       .epsilonRNAseq = 10) {
+                                       .epsilonRNAseq = 10,
+                                       .otherParams = list(),
+                                       .extraClass = NULL
+                                       ) {
   
   localMessage <- function(...) if(.verbose) message(glue::glue(...))
   
@@ -545,20 +514,11 @@ createMachineLearningModel <- function(trainingSet,
       maxFeatures <- 750
     }
     
-    if(is.null(getBestFeaturesFnc)) {
-      getBestFeaturesFnc <- mlGrepGetBestFeatures
-    } else {
-      stop("Setting custom getBestFeaturesFnc function is not supported in GREP")
-    }
-    if(is.null(transformFeaturesFnc)) {
-      log_trace("GREP: Setting expression epsilon to {.epsilonRNAseq}")
-      transformFeaturesFnc = mlGrepMakeTransformExpr2RatioFunction(.epsilonRNAseq)
-    } else {
-      stop("Setting custom getBestFeaturesFnc function is not supported in GREP")
-    }
-    
     log_trace("GREP: Max Features: {maxFeatures}, fdr threshold: {threshold}")
     method <- "glm"
+    modelSelectionMethod <- "GREP"
+    .otherParams$epsilonRNAseq <- .epsilonRNAseq
+    .extraClass <- "XiffGREP"
   }
   
   #------------- Feature selection -------------
@@ -650,21 +610,14 @@ createMachineLearningModel <- function(trainingSet,
 
   progress$update(1.0, "job done")
 
-  class(trainingOutput) <- c("MLXIFF", class(trainingOutput))
+  class(trainingOutput) <- c(.extraClass, "MLXIFF", class(trainingOutput))
   
   trainingOutput$featureSelectionResult <- selectedFeatures
   trainingOutput$df <- df
   trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
   trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
-  
-  # If getBestFeaturesFnc or transformFeaturesFnc are empty, 
-  # then they require to have placeholder functions.
-  if(is.null(getBestFeaturesFnc)) getBestFeaturesFnc <- function(x) x
-  if(is.null(transformFeaturesFnc)) transformFeaturesFnc <- function(x, model) x
-  
-  trainingOutput$getBestFeaturesFnc   <- getBestFeaturesFnc
-  trainingOutput$transformFeaturesFnc <- transformFeaturesFnc
+  trainingOutput$otherParams <- .otherParams
   
   trainingOutput
 }

@@ -178,11 +178,15 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
   })
   
   Tpm <- reactive({
-    ensg <- ExpressionGene()$ensg
-    cs <- Results()$cs
     
-    getDataGeneExpressionById(ensg, cs) %>% 
-      addTumortypes(isolate(AnnotationFocus()))
+    res <- Results()
+    FutureManager::fmValidate(res)
+    
+    mlGetTpmData(
+      model = res[["value"]],
+      ensg = ExpressionGene()$ensg,
+      annoFocus = isolate(AnnotationFocus()))
+    
   })
   
   # Layout --------------------------------------------------------------------
@@ -200,11 +204,12 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
       "errplot" = XIFF::generateErrorPlot(res, cl),
       {
         gene <- ExpressionGene()
-        generateExpressionPlot(
+        mlGenerateExpressionPlot(
+          res,
           df = Tpm(), 
           ca = makeClassAssignment(cs, cl), 
           plotType = plotType,
-          paste("\n", gene$symbol, "-", gene$ensg)
+          gene = gene
         )
       }
       
@@ -214,16 +219,8 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
   TableData <- reactive({
     res <- Results()
     FutureManager::fmValidate(res)
-    sp <- res$species
-    CurrentSpecies(sp)
-    
-    importanceName <- attr(res$df, "importanceName")
-    importanceLabel <- paste0("importance (", importanceName, ")")
-    
-    res$df %>%
-      mutate(location = getEnsemblLocationLink(location, sp)) %>%
-      mutate(importance = signif(importance, 3)) %>%
-      rename(!!importanceLabel := importance)
+    CurrentSpecies(res[["value"]]$species)
+    mlGetTableData(res[["value"]])
   })
   
   RowCallback <- reactive({

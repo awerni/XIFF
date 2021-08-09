@@ -56,55 +56,6 @@ getGrepFeatureSelection <- function(df,
 
 
 
-#' Extract Raw Gene names from model when GREP/Ratio is used.
-#'
-#' @param x character vector with best features.
-#'
-#' @return
-#' @export
-mlGrepGetBestFeatures = function(x) {
-  
-  log_trace(
-    "mlGrepGetBestFeatures",
-    " - example: {paste(head(x,2), collapse = ', ')}")
-  unique(strsplit(x, split = "\\.") %>% unlist)
-}
-
-#' Create function that transforms raw log2tpm expression data into GREP/Ratio data.
-#'
-#' @param epsilonRNAseq 
-#'
-#' @return Data frame with ratios.
-#' 
-#' @details 
-#' 
-#' Usually this function should not be used by user directly. It is used when
-#' method 'Ratio' is selected.
-#' 
-#' @export
-#' 
-mlGrepMakeTransformExpr2RatioFunction <- function(epsilonRNAseq = 10) {
-  
-  epsilonRNAseq <- force(epsilonRNAseq)
-  
-  transformFeaturesFnc <- function(x, model) {
-    
-    log_trace("GREP - transform prediction epsilonRNAseq: {epsilonRNAseq}")
-    quotientMatrix <- mlGetLog2RatiosMatrix(x, epsilonRNAseq)
-    
-    if(!all(model$bestFeatures %in% colnames(quotientMatrix))) {
-      stop("Some ratios not available")
-    }
-    
-    features <- as_tibble(as.data.frame(quotientMatrix[, model$bestFeatures]))
-    
-    res <- x %>% select(class, !!rlang::sym(getOption("xiff.column")))
-    bind_cols(res, features)  
-  }
-  
-  transformFeaturesFnc
-}
-
 
 ################## Internal GREP/Ratios functions #################
 mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
@@ -178,10 +129,95 @@ mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
 
 #' @importFrom apcluster apclusterK
 mlGrepAffinityPropagation <- function (mat, n, cor.method = "pearson") {
-  n <- pmax(2, n)
+  n <- pmin(pmax(2, n), ceiling(ncol(mat) / 2))
   distance <- 1 - abs(cor(mat, method = cor.method))
   clusters <- apcluster::apclusterK(distance, details = FALSE, 
                                     K = n, maxits = 2000)
   mat[,clusters@exemplars, drop = FALSE]
 }
 
+#' @export
+mlGetTableData.XiffGREP <- function(model) {
+  importanceName <- attr(model$df, "importanceName")
+  importanceLabel <- paste0("importance (", importanceName, ")")
+  
+  model$df %>%
+    mutate(importance = signif(importance, 3)) %>%
+    rename(!!importanceLabel := importance) %>%
+    mutate(ensg2 = ensg) %>%
+    rename(`variable name` = ensg) %>%
+    select(-symbol, -name, -location) %>% tidyr::separate(ensg2, c("ensg1", "ensg2"), sep = "\\.")
+}
+
+######### getDataForModel for GREP with support functions #########
+#' @export
+getDataForModel.XiffGREP <- function(assignment,
+                                     features,
+                                     schema = getOption("xiff.schema"),
+                                     column = getOption("xiff.column")) {
+  
+  df <- getDataForModel(assignment,
+                    mlGrepGetBestFeatures(features$bestFeatures),
+                    schema = schema,
+                    column = column)
+  
+  mlGrepTransformExpr2Ratio(df, features, features$otherParams$epsilonRNAseq)
+  
+}
+
+mlGrepGetBestFeatures = function(x) {
+  log_trace(
+    "mlGrepGetBestFeatures",
+    " - example: {paste(head(x,2), collapse = ', ')}")
+  unique(strsplit(x, split = "\\.") %>% unlist)
+}
+
+mlGrepTransformExpr2Ratio <- function(x, model, epsilonRNAseq = 10) {
+  
+  log_trace("GREP - transform prediction epsilonRNAseq: {epsilonRNAseq}")
+  quotientMatrix <- mlGetLog2RatiosMatrix(x, epsilonRNAseq)
+  
+  if(!all(model$bestFeatures %in% colnames(quotientMatrix))) {
+    stop("Some ratios not available")
+  }
+  
+  features <- as_tibble(as.data.frame(quotientMatrix[, model$bestFeatures]))
+  
+  res <- x %>% select(class, !!rlang::sym(getOption("xiff.column")))
+  bind_cols(res, features)  
+  
+}
+
+
+#' @export
+mlGenerateExpressionPlot.XiffGREP <- function(model, df, ca, plotType = "point", gene) {
+  generatePlotByType(
+    data = df,
+    ca = ca,
+    plotType = plotType,
+    dataCol = "ratio",
+    title = gene$ensg,
+    ylabel = "Ratio",
+    trans = "identity"
+  )
+  
+}
+
+#' @export
+mlGetTpmData.XiffGREP <- function(model, ensg, annoFocus) {
+  
+  cs <- model$cs
+  ensg <- strsplit(ensg, split = "\\.") %>% unlist %>% sort
+  
+  data <- getDataGeneExpressionById(ensg, cs) %>% 
+    addTumortypes(annoFocus)
+  
+  eps <- model$otherParams$epsilonRNAseq
+  
+  data2 <- data %>%
+    group_by(!!rlang::sym(getOption("xiff.column")), tumortype) %>%
+    arrange(ensg) %>%
+    summarize(ensg = paste(ensg, collapse = "."), ratio = -diff(log2(tpm + eps)))
+  
+  data2
+}
