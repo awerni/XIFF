@@ -172,18 +172,28 @@ getRawDataForModel <- function(features,
 
 
 #' @export
-selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
+selectBestFeatures <-
+  function(df,
+           threshold = "Confirmed",
+           maxFeatures = Inf,
+           .otherParams = list()) {
+    
   
   if(is.numeric(threshold)) { 
     warning("Opps! You've send the threshold as numeric value! Please use 'Confirmend' (default) or 'Tentative'.")
     threshold <- "Confirmed" 
   } # if CLIFF sends a numeric value
   
-  selectBestFeaturesBoruta(df, threshold, maxFeatures)
+  selectBestFeaturesBoruta(df, threshold, maxFeatures, .otherParams = .otherParams)
 }
 
 #' @export
-selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
+selectBestFeaturesTTest <-
+  function(df,
+           threshold = 0.05,
+           maxFeatures = Inf,
+           .otherParams = list()) {
+    
   
   stopifnot(
     "selectBestFeaturesTTest: threshold must be numeric" =
@@ -208,13 +218,19 @@ selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
   list(
     stats = ttRes,
     df = df,
+    .otherParams = .otherParams,
     method = "genefilter::colttests"
   )
 }
 
 #' @export
 #' @importFrom glmnet cv.glmnet glmnet
-selectBestFeaturesGlmnet <- function(df, threshold = 0.05, maxFeatures = Inf) {
+selectBestFeaturesGlmnet <-
+  function(df,
+           threshold = 0.05,
+           maxFeatures = Inf,
+           .otherParams = list()) {
+    
   
   x <- as.matrix(df %>% select(-class))
   
@@ -242,6 +258,7 @@ selectBestFeaturesGlmnet <- function(df, threshold = 0.05, maxFeatures = Inf) {
   list(
     stats = stats,
     df = finalDt,
+    .otherParams = .otherParams,
     method = "glmnet::glmnet"
   )
   
@@ -265,8 +282,14 @@ selectBestFeaturesGlmnet <- function(df, threshold = 0.05, maxFeatures = Inf) {
 #' featureFit <- selectBestFeaturesBoruta(feature_selection_data)
 #' plot(featureFit$fit, las = 1, horizontal = TRUE)
 #' 
-selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative"), maxFeatures = Inf, threads = getOption("xiff.boruta.threads", 2)) {
-  
+selectBestFeaturesBoruta <-
+  function(df,
+           threshold = c("Confirmed", "Tentative"),
+           maxFeatures = Inf,
+           threads = getOption("xiff.boruta.threads", 2),
+           .otherParams = list()
+           ) {
+    
   threshold <- match.arg(threshold, c("Confirmed", "Tentative"))
   if(threshold == "Tentative") threshold <- c("Confirmed", "Tentative")
   if(maxFeatures < 1) {
@@ -300,6 +323,7 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
     fit = fit,
     stats = stats,
     df = df,
+    .otherParams = .otherParams,
     method = "Boruta::Boruta"
   )
   
@@ -511,7 +535,7 @@ createMachineLearningModel <- function(trainingSet,
     selectBestFeaturesFnc <- getGrepFeatureSelection
     if(is.character(threshold)) threshold <- 0.1
     if(maxFeatures == "auto") {
-      maxFeatures <- 750
+      maxFeatures <- 600
     }
     
     log_trace("GREP: Max Features: {maxFeatures}, fdr threshold: {threshold}")
@@ -578,7 +602,8 @@ createMachineLearningModel <- function(trainingSet,
     list(
       df = df,
       threshold = threshold,
-      maxFeatures = maxFeatures
+      maxFeatures = maxFeatures,
+      .otherParams = .otherParams
     ),
     featuresParams
   )
@@ -586,7 +611,8 @@ createMachineLearningModel <- function(trainingSet,
   selectedFeatures <- do.call(selectBestFeaturesFnc, featuresParams)
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
-
+  .otherParams <- selectedFeatures$.otherParams
+  
   bestFeatures <- stats %>% pull(ensg)
 
   if (length(bestFeatures) == 0){

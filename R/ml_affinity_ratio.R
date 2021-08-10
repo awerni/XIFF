@@ -12,11 +12,12 @@
 #' @examples
 getGrepFeatureSelection <- function(df,
                                     threshold = 0.1,
-                                    maxFeatures = 750,
+                                    maxFeatures = 600,
                                     maxGenes = 300,
                                     minFeatures = 15,
                                     epsilonRNAseq = 10,
-                                    cor.method = "pearson") {
+                                    cor.method = "pearson",
+                                    .otherParams = list()) {
   
   dfNum <- df %>% select_if(is.numeric)
   log_trace("GREP: Feature Selection - start: {ncol(dfNum)}")
@@ -51,6 +52,7 @@ getGrepFeatureSelection <- function(df,
   res <- selectBestFeaturesTTest(dfSelected, threshold = 1, maxFeatures = Inf)
   
   res$method <- "GREP"
+  res$.otherParams <- .otherParams
   res
 }
 

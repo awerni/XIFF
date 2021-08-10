@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
   dev = "CairoPNG",
   fig.height = 6,
   fig.width = 7,
-  eval = FALSE
+  eval = TRUE
 )
 ```
 
@@ -76,13 +76,6 @@ defaultFit <- XIFF::buildMachineLearning(
   geneAnno = geneAnno,
 )
 
-nnFit <- XIFF::buildMachineLearning(
-  cs = trainingSet,
-  geneSet = geneSet,
-  geneAnno = geneAnno,
-  method = "neuralnetwork"
-)
-
 # model using caret functionality. It does not implement 
 # model specific function is XIFF, but uses sensible defaults
 glmnetFit <- XIFF::buildMachineLearning(
@@ -98,7 +91,6 @@ glmnetFit <- XIFF::buildMachineLearning(
 
 ```{r}
 predict(defaultFit)
-predict(nnFit)
 predict(glmnetFit)
 ```
 
@@ -148,14 +140,12 @@ modelValidationData %>% dplyr::select(celllinename, class) %>%
 ```{r}
 library(tidyr)
 generatePerformancePlot(defaultFit)
-generatePerformancePlot(nnFit)
 generatePerformancePlot(glmnetFit)
 ```
 ## Variable importance
 
 ```{r}
 generateVarImpPlot(defaultFit)
-generateVarImpPlot(nnFit)
 generateVarImpPlot(glmnetFit)
 ```
 
@@ -257,12 +247,6 @@ makeModelPlots <- function(model, validationSet) {
 makeModelPlots(defaultFit, validationSet)
 ```
 
-### Neural Network
-
-```{r}
-makeModelPlots(nnFit, validationSet)
-```
-
 ### Glmnet
 
 ```{r}
@@ -340,7 +324,7 @@ grepFit <- XIFF::buildMachineLearning(
   selectBestFeaturesFnc = getGrepFeatureSelection,
   threshold = 0.1,
   maxFeatures = 750,
-  .extraClass = "XiffGREP"
+  .extraClass = "XiffGREP" # see inst/devel-notes/ml-custom-models.Rmd
 )
 
 annoFocus <- CLIFF::getCellLineAnno("human") %>%
