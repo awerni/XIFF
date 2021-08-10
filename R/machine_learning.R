@@ -100,7 +100,44 @@ mlGenerateExpressionPlot <- function(model, df, ca, plotType = "point", gene) {
   UseMethod("mlGenerateExpressionPlot")
 }
 
+#' @export
+getRawDataForModel <- function(features,
+                                       names = NULL,
+                                       schema = getOption("xiff.schema"),
+                                       column = getOption("xiff.column")) {
+  UseMethod("getRawDataForModel")
+}
+
 ######## Default methods
+#' @export
+getRawDataForModel.default <- function(features,
+                                       names = NULL,
+                                       schema = getOption("xiff.schema"),
+                                       column = getOption("xiff.column")) {
+  
+  clFilter <- if (length(names) > 0){
+    paste(" AND", getSQL_filter(column, names))
+  } else {
+    ""
+  }
+  
+  ensgSql <- getSQL_filter("ensg", features)
+  
+  sql <- glue::glue("
+     SELECT 
+      {column}, ensg, log2tpm AS score 
+    FROM 
+      {schema}.processedrnaseqview                
+    WHERE
+      {ensgSql}
+      {clFilter}          
+  ")
+  
+  
+  getPostgresql(sql)
+}
+
+
 #' @export
 mlGenerateExpressionPlot.default <- function(model, df, ca, plotType = "point", gene) {
   
@@ -171,5 +208,13 @@ getDataForModel.MLXIFF <- function(assignment,
                   features$bestFeatures,
                   schema = schema,
                   column = column)
+}
+
+#' @export
+getRawDataForModel.MLXIFF <- function(features,
+                                       names = NULL,
+                                       schema = getOption("xiff.schema"),
+                                       column = getOption("xiff.column")) {
+  getRawDataForModel(features$bestFeatures, names, schema, column)
 }
 

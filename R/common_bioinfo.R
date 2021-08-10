@@ -143,35 +143,6 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
 }
 
 #' @export
-getRawDataForModel <- function(features,
-                               names = NULL,
-                               schema = getOption("xiff.schema"),
-                               column = getOption("xiff.column")) {
-  
-  clFilter <- if (length(names) > 0){
-    paste(" AND", getSQL_filter(column, names))
-  } else {
-    ""
-  }
-  
-  ensgSql <- getSQL_filter("ensg", features)
-  
-  sql <- glue::glue("
-     SELECT 
-      {column}, ensg, log2tpm AS score 
-    FROM 
-      {schema}.processedrnaseqview                
-    WHERE
-      {ensgSql}
-      {clFilter}          
-  ")
-
- 
-  getPostgresql(sql)
-}
-
-
-#' @export
 selectBestFeatures <-
   function(df,
            threshold = "Confirmed",

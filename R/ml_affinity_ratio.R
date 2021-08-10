@@ -223,3 +223,36 @@ mlGetTpmData.XiffGREP <- function(model, ensg, annoFocus) {
   
   data2
 }
+
+
+#' @export
+getRawDataForModel.XiffGREP <- function(features,
+                                      names = NULL,
+                                      schema = getOption("xiff.schema"),
+                                      column = getOption("xiff.column")) {
+  
+  rawDt <- getRawDataForModel(mlGrepGetBestFeatures(features$bestFeatures),
+                     names,
+                     schema,
+                     column)
+  
+  eps <- features$otherParams$epsilonRNAseq
+  
+  featuresAll <- strsplit(features$bestFeatures, split = "\\.")
+  leftSide  <- sapply(featuresAll, "[[", 1)
+  rightSide <- sapply(featuresAll, "[[", 2)
+  
+  rawDtLeft <- rawDt %>% filter(ensg %in% leftSide) %>% rename(lensg = ensg)
+  rawDtRight <- rawDt %>% filter(ensg %in% rightSide) %>% rename(rensg = ensg)
+  
+  data <- inner_join(rawDtLeft, rawDtRight, by = column)
+  
+  data2 <- data %>% mutate(
+    ensg = paste(lensg, rensg, sep = "."),
+    score = log2(2^score.x + eps) - log2(2^score.y + eps)
+  ) %>% select(
+    -score.x, -score.y, -rensg, -lensg
+  )
+  
+  data2
+}
