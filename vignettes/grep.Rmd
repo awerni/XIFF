@@ -1,0 +1,128 @@
+---
+title: "GREP in XIFF"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GREP in XIFF}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dev = "CairoPNG",
+  fig.height = 6,
+  fig.width = 7,
+  eval = FALSE
+)
+```
+
+*The code in this vignette is not evaluated because it takes too much time to run. It is here only as a reference.*
+
+# Preparing the data
+
+```{r setup}
+library(XIFF)
+library(dplyr)
+setDbOptions()
+set.seed(123)
+
+cs <- getStashedData("0766b1")
+
+cs <- list(
+      class1 = cs %>% filter(MDM2_class == "resistant") %>% pull,
+      class2 = cs %>% filter(MDM2_class == "sensitive") %>% pull
+    )
+
+sets <- XIFF::splitTrainingValidationSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
+sets$training
+
+trainingSet <- with(sets$training, split(celllinename, class))
+validationSet <- with(sets$validation, split(celllinename, class))
+
+# Hallmark gene set
+hallmarkGeneSet <- "P53_PATHWAY"
+geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+
+# Gene Annotation
+geneAnno <- CLIFF::getGeneAnno()[["human"]]
+```
+
+# Train the model
+
+```{r}
+set.seed(123)
+logger::log_threshold(logger::TRACE)
+
+grepFit <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "GREP"
+)
+
+annoFocus <- CLIFF::getCellLineAnno("human") %>%
+  dplyr::filter(celllinename %in% unlist(validationSet))
+  
+validation <- validateModel(
+  grepFit,
+  validationSet = stackClasses(validationSet),
+  anno = annoFocus
+)
+
+```
+
+```{r}
+getDataForModel(validationSet, grepFit)
+mlGetTableData(grepFit)
+```
+
+# GREP method step by step
+
+```{r}
+rawData <- getDataForModel(trainingSet, geneSet) # get raw data
+rawData <- rawData %>% select(-celllinename)
+
+# select features
+selectedDf <- getGrepFeatureSelection(
+  rawData,
+  threshold = 0.1,
+  maxGenes = 100,
+  maxFeatures = 600
+)
+
+# train model directly using glm
+fit <- glm(class ~ ., selectedDf$df, family = "binomial")
+
+# train model using caret train
+caretFit <- caret::train(class ~ ., selectedDf$df, method = "glm")
+
+```
+# Internals
+
+```{r}
+rawData2 <- rawData[,sort(colnames(rawData))]
+dt <- rawData2[,1:4]
+dtNum <- dt[,2:4]
+
+epsilonRNAseq <- 10
+ratioMatrix <- XIFF:::mlGetLog2RatiosMatrix(dtNum, epsilonRNAseq = epsilonRNAseq)
+
+# Transformation step by step
+mat <- as.matrix(dt[,c("ENSG00000023892", "ENSG00000026103")]) # get two columns
+
+# transoform to count, add epsilon and get back to log scale
+mat <- log2(2^mat + epsilonRNAseq) 
+
+x <- mat[,1] - mat[,2] # calculate difference
+all(ratioMatrix[,1] == x) # they do agree
+
+```
