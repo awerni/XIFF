@@ -47,6 +47,7 @@ getDataForModel
 mlGetTableData
 mlGetTpmData
 mlGenerateExpressionPlot 
+getRawDataForModel
 ```
 
 ```{r}
@@ -115,7 +116,7 @@ validation <- validateModel(
 )
 
 # For implementation of
-# mlGetTableData mlGetTpmData mlGenerateExpressionPlot
-# check mlGetTableData.XiffGREP
+# mlGetTableData mlGetTpmData mlGenerateExpressionPlot getRawDataForModel
+# check mlGetTableData.XiffGREP 
 ```
 

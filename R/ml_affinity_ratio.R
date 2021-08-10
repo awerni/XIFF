@@ -254,5 +254,7 @@ getRawDataForModel.XiffGREP <- function(features,
     -score.x, -score.y, -rensg, -lensg
   )
   
+  data2 <- data2 %>% filter(ensg %in% features$bestFeatures)
+  
   data2
 }
