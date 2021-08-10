@@ -338,15 +338,16 @@ grepFit <- XIFF::buildMachineLearning(
   geneAnno = geneAnno,
   method = "glm",
   selectBestFeaturesFnc = getGrepFeatureSelection,
-  threshold = 0.01,
+  threshold = 0.1,
   maxFeatures = 750,
-  getBestFeaturesFnc = mlGrepGetBestFeatures,
-  transformFeaturesFnc = mlGrepMakeTransformExpr2RatioFunction()
+  .extraClass = "XiffGREP"
 )
 
 annoFocus <- CLIFF::getCellLineAnno("human") %>%
   dplyr::filter(celllinename %in% unlist(validationSet))
-  
+
+valData <- getDataForModel(validationSet, grepFit)
+
 validation <- validateModel(
   grepFit,
   validationSet = stackClasses(validationSet),
