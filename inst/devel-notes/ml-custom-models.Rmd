@@ -84,7 +84,8 @@ customFit <- XIFF::buildMachineLearning(
   geneAnno = geneAnno,
   method = "glm",
   selectBestFeaturesFnc = getFeatures,
-  .extraClass = "CustomModel",
+  .extraClass = "CustomModel", # <---- here you need to add the class for which
+                               # you implemented required required methods!
   .otherParams = list(thresholds = c(-Inf, -3, -2, -1, 0, 1, 2, 3, Inf))
 )
 

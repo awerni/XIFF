@@ -74,6 +74,7 @@ defaultFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
+  maxFeatures = 5
 )
 
 # model using caret functionality. It does not implement 
@@ -308,6 +309,8 @@ validation <- validateModel(
   anno = annoFocus
 )
 
+makeModelPlots(grepFit, validationSet)
+
 ```
 
 ### Raw version
@@ -337,6 +340,8 @@ validation <- validateModel(
   validationSet = stackClasses(validationSet),
   anno = annoFocus
 )
+
+makeModelPlots(grepFit, validationSet)
 
 
 ```
