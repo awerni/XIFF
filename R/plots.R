@@ -119,10 +119,30 @@ generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
 }
 
 #' @export
-generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"), ylabel = "score",
-                                  trans = "identity", limits = NULL, fill = "tumortype") {
+generateWaterfallPlot <-
+  function(data,
+           dataCol,
+           xlabel = getOption("xiff.label"),
+           ylabel = "score",
+           trans = "identity",
+           limits = NULL,
+           fill = "tumortype",
+           autoYscale = TRUE) {
+    
   if (is.null(data)) return()
 
+  y <- data[[dataCol]]
+  if(autoYscale && min(y) > 0) {
+    
+    log10range <- diff(range(log10(y)))
+    
+    if(log10range > 2) {
+      data[[dataCol]] <- log10(data[[dataCol]])
+      ylabel <- glue::glue("log10({ylabel})")
+    }
+    
+  }
+    
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
 
