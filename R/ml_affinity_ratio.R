@@ -68,6 +68,15 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
   
   dfNum <- dfNum[,maxExprAboveTreshold]
   
+  if(ncol(dfNum) == 0) {
+    msg <- glue::glue(
+      "There are no enought genes with",
+      " max(log2tpm) > log2(epsilonRNAseq)",
+      ", log2(epsilonRNAseq) = log2({epsilonRNAseq}) = {round(log2(epsilonRNAseq),5)}"
+    )
+    stop(msg)
+  }
+  
   varCoef <- vapply(dfNum, FUN.VALUE = 0.0, FUN = function(x) {
     xx <- 2^x
     sd(xx) / mean(xx)
@@ -112,11 +121,20 @@ mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
   featuresInfo <- genefilter::colttests(mat, class) %>% 
     tibble::rownames_to_column(var = "feature") %>% 
     tibble::as_tibble() %>%
-    dplyr::mutate(p_adj = p.adjust(p.value,method = "BH")) %>%
+    dplyr::mutate(p_adj = p.adjust(p.value, method = "BH")) %>%
     dplyr::arrange(p_adj)
   
   
   featuresInfo <- featuresInfo %>% filter(p_adj <= fdr) %>% arrange(p_adj) %>% head(maxN)
+  
+  if(nrow(featuresInfo) == 0) {
+    msg <- glue::glue(
+      "There are no significant features above fdr ({fdr}) threshold.",
+      " The model cannot be build. Please try different machine learning",
+      " method or dataset."
+    )
+    stop(msg)
+  }
   
   log_trace(
     "GREP - Significant features, ",
@@ -131,6 +149,13 @@ mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
 
 #' @importFrom apcluster apclusterK
 mlGrepAffinityPropagation <- function (mat, n, cor.method = "pearson") {
+  
+  if(ncol(mat) < 4) {
+    log_trace("mlGrepAffinityPropagation",
+    " - less than 4 features - returning whole matrix.")
+    return(mat)
+  }
+  
   n <- pmin(pmax(2, n), ceiling(ncol(mat) / 2))
   distance <- 1 - abs(cor(mat, method = cor.method))
   clusters <- apcluster::apclusterK(distance, details = FALSE, 
