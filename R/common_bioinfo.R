@@ -592,14 +592,32 @@ createMachineLearningModel <- function(trainingSet,
 
   progress$update(0.5, "training model...")
 
-  trainingOutput <- trainModel(
+  trainingOutput <- try(trainModel(
     df = df,
     method = method,
     tuneLength = tuneLength,
     number = number,
     repeats = repeats,
     ...
-  )
+  ))
+  
+  if(is(trainingOutput, "try-error")) {
+    
+    if(method == "neuralnetwork") {
+      msg <- paste(
+        "Cannot train neuralnetwork the model.", 
+        " Most probably there's no good parameter combination that satisfies",
+        " the minimum fit criteria. Please try different model or dataset."
+      )
+      progress$error(msg)
+    } else {
+      msg <- paste(
+        "An error occured during model training phase.", 
+        " Please contact app authors."
+      )
+    }
+    progress$error(msg)
+  }
 
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
   df <- importanceRes %>% left_join(geneAnno, by = "ensg")
