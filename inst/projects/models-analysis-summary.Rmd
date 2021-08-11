@@ -1,0 +1,371 @@
+---
+title: "Models simulation - summary"
+subtitle: "v1, XIFF v0.0.17, 2021-07-09"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height=7, fig.width = 12)
+library(dplyr)
+library(ggplot2)
+```
+
+# Simulation setting
+
+For each model:
+
+  - Random Forest (rf)
+  - SVM (svmLinear2)
+  - Neural Network (nn) - without scaling the input data
+  - Neural Network (nn-scaled) - with scaling the input data
+  - Regularized Logistic Regression (glmnet)
+  
+two feature selection algorithms were tested:
+
+  - Boruta - using two thresholds:
+    - Confirmed - more conservative, selects only the features that was able to confirm.
+    - Tentative - selects even the features which their importance is uncertain.
+  - T-test filter with threshold = `0.05`
+    - implementation based on `genefilter::colttests`.
+    
+and 4 thresholds for number of features:
+
+  - 5
+  - 50
+  - 25
+  - unlimited (any number that came from feature selection algorithm).
+  
+This lead to `5 (models) x 3 (feature selection methods) x 4 (feature thresholds) = 60 combinations`.
+
+Each simulation was conducted for 4 data sets:
+
+|hash   |description                                              |geneSet                               |positive class|
+|:------|:--------------------------------------------------------|:-------------------------------------|:-------------|
+|0766b1 |sensitivity/resistance to MDM2 CRISPR knockout           |P53_PATHWAY                           |sensitive     |
+|06bd26 |DR5 = TRAILR2 sensitivity (Reddy et al.)                 |WP_APOPTOSIS_MODULATION_AND_SIGNALING |Sensitive     |
+|2ef471 |KRAS sensitivity (class1 = resistant, class2 = sensitive)|KRAS_SIGNALING_UP                     |class2        |
+|eb1e71 |Random Dataset                                           |KRAS_SIGNALING_UP                     |class1        |
+
+giving `60 combinations x 4 = 240` different combinations.
+
+Each model was trained 50 times with different random.seed.
+
+# Results
+
+```{r}
+simulationResult <- readRDS("simulation-result-v2-2021-08-06.rds")
+simulationResult <- simulationResult %>% filter(!grepl(FeatureAlgo, pattern = "Affinity"))
+
+makeSummaryTable <- function(tbl, stat) {
+
+  stat <- enquo(stat)
+  tbl2 <- tbl %>%
+    group_by(Models, FeatureAlgo, FeatureNumbers, hash, hallmarkGeneSet) %>%
+    summarise(
+      MEAN = mean(!!stat),
+      Q05  = quantile(!!stat, 0.05),
+      Q95  = quantile(!!stat, 0.05),
+      MIN  = min(!!stat),
+      MAX  = max(!!stat),
+      IQR = IQR(!!stat)
+    ) %>% ungroup()
+    
+  tbl2
+}
+
+
+MODEL_NAMES <- simulationResult$Models %>% unique()
+MODEL_COLORS = setNames(
+  RColorBrewer::brewer.pal(length(MODEL_NAMES), name = "Dark2"),
+  MODEL_NAMES)
+
+library(ggplot2)
+library(glue)
+makePlot <- function(tbl, stat) {
+  
+  stat = enquo(stat)
+  
+  tbl <- tbl %>% mutate(
+    FeatureNumbers = as.numeric(as.factor(FeatureNumbers))
+  )
+  
+  p <- ggplot(tbl) + 
+  geom_line(aes(FeatureNumbers, !!stat, color = Models, linetype = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"))
+
+  p <- p +
+    theme_bw() +
+    scale_x_continuous(breaks = c(1,2,3,4), labels = c("5", "25", "50", "Inf")) + 
+    scale_color_manual(values = MODEL_COLORS) + 
+    scale_y_continuous(labels = scales::percent)
+  
+  
+  p
+}
+
+makeBoxPlot <- function(tbl, stat) {
+  
+  stat = enquo(stat)
+  
+  tbl <- tbl %>% mutate(
+    FeatureNumbers = as.factor(FeatureNumbers)
+  )
+  
+  tbl <- tbl %>% mutate(Model = paste(Models, FeatureAlgo, sep = " - "))
+  
+  p <- ggplot(tbl) + 
+  geom_boxplot(aes(Model, !!stat, color = FeatureNumbers)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet")) + 
+    coord_flip()
+
+  p <- p +
+    theme_bw() +
+    scale_y_continuous(labels = scales::percent)
+  p
+}
+
+
+accuracyTable <- makeSummaryTable(simulationResult, Accuracy)
+sensitivityTable <- makeSummaryTable(simulationResult, Sensitivity)
+
+makeLinePlots <- function(tbl, stat = "Accuracy") {
+  (makePlot(tbl, stat = MEAN) + ggtitle(glue("{stat} - Mean"))) %>% print
+  (makePlot(tbl, stat = Q05) + ggtitle(glue("{stat} - Q05")))   %>% print
+  (makePlot(tbl, stat = IQR) + ggtitle(glue("{stat} - IQR")))   %>% print
+}
+
+```
+
+## Accuracy
+
+All models:
+
+```{r, fig.width=12, fig.height=10}
+makeLinePlots(accuracyTable, "Accuracy")
+```
+
+Without random models (which looks random)
+
+```{r, fig.width=12, fig.height=10}
+accuracyTable2 <- accuracyTable %>% filter(hash != "eb1e71")
+makeLinePlots(accuracyTable2, "Accuracy")
+```
+
+###  All boxplots
+
+```{r, fig.height=8}
+makeBoxPlot(simulationResult, Accuracy)
+```
+
+```{r, fig.height=8, fig.width=12}
+simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
+makeBoxPlot(simulationResult2, Accuracy)
+```
+
+
+
+```{r, fig.height=8, fig.width=12}
+simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
+simulationResultInf <- simulationResult2 %>% filter(FeatureNumbers == Inf)
+makeBoxPlot(simulationResultInf, Accuracy)
+
+p <- ggplot(simulationResultInf) + 
+  geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet")) + 
+    coord_flip()
+
+p <- p +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent)
+p + ggtitle("Models by Feature Algo (only without feature number limit)")
+
+```
+
+
+### SVM vs GLMNET
+
+It might be worth to have a closer look into difference between SVN and GLMNET - both are somewhat linear models (svm has a linear kernel), so having two of them might be redundant.
+
+```{r, fig.height=7}
+cmpTable <- accuracyTable %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71")
+
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == Inf)
+
+makePlot(cmpTable, stat = MEAN) + ggtitle("Accuracy - Mean")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Accuracy, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on models difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on feature selection difference")
+
+```
+In fact, there's no much difference (by looking at the boxplots, one can see that there's a lot of variability there) - `glmnet` is only a slightly better (on average). There's also no major difference between feature selection algos, so we can stick with TTest for `glmnet` (this makes sense, becasue `glmnet` has it own feature selection algorithm built in).
+
+### Random forest
+
+There's zoom into Random Forrest results.
+
+
+*It seems that GREP (Ratios) does not changes Random Forest performance that much.*
+
+```{r, fig.height=7}
+cmpTable <- accuracyTable %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+makePlot(cmpTable, stat = MEAN) + ggtitle("Accuracy - Mean")
+
+
+cmpAll <- cmpAll %>% mutate(FeatureNumbers = as.factor(FeatureNumbers))
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureNumbers, Accuracy, color = FeatureAlgo), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on feature selection difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Accuracy, color = FeatureNumbers), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on number of features")
+
+
+```
+
+### Comparision of the NN models
+
+The question was if there's a need for feature scaling before traing the Neural Network model. In theory it should improve the model (scaled data is easier for backpropagation). It seems that it does not change nearly anything, so keeping the current version seems to be resonable.
+
+Investigating the plots below also shows that there's no definitive answer to the question about which feature algorithm is better for NN. In some cases the TTest is a little bit more accurate, in others Boruta.
+
+```{r, fig.height=7}
+nnTable <- accuracyTable %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71")
+
+nnAll <- simulationResult %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == 5)
+
+makePlot(nnTable, stat = MEAN) + ggtitle("Accuracy - Mean")
+
+ggplot(nnAll) + geom_boxplot(aes(FeatureAlgo, Accuracy, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+ggplot(nnAll) + geom_boxplot(aes(Models, Accuracy, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+```
+
+### Accuracy - Summary
+
+- There's no big difference between `glmnet` and `SVM` - keeping only one of them might be a good idea (preferably `glmnet`).
+- Neuralnets works pretty bad (worse than other models - probably they overfit or don't have enough data points, or they need more special treatment (dropouts?)?).
+- It seems that there's no need to impose the limit of number of features resulting from feature selection (except for neaurlnet).
+- Boruta might not be necessary if we want ot keep everything as simple as possible.
+
+## Sensitivity 
+
+All models:
+
+```{r, fig.width=12, fig.height=10}
+makeLinePlots(sensitivityTable, "Sensitivity")
+```
+
+Without random models:
+
+```{r, fig.width=12, fig.height=10}
+sensitivityTable2 <- sensitivityTable %>% filter(hash != "eb1e71")
+makeLinePlots(sensitivityTable2, "Sensitivity")
+```
+
+###  All boxplots
+
+```{r, fig.height=8}
+makeBoxPlot(simulationResult, Sensitivity)
+```
+
+```{r, fig.height=8, fig.width=12}
+simulationResult2 <- simulationResult %>% filter(hash != "eb1e71")
+makeBoxPlot(simulationResult2, Sensitivity)
+```
+
+### SVM vs GLMNET
+
+SVM vs GLMNET from the sensitivity perspective:
+
+```{r, fig.height=7}
+cmpTable <- sensitivityTable %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71")
+
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("glmnet", "svmLinear2")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == Inf)
+
+makePlot(cmpTable, stat = MEAN) + ggtitle("Sensitivity - Mean")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Sensitivity, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on models difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(Models, Sensitivity, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip() + ggtitle("Focus on feature selection difference")
+
+```
+
+### Random forest
+
+There's zoom into Random Forrest results.
+
+```{r, fig.height=7}
+cmpTable <- sensitivityTable %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+cmpAll <- simulationResult %>%
+  filter(Models %in% c("rf")) %>%
+  filter(hash != "eb1e71")
+
+makePlot(cmpTable, stat = MEAN) + ggtitle("Sensitivity - Mean")
+
+
+cmpAll <- cmpAll %>% mutate(FeatureNumbers = as.factor(FeatureNumbers))
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureNumbers, Sensitivity, color = FeatureAlgo), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on feature selection difference")
+
+ggplot(cmpAll) + geom_boxplot(aes(FeatureAlgo, Sensitivity, color = FeatureNumbers), notch = TRUE) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1, scales = "free") + coord_flip() + ggtitle("Focus on number of features")
+
+
+```
+
+### Comparision of the NN models
+
+
+```{r, fig.height=7}
+nnTable <- sensitivityTable %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71")
+
+nnAll <- simulationResult %>%
+  filter(Models %in% c("nn", "nn-scaled")) %>%
+  filter(hash != "eb1e71") %>%
+  filter(FeatureNumbers == 5)
+
+makePlot(nnTable, stat = MEAN) + ggtitle("Sensitivity - Mean")
+
+ggplot(nnAll) + geom_boxplot(aes(FeatureAlgo, Sensitivity, color = Models)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+ggplot(nnAll) + geom_boxplot(aes(Models, Sensitivity, color = FeatureAlgo)) + 
+  facet_wrap(c("hash", "hallmarkGeneSet"), ncol = 1) + coord_flip()
+
+```

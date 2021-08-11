@@ -143,71 +143,36 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
 }
 
 #' @export
-getRawDataForModel <- function(features,
-                               names = NULL,
-                               schema = getOption("xiff.schema"),
-                               column = getOption("xiff.column")) {
-  
-  clFilter <- if (length(names) > 0){
-    paste(" AND", getSQL_filter(column, names))
-  } else {
-    ""
-  }
-  
-  ensgSql <- getSQL_filter("ensg", features)
-  
-  sql <- glue::glue("
-     SELECT 
-      {column}, ensg, log2tpm AS score 
-    FROM 
-      {schema}.processedrnaseqview                
-    WHERE
-      {ensgSql}
-      {clFilter}          
-  ")
-
- 
-  getPostgresql(sql)
-}
-
-#' @export
-getDataForModel <- function(assignment,
-                            features,
-                            schema = getOption("xiff.schema"),
-                            column = getOption("xiff.column")) {
-  
-  if(is.list(assignment) && !is.data.frame(assignment)) {
-    assignment <- stackClasses(assignment)
-  }
-  
-  if(inherits(features, "MLXIFF")) {
-    features <- features$bestFeatures
-  }
-  
-  getRawDataForModel(
-    features = features,
-    names    = assignment[[column]],
-    schema   = schema,
-    column   = column
-  ) %>%
-    tidyr::pivot_wider(names_from = ensg, values_from = score) %>%
-    left_join(assignment, by = column)
-}
-
-
-#' @export
-selectBestFeatures <- function(df, threshold = "Confirmed", maxFeatures = Inf) {
+selectBestFeatures <-
+  function(df,
+           threshold = "Confirmed",
+           maxFeatures = Inf,
+           .otherParams = list()) {
+    
   
   if(is.numeric(threshold)) { 
     warning("Opps! You've send the threshold as numeric value! Please use 'Confirmend' (default) or 'Tentative'.")
     threshold <- "Confirmed" 
   } # if CLIFF sends a numeric value
   
-  selectBestFeaturesBoruta(df, threshold, maxFeatures)
+  selectBestFeaturesBoruta(df, threshold, maxFeatures, .otherParams = .otherParams)
 }
 
 #' @export
-selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
+selectBestFeaturesTTest <-
+  function(df,
+           threshold = 0.05,
+           maxFeatures = Inf,
+           .otherParams = list()) {
+    
+  
+  stopifnot(
+    "selectBestFeaturesTTest: threshold must be numeric" =
+    is.numeric(threshold)
+  )
+  
+  if(is.character(df$class)) df$class <- as.factor(df$class)
+  
   ttRes <- genefilter::colttests(
     x = df %>% select(-class) %>% as.matrix(),
     fac = df$class,
@@ -224,10 +189,51 @@ selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
   list(
     stats = ttRes,
     df = df,
+    .otherParams = .otherParams,
     method = "genefilter::colttests"
   )
 }
 
+#' @export
+#' @importFrom glmnet cv.glmnet glmnet
+selectBestFeaturesGlmnet <-
+  function(df,
+           threshold = 0.05,
+           maxFeatures = Inf,
+           .otherParams = list()) {
+    
+  
+  x <- as.matrix(df %>% select(-class))
+  
+  if(is.numeric(threshold)) {
+    fit <- glmnet::glmnet(x, df$class, family = "binomial", lambda = threshold) 
+    coef <- coefficients(fit)
+  } else {
+    log_trace("selectBestFeaturesGlmnet - Using cv.glmnet for feature selection")
+    fit <- glmnet::cv.glmnet(x, df$class, family = "binomial") 
+    coef <- coefficients(fit, fit$lambda.1se)
+  }
+  
+  coef <- as.matrix(coef)
+  coef <- coef[coef != 0,][-1]
+  
+  if(length(coef) == 0) {
+    stop("selectBestFeaturesGlmnet: cannot find any meaningful features")
+  }
+  
+  stats <- tibble(ensg = names(coef), coef = coef) %>%
+    arrange(desc(abs(coef))) %>% head(maxFeatures)
+  
+  finalDt <- df[, c("class", stats$ensg)]
+  
+  list(
+    stats = stats,
+    df = finalDt,
+    .otherParams = .otherParams,
+    method = "glmnet::glmnet"
+  )
+  
+}
 
 #' Use Bortua algorithm for feature selection.
 #'
@@ -247,8 +253,14 @@ selectBestFeaturesTTest <- function(df, threshold = 0.05, maxFeatures = Inf){
 #' featureFit <- selectBestFeaturesBoruta(feature_selection_data)
 #' plot(featureFit$fit, las = 1, horizontal = TRUE)
 #' 
-selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative"), maxFeatures = Inf, threads = getOption("xiff.boruta.threads", 2)) {
-  
+selectBestFeaturesBoruta <-
+  function(df,
+           threshold = c("Confirmed", "Tentative"),
+           maxFeatures = Inf,
+           threads = getOption("xiff.boruta.threads", 2),
+           .otherParams = list()
+           ) {
+    
   threshold <- match.arg(threshold, c("Confirmed", "Tentative"))
   if(threshold == "Tentative") threshold <- c("Confirmed", "Tentative")
   if(maxFeatures < 1) {
@@ -282,6 +294,7 @@ selectBestFeaturesBoruta <- function(df, threshold = c("Confirmed", "Tentative")
     fit = fit,
     stats = stats,
     df = df,
+    .otherParams = .otherParams,
     method = "Boruta::Boruta"
   )
   
@@ -454,7 +467,11 @@ createMachineLearningModel <- function(trainingSet,
                                        ...,
                                        # misc parameters
                                        .verbose = TRUE,
-                                       .progress = FALSE) {
+                                       .progress = FALSE,
+                                       .epsilonRNAseq = 10,
+                                       .otherParams = list(),
+                                       .extraClass = NULL
+                                       ) {
   
   localMessage <- function(...) if(.verbose) message(glue::glue(...))
   
@@ -484,6 +501,20 @@ createMachineLearningModel <- function(trainingSet,
   df <- df[, !colnames(df) %in% getOption("xiff.column"), drop = FALSE]
   if (nrow(df) == 0) progress$error("No data available")
 
+  #------------- GREP specific code ------------
+  if(method == "GREP") {
+    selectBestFeaturesFnc <- getGrepFeatureSelection
+    if(is.character(threshold)) threshold <- 0.1
+    if(maxFeatures == "auto") {
+      maxFeatures <- 600
+    }
+    
+    log_trace("GREP: Max Features: {maxFeatures}, fdr threshold: {threshold}")
+    method <- "glm"
+    modelSelectionMethod <- "GREP"
+    .otherParams$epsilonRNAseq <- .epsilonRNAseq
+    .extraClass <- "XiffGREP"
+  }
   
   #------------- Feature selection -------------
   if(maxFeatures == "auto") {
@@ -542,7 +573,8 @@ createMachineLearningModel <- function(trainingSet,
     list(
       df = df,
       threshold = threshold,
-      maxFeatures = maxFeatures
+      maxFeatures = maxFeatures,
+      .otherParams = .otherParams
     ),
     featuresParams
   )
@@ -550,7 +582,8 @@ createMachineLearningModel <- function(trainingSet,
   selectedFeatures <- do.call(selectBestFeaturesFnc, featuresParams)
   stats <- selectedFeatures$stats
   df <- selectedFeatures$df
-
+  .otherParams <- selectedFeatures$.otherParams
+  
   bestFeatures <- stats %>% pull(ensg)
 
   if (length(bestFeatures) == 0){
@@ -559,14 +592,32 @@ createMachineLearningModel <- function(trainingSet,
 
   progress$update(0.5, "training model...")
 
-  trainingOutput <- trainModel(
+  trainingOutput <- try(trainModel(
     df = df,
     method = method,
     tuneLength = tuneLength,
     number = number,
     repeats = repeats,
     ...
-  )
+  ))
+  
+  if(is(trainingOutput, "try-error")) {
+    
+    if(method == "neuralnetwork") {
+      msg <- paste(
+        "Cannot train neuralnetwork the model.", 
+        " Most probably there's no good parameter combination that satisfies",
+        " the minimum fit criteria. Please try different model or dataset."
+      )
+      progress$error(msg)
+    } else {
+      msg <- paste(
+        "An error occured during model training phase.", 
+        " Please contact app authors."
+      )
+    }
+    progress$error(msg)
+  }
 
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
   df <- importanceRes %>% left_join(geneAnno, by = "ensg")
@@ -574,13 +625,14 @@ createMachineLearningModel <- function(trainingSet,
 
   progress$update(1.0, "job done")
 
-  class(trainingOutput) <- c("MLXIFF", class(trainingOutput))
+  class(trainingOutput) <- c(.extraClass, "MLXIFF", class(trainingOutput))
   
   trainingOutput$featureSelectionResult <- selectedFeatures
   trainingOutput$df <- df
   trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
   trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
+  trainingOutput$otherParams <- .otherParams
   
   trainingOutput
 }
@@ -594,6 +646,15 @@ print.MLXIFF <- function(x, ...) {
   cat("caret part:\n")
   print(x)
   
+}
+
+
+#' @exportS3Method
+predict.MLXIFF <- function(x, newdata = NULL, ...) {
+  
+  class(x) <- class(x)[!class(x) %in% c("XiffMachineLearningResult", "MLXIFF")]
+  predict(x, newdata = newdata, ...)  
+    
 }
 
 #' @export

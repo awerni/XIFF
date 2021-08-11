@@ -1,0 +1,123 @@
+---
+title: "Cusotm ML models"
+author: "Zygmunt Zawadzki"
+date: "8/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(XIFF)
+library(dplyr)
+setDbOptions()
+set.seed(123)
+
+cs <- getStashedData("0766b1")
+
+cs <- list(
+      class1 = cs %>% filter(MDM2_class == "resistant") %>% pull,
+      class2 = cs %>% filter(MDM2_class == "sensitive") %>% pull
+    )
+
+sets <- XIFF::splitTrainingValidationSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
+sets$training
+
+trainingSet <- with(sets$training, split(celllinename, class))
+validationSet <- with(sets$validation, split(celllinename, class))
+
+# Hallmark gene set
+hallmarkGeneSet <- "P53_PATHWAY"
+geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+
+# Gene Annotation
+geneAnno <- CLIFF::getGeneAnno()[["human"]]
+```
+
+# Creating a new model
+
+To make the new model type available in CLIFF/TIFF models panels you need to
+implement S3 methods for the following functions for 
+new class (e.g. `CustomModel`):
+
+```r
+getDataForModel
+mlGetTableData
+mlGetTpmData
+mlGenerateExpressionPlot 
+getRawDataForModel
+```
+
+```{r}
+
+geneSet <- geneSet[1:3]
+df <- getDataForModel(trainingSet, geneSet)
+
+getFeatures <- function(df,
+                        threshold = 0.1,
+                        maxFeatures = 750,
+                        .otherParams) {
+  
+  message("Custom feature selection function")
+  features <- colnames(df %>% select_if(is.numeric))
+  
+  df <- df %>% mutate_if(
+    is.numeric,
+    function(x) cut(x, .otherParams$thresholds))
+  
+  .otherParams$features <- features
+  
+  stats <- tibble(ensg = features, coef = NA)
+  list(
+    stats = stats,
+    df = df,
+    .otherParams = .otherParams,
+    method = "custom"
+  )
+}
+
+customFit <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glm",
+  selectBestFeaturesFnc = getFeatures,
+  .extraClass = "CustomModel", # <---- here you need to add the class for which
+                               # you implemented required required methods!
+  .otherParams = list(thresholds = c(-Inf, -3, -2, -1, 0, 1, 2, 3, Inf))
+)
+
+# Having that function allows to run getDataForModel and validateModel
+getDataForModel.CustomModel <- function(assignment,
+                            features,
+                            schema = getOption("xiff.schema"),
+                            column = getOption("xiff.column")) {
+
+  message("getDataForModel.CustomModel - running")
+  
+  df <- getDataForModel(assignment, features$otherParams$features)
+  
+  df <- df %>% mutate_if(
+    is.numeric,
+    function(x) cut(x, features$otherParams$thresholds))
+  df
+}
+
+validationData <- getDataForModel(validationSet, customFit)
+
+annoFocus <- CLIFF::getCellLineAnno("human") %>%
+  dplyr::filter(celllinename %in% unlist(validationSet))
+  
+validation <- validateModel(
+  customFit,
+  validationSet = stackClasses(validationSet),
+  anno = annoFocus
+)
+
+# For implementation of
+# mlGetTableData mlGetTpmData mlGenerateExpressionPlot getRawDataForModel
+# check mlGetTableData.XiffGREP 
+```
+

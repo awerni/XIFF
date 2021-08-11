@@ -33,7 +33,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     
     getDataForModel(
       assignment = assignment,
-      features = m$bestFeatures
+      features = m
     )
   })
   

@@ -545,7 +545,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     req(m)
     
     withProgress(
-      expr = getRawDataForModel(features = m$bestFeatures),
+      expr = getRawDataForModel(features = m),
       value = 0.4,
       message = "fetching DB data..."
     )
@@ -585,7 +585,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     df <- d %>% filter(!!colname %in% items)
 
     validate(need(nrow(df) > 0, "no data available"))
-
+    
     df <- df %>% tidyr::pivot_wider(names_from = ensg, values_from = score)
 
     assignment <- withProgress(

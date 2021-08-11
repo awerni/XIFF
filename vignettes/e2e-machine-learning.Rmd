@@ -38,6 +38,19 @@ cellline <- cellline %>% filter(var < 0)
 sensitive <- cellline %>% filter(var < -1) %>% select(celllinename) %>% pull %>% as.character()
 resistant <- cellline %>% arrange(desc(var)) %>% head(length(sensitive)) %>% select(celllinename) %>% pull %>% as.character()
 cs <- list(class1 = sensitive, class2 = resistant)
+```
+
+```{r}
+cs <- getStashedData("0766b1")
+
+cs <- list(
+      class1 = cs %>% filter(MDM2_class == "resistant") %>% pull,
+      class2 = cs %>% filter(MDM2_class == "sensitive") %>% pull
+    )
+
+```
+
+```{r}
 
 sets <- XIFF::splitTrainingValidationSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
 sets$training
@@ -61,13 +74,7 @@ defaultFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
-)
-
-nnFit <- XIFF::buildMachineLearning(
-  cs = trainingSet,
-  geneSet = geneSet,
-  geneAnno = geneAnno,
-  method = "neuralnetwork"
+  maxFeatures = 5
 )
 
 # model using caret functionality. It does not implement 
@@ -85,7 +92,6 @@ glmnetFit <- XIFF::buildMachineLearning(
 
 ```{r}
 predict(defaultFit)
-predict(nnFit)
 predict(glmnetFit)
 ```
 
@@ -135,14 +141,12 @@ modelValidationData %>% dplyr::select(celllinename, class) %>%
 ```{r}
 library(tidyr)
 generatePerformancePlot(defaultFit)
-generatePerformancePlot(nnFit)
 generatePerformancePlot(glmnetFit)
 ```
 ## Variable importance
 
 ```{r}
 generateVarImpPlot(defaultFit)
-generateVarImpPlot(nnFit)
 generateVarImpPlot(glmnetFit)
 ```
 
@@ -244,12 +248,6 @@ makeModelPlots <- function(model, validationSet) {
 makeModelPlots(defaultFit, validationSet)
 ```
 
-### Neural Network
-
-```{r}
-makeModelPlots(nnFit, validationSet)
-```
-
 ### Glmnet
 
 ```{r}
@@ -284,5 +282,66 @@ if(XIFF::packageInstalled("rpart")) {
   )
   makeModelPlots(rpartFit, validationSet)
 }
+
+```
+
+# GREP method
+
+### Auto verion
+
+```{r}
+set.seed(123)
+logger::log_threshold(logger::TRACE)
+
+grepFit <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "GREP"
+)
+
+annoFocus <- CLIFF::getCellLineAnno("human") %>%
+  dplyr::filter(celllinename %in% unlist(validationSet))
+  
+validation <- validateModel(
+  grepFit,
+  validationSet = stackClasses(validationSet),
+  anno = annoFocus
+)
+
+makeModelPlots(grepFit, validationSet)
+
+```
+
+### Raw version
+
+```{r}
+set.seed(123)
+logger::log_threshold(logger::TRACE)
+
+grepFit <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = geneAnno,
+  method = "glm",
+  selectBestFeaturesFnc = getGrepFeatureSelection,
+  threshold = 0.1,
+  maxFeatures = 750,
+  .extraClass = "XiffGREP" # see inst/devel-notes/ml-custom-models.Rmd
+)
+
+annoFocus <- CLIFF::getCellLineAnno("human") %>%
+  dplyr::filter(celllinename %in% unlist(validationSet))
+
+valData <- getDataForModel(validationSet, grepFit)
+
+validation <- validateModel(
+  grepFit,
+  validationSet = stackClasses(validationSet),
+  anno = annoFocus
+)
+
+makeModelPlots(grepFit, validationSet)
+
 
 ```
