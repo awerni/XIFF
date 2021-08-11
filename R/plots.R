@@ -424,18 +424,13 @@ generateScoreBarPlot <- function(data, score_desc) {
     geom_bar() +
     commonPlotTheme("none") +
     xlab(score_desc)
-
-  if (length(unique(data$x_score)) > 10) {
-    g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  }
-
+  
   nItems <- length(unique(data$x_score))
-
 
   if (nItems > 100) {
     g + theme(axis.text.x = element_blank())
   } else if (nItems > 10) {
-    g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    g + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
   } else {
     g
   }
