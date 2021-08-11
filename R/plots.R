@@ -119,10 +119,30 @@ generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
 }
 
 #' @export
-generateWaterfallPlot <- function(data, dataCol, xlabel = getOption("xiff.label"), ylabel = "score",
-                                  trans = "identity", limits = NULL, fill = "tumortype") {
+generateWaterfallPlot <-
+  function(data,
+           dataCol,
+           xlabel = getOption("xiff.label"),
+           ylabel = "score",
+           trans = "identity",
+           limits = NULL,
+           fill = "tumortype",
+           autoYscale = TRUE) {
+    
   if (is.null(data)) return()
 
+  y <- data[[dataCol]]
+  if(autoYscale && min(y) > 0) {
+    
+    log10range <- diff(range(log10(y)))
+    
+    if(log10range > 2) {
+      data[[dataCol]] <- log10(data[[dataCol]])
+      ylabel <- glue::glue("log10({ylabel})")
+    }
+    
+  }
+    
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
 
@@ -424,18 +444,13 @@ generateScoreBarPlot <- function(data, score_desc) {
     geom_bar() +
     commonPlotTheme("none") +
     xlab(score_desc)
-
-  if (length(unique(data$x_score)) > 10) {
-    g <- g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  }
-
+  
   nItems <- length(unique(data$x_score))
-
 
   if (nItems > 100) {
     g + theme(axis.text.x = element_blank())
   } else if (nItems > 10) {
-    g + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    g + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
   } else {
     g
   }
