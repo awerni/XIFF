@@ -115,7 +115,7 @@ mlGetLog2RatiosMatrix <- function (df, epsilonRNAseq = 10) {
   ratios
 }
 
-mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
+mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.1, maxN = 600) {
   if(is.character(class)) class <- as.factor(class)
   
   featuresInfo <- genefilter::colttests(mat, class) %>% 
@@ -129,7 +129,7 @@ mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.05, maxN = 500) {
   
   if(nrow(featuresInfo) == 0) {
     msg <- glue::glue(
-      "There are no significant features above fdr ({fdr}) threshold.",
+      "There are no significant features below fdr ({fdr}) threshold.",
       " The model cannot be build. Please try different machine learning",
       " method or dataset."
     )
