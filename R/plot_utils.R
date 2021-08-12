@@ -34,7 +34,19 @@ guessAxisScale <- function(values){
   rng <- range(values, na.rm = TRUE)
   if (min(rng) > 0) {
     if ((rng[[2]] / rng[[1]]) >= 1000) {
+      
       myScale <- "log10"
+      
+    } else {
+      
+      rang <- range(log10(values))
+      rang[rang < 0] <- 0
+      log10range <- diff(rang)
+      
+      if(log10range > 2.01) {
+        myScale <- "log10"
+      }
+      
     }
   }
 
