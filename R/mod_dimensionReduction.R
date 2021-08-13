@@ -70,7 +70,10 @@ dimensionReduction <- function(input, output, session,
   colorTooltip <- FALSE
   callback <- function(x){
     if (colorTooltip){
-      paste0(x[[colname]], "\n", x[["class"]])
+      # Fix #BIARD-291 - ggtips does not handle 3.5 and 4.1 does
+      # not support NA in factors.
+      colorLabel <- PlotParams()$colorDimRed
+      paste0(x[[colname]], "\n", x[[colorLabel]])
     } else {
       tooltipCallbackFun(x)
     }
