@@ -226,7 +226,12 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
   RowCallback <- reactive({
     sp <- CurrentSpecies()
     req(sp)
-    getEnsgRowCallback(sp)
+    idx <- if(input$method != "GREP") {
+      1 # ensg is in first column
+    } else {
+      3:4 # GREP has two ensg columns
+    }
+    getEnsgRowCallback(sp, idx = idx)
   })
   
   rowInfo <- callModule(
