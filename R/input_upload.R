@@ -590,7 +590,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
     assignment <- withProgress(
       expr = withErrorHandler(
-        expr = predict(m, newdata = df),
+        expr = predict(m, newdata = df, useClassLabels = FALSE),
         errorId = topErrorId, 
         session = session
       ),

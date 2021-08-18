@@ -28,12 +28,25 @@ getPredictionSummary <- function(items,
   
   anno <- annoFocus %>% select(!!itemColumnSymbol, tumortype)
   
+  # handle raw forecasts
+  preds <- if(all(preds %in% c("class1", "class2"))) {
+    ifelse(preds == "class1", classes_model[1], classes_model[2])
+  } else {
+    preds
+  }
+  
+  refs <- if(all(refs %in% c("class1", "class2"))) {
+    ifelse(refs == "class1", classes_cs[1], classes_cs[2])
+  } else {
+    refs
+  }
+  
   df <- tibble(
     !!itemColumnSymbol := items,
     predicted = preds_pn,
     reference = refs_pn,
-    predicted_original = ifelse(preds == "class1", classes_model[1], classes_model[2]),
-    reference_original = ifelse(refs == "class1", classes_cs[1], classes_cs[2]),
+    predicted_original = preds,
+    reference_original = refs,
     correct = preds_pn == refs_pn,
   ) %>%
     left_join(anno, by = itemColumn) %>%
