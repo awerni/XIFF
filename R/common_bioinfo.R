@@ -627,7 +627,8 @@ createMachineLearningModel <- function(trainingSet,
   trainingOutput$featureSelectionResult <- selectedFeatures
   trainingOutput$df <- df
   trainingOutput$bestFeatures <- df[["ensg"]]
-  trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
+  trainingOutput$trainingSet <- trainingSet
+  trainingOutput$trainingItems <- trainingSet[[getOption("xiff.column")]]
   trainingOutput$otherParams <- .otherParams
   
   trainingOutput

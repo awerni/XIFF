@@ -63,16 +63,9 @@ handleValidationSet <- function(classSelection, p_validation = 0.2) {
   trainingSet <- sets$training
   validationSet <- sets$validation
   
-  if (!is.null(validationSet)){
-    validationSet <- split(validationSet[[getOption("xiff.column")]], validationSet$class)
-    classSelection$class1 <- setdiff(classSelection$class1, validationSet$class1)
-    classSelection$class2 <- setdiff(classSelection$class2, validationSet$class2)
-  }
-  
   list(
     trainingSet = trainingSet,
-    validationSet = validationSet,
-    cs = classSelection
+    validationSet = validationSet
   )
   
 }
@@ -159,7 +152,6 @@ buildMachineLearning <- function(cs,
   if (is.null(res)) return() # handle the task cancel
   if (FutureManager::is.fmError(res)) return(res)
   
-  res$cs            <- sets$cs
   res$validationSet <- sets$validationSet
   res$classLabel    <- attr(classSelection, "classLabel")
   res$species       <- species
