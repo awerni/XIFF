@@ -442,13 +442,10 @@ getVarImp <- function(model, stats){
 #'
 #' @importFrom glue glue
 #' @importFrom logger log_trace
-#' @export
 #' 
 createMachineLearningModel <- function(trainingSet,
                                        geneSet,
                                        geneAnno,
-                                       classLabel = list(class1_name = "class1",
-                                                         class2_name = "class2"),
                                        # Training data params
                                        trainingData = NULL,
                                        getDataForModelFnc = getDataForModel,
@@ -629,7 +626,6 @@ createMachineLearningModel <- function(trainingSet,
   
   trainingOutput$featureSelectionResult <- selectedFeatures
   trainingOutput$df <- df
-  trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
   trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
   trainingOutput$otherParams <- .otherParams
@@ -650,11 +646,14 @@ print.MLXIFF <- function(x, ...) {
 
 
 #' @exportS3Method
-predict.MLXIFF <- function(x, newdata = NULL, ...) {
+predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
   
-  class(x) <- class(x)[!class(x) %in% c("XiffMachineLearningResult", "MLXIFF")]
-  predict(x, newdata = newdata, ...)  
-    
+  class(x) <- class(x)[!class(x) %in% c("MLXIFF")]
+  result <- predict(x, newdata = newdata, ...)  
+  if(useClassLabels && is.factor(result)) {
+    levels(result) <- unlist(x$classLabel)
+  }
+  result
 }
 
 #' @export

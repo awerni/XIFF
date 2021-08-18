@@ -109,18 +109,26 @@ prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds
 validateModel <- function(m,
                           validationSet,
                           anno,
-                          itemColumn = getOption("xiff.column")) {
+                          itemColumn = getOption("xiff.column"),
+                          classColumn = NULL
+                          ) {
   
   itemColumnSymbol <- rlang::sym(itemColumn)
+  
+  if(is.null(classColumn)) {
+    classColumn <- m$classColumn
+  }
+  
+  classColumnSymbol <- rlang::sym(classColumn)
   
   df <- getDataForModel(
     assignment = validationSet,
     features = m
   )
   
-  refs <- df$class
+  refs <- df[[classColumn]]
   items <- df[[itemColumn]]
-  df <- df %>% select(-class, -!!itemColumnSymbol)
+  df <- df %>% select(-!!classColumnSymbol, -!!itemColumnSymbol)
   preds <- predict(m, newdata = df)
   
   cl <- unlist(m$classLabel, use.names = FALSE)
@@ -129,8 +137,8 @@ validateModel <- function(m,
     items = items,
     preds = preds,
     refs = refs,
-    positive_model = "class1",
-    positive_cs = "class1",
+    positive_model = levels(preds)[1],
+    positive_cs = levels(preds)[1],
     classes = c("positive", "negative"),
     classes_model = cl,
     classes_cs = cl,

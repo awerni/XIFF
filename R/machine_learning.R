@@ -1,3 +1,79 @@
+handleClassSelection <- function(cs,
+                                 classColumn = "class",
+                                 classLabel    = NULL,
+                                 names = getOption("xiff.column")) {
+  
+  if(is.list(cs) && !is.data.frame(cs)) {
+    
+    log_trace("handleClassSelection - using cs as list.")
+    
+    if(length(cs) == 2 ||
+       all(c("class1", "class2") %in% names(cs)) ||
+       all(vapply(cs, FUN.VALUE = TRUE, is.character))
+    ) {
+      stop("`cs` must be a list of 2 character vectors - class1 and class2.")
+    }
+    
+    return(cs)
+  }
+  
+  
+  if(!classColumn %in% names(cs)) {
+    stop(glue::glue("`{classColumn}` is not a column name in `cs`."))
+  }
+  
+  if(is.null(classLabel)) {
+    levels <- sort(unique(cs[[classColumn]]))
+    positiveClass <- levels[1]
+  } else if(is.character(classLabel)) {
+    positiveClass <- classLabel
+    classLabel <- NULL
+  } else {
+    positiveClass <- classLabel$class1_name
+  }
+  
+  if(!positiveClass %in% cs[[classColumn]]) {
+    stop(glue::glue("'{positiveClass}' is not value in cs[['{classColumn}']]"))
+  }
+    
+  classSelection <- list(
+    class1 = subset(cs[[names]], cs[[classColumn]] == positiveClass),
+    class2 = subset(cs[[names]], cs[[classColumn]] != positiveClass)
+  )
+  
+  if(is.null(classLabel)) {
+    classLabel <- list(
+      class1_name = positiveClass,
+      class2_name = setdiff(unique(cs[[classColumn]]), positiveClass)
+    )
+  }
+  
+  attr(classSelection, "classLabel") <- classLabel
+  attr(classSelection, "classColumn")   <- classColumn
+  classSelection
+}
+
+handleValidationSet <- function(classSelection, p_validation = 0.2) {
+  
+  assignment <- XIFF::stackClasses(classSelection, return_factor = TRUE)
+  sets <- XIFF::splitTrainingValidationSets(assignment, p_validation)
+  trainingSet <- sets$training
+  validationSet <- sets$validation
+  
+  if (!is.null(validationSet)){
+    validationSet <- split(validationSet[[getOption("xiff.column")]], validationSet$class)
+    classSelection$class1 <- setdiff(classSelection$class1, validationSet$class1)
+    classSelection$class2 <- setdiff(classSelection$class2, validationSet$class2)
+  }
+  
+  list(
+    trainingSet = trainingSet,
+    validationSet = validationSet,
+    cs = classSelection
+  )
+  
+}
+
 #' Workhorse for machine learning.
 #'
 #' @param cs 
@@ -18,41 +94,74 @@ buildMachineLearning <- function(cs,
                                  geneSet,
                                  geneAnno,
                                  species = "human",
+                                 classColumn = "class",
+                                 classLabel = NULL,
+                                 p_validation = 0,
+                                 itemsColumn = getOption("xiff.column"),
+                                 # Training data params
+                                 trainingData = NULL,
+                                 getDataForModelFnc = getDataForModel,
+                                 dataParams = NULL,
+                                 # Caret params
                                  method = "rf",
-                                 p_validation = 0.2,
+                                 tuneLength = 5,
+                                 number = 10,
+                                 repeats = 10,
+                                 # Feature selection params
+                                 selectBestFeaturesFnc = "auto",
+                                 threshold = "Confirmed",
+                                 maxFeatures = "auto",
+                                 featuresParams = NULL,
+                                 # Other params passed to caret::train
                                  ...,
-                                 task = FALSE) {
+                                 # misc parameters
+                                 .verbose = TRUE,
+                                 .progress = FALSE,
+                                 .epsilonRNAseq = 10,
+                                 .otherParams = list(),
+                                 .extraClass = NULL) {
   
-  
-  assignment <- XIFF::stackClasses(cs, return_factor = TRUE)
-  
-  sets <- XIFF::splitTrainingValidationSets(assignment, p_validation)
-  trainingSet <- sets$training
-  validationSet <- sets$validation
-  
-  if (!is.null(validationSet)){
-    validationSet <- split(validationSet[[getOption("xiff.column")]], validationSet$class)
-    cs$class1 <- setdiff(cs$class1, validationSet$class1)
-    cs$class2 <- setdiff(cs$class2, validationSet$class2)
-  }
+  classSelection <- handleClassSelection(cs, classColumn, classLabel, itemsColumn)
+  sets <- handleValidationSet(classSelection, p_validation)
   
   res <- createMachineLearningModel(
-    trainingSet = trainingSet,
+    trainingSet = sets$trainingSet,
     geneSet = geneSet,
     geneAnno = geneAnno,
+    # Training data params
+    trainingData = trainingData,
+    getDataForModelFnc = getDataForModelFnc,
+    dataParams = dataParams,
+    # Caret params
     method = method,
-    .progress = task,
-    ...
+    tuneLength = tuneLength,
+    number = number,
+    repeats = repeats,
+    # Feature selection params
+    selectBestFeaturesFnc = selectBestFeaturesFnc,
+    threshold = threshold,
+    maxFeatures = maxFeatures,
+    featuresParams = featuresParams,
+    # Other params passed to caret::train
+    ...,
+    # misc parameters
+    .verbose = .verbose,
+    .progress = .progress,
+    .epsilonRNAseq = .epsilonRNAseq,
+    .otherParams = .otherParams,
+    .extraClass = .extraClass
   )
   
+
   if (is.null(res)) return() # handle the task cancel
   if (FutureManager::is.fmError(res)) return(res)
   
-  res$cs <- cs
-  res$species <- species
-  res$validationSet <- validationSet
+  res$cs            <- sets$cs
+  res$validationSet <- sets$validationSet
+  res$classLabel    <- attr(classSelection, "classLabel")
+  res$species       <- species
+  res$classColumn   <- classColumn
   
-  class(res) <- c("XiffMachineLearningResult", class(res))
   res
   
 }
