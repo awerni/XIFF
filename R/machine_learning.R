@@ -7,12 +7,15 @@ handleClassSelection <- function(cs,
     
     log_trace("handleClassSelection - using cs as list.")
     
-    if(length(cs) == 2 ||
-       all(c("class1", "class2") %in% names(cs)) ||
-       all(vapply(cs, FUN.VALUE = TRUE, is.character))
+    if(length(cs) != 2 ||
+       !all(c("class1", "class2") %in% names(cs)) ||
+       !all(vapply(cs, FUN.VALUE = TRUE, is.character))
     ) {
       stop("`cs` must be a list of 2 character vectors - class1 and class2.")
     }
+    
+    attr(cs, "classLabel") <- classLabel
+    attr(cs, "classColumn")   <- classColumn
     
     return(cs)
   }

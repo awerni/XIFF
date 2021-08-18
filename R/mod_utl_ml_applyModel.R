@@ -44,7 +44,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     logger::log_trace("XLIFF::mlApplyModel predicting values for {nrow(df)}",
                       " observations using {class(m)[1]} model.")
     withErrorHandler(
-      expr = predict(m, newdata = df %>% select(-class)),
+      expr = predict(m, newdata = df %>% select(-class), useClassLabels = FALSE),
       errorId = ns("error"),
       session = session
     )
@@ -59,6 +59,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     req(preds)
     
     d <- Data()
+    
     XIFF::getPredictionSummary(
       items = d[[getOption("xiff.column")]],
       preds = preds,

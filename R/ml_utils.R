@@ -131,7 +131,7 @@ validateModel <- function(m,
   df <- df %>% select(-!!classColumnSymbol, -!!itemColumnSymbol)
   preds <- predict(m, newdata = df)
   
-  cl <- unlist(m$classLabel, use.names = FALSE)
+  cl <- classLabel2levels(m$classLabel)
   
   getPredictionSummary(
     items = items,

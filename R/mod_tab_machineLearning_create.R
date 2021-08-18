@@ -155,6 +155,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
       method = input$method,
       geneAnno = gene_anno(),
       species = Species(),
+      classLabel = reactiveValuesToList(classLabel),
       p_validation = input$validation_size / 100
     )
   })

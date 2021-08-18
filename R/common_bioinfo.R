@@ -645,13 +645,17 @@ print.MLXIFF <- function(x, ...) {
 }
 
 
+classLabel2levels <- function(cl) {
+  c(cl$class1_name, cl$class2_name)
+}
+
 #' @exportS3Method
 predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
   
   class(x) <- class(x)[!class(x) %in% c("MLXIFF")]
   result <- predict(x, newdata = newdata, ...)  
-  if(useClassLabels && is.factor(result)) {
-    levels(result) <- unlist(x$classLabel)
+  if(useClassLabels && is.factor(result) && !is.null(x$classLabel)) {
+    levels(result) <- classLabel2levels(x$classLabel)
   }
   result
 }
