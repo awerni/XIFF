@@ -182,8 +182,11 @@ buildMachineLearning <- function(cs,
   if (FutureManager::is.fmError(res)) return(res)
   
   res$classLabel    <- attr(classSelection, "classLabel")
-  res$validationSet <-
-    mlSets2OriginalNames(sets$validationSet, classColumn, res$classLabel)
+  
+  if(!is.null(res$validationSet)) {
+    res$validationSet <-
+      mlSets2OriginalNames(sets$validationSet, classColumn, res$classLabel)
+  }
   res$trainingSet <-
     mlSets2OriginalNames(res$trainingSet, classColumn, res$classLabel)
   

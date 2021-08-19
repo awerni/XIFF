@@ -7,8 +7,14 @@
 #' @export
 #'
 #' @examples
-mlGetClassColumn <- function(model, asSymbol = FALSE) {
+mlGetClassColumn <- function(model, data = NULL, asSymbol = FALSE) {
   column <- if(is.null(model$classColumn)) "class" else model$classColumn
+  
+  if(!is.null(data) && !column %in% colnames(data)) {
+    # handle the case when classColumn is not present in selected data.
+    # requried for UI when it might be just 'class' column
+    column <- "class"
+  }
   
   if(asSymbol) {
     column <- rlang::sym(column)

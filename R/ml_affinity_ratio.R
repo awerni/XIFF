@@ -211,7 +211,7 @@ mlGrepTransformExpr2Ratio <- function(x, model, epsilonRNAseq = 10) {
   
   features <- as_tibble(as.data.frame(quotientMatrix[, model$bestFeatures]))
   
-  class <- mlGetClassColumn(model, asSymbol = TRUE)
+  class <- mlGetClassColumn(model, x, asSymbol = TRUE)
   
   res <- x %>% select(!!class, !!rlang::sym(getOption("xiff.column")))
   bind_cols(res, features)  
