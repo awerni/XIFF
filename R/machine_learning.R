@@ -72,16 +72,45 @@ handleValidationSet <- function(classSelection, p_validation = 0.2) {
 
 #' Workhorse for machine learning.
 #'
-#' @param cs 
-#' @param geneSet 
-#' @param geneAnno 
-#' @param species 
-#' @param method 
-#' @param p_validation 
+#' @param cs class selection. Can be a list with two character vectors or
+#'           data.frame.
+#' @param geneSet list of genes to be used as model features.
+#' @param geneAnno gene annotation table.
+#' @param species species.
+#' @param method name of ml methods (use values from 
+#'        \code{xiffSupportedModels()}) or model names from caret package.
+#' @param p_validation percentage of the cs that will be assigned as validation.
+#' @param classColumn name of the column that will be used to assgin classes.
+#'        Used when cs is data.frame.
+#' @param classLabel classLable assigment (list with class1_name and
+#'        class2_name) or single string containing the name of the positive
+#'        class.
+#' @param itemsColumn if cs is data.frame, specifies the name of column that 
+#'        contains items (celllines or tissues). Usually it should not be
+#'        used.
+#' @param trainingData data.frame if user wants to use custom data instead of 
+#'        the result of \code{getDataForModel}.
+#' @param getDataForModelFnc if the user wants to use custom function to get 
+#'        the data it can repleace \code{getDataForModel}.
+#' @param dataParams list with additional params to be passed to
+#'        \code{getDataForModelFnc}
+#' @param tuneLength caret fitting parameter.
+#' @param number caret fitting parameter.
+#' @param repeats caret fitting parameter.
+#' @param selectBestFeaturesFnc 
+#' @param threshold threshold for feature selection.
+#' @param maxFeatures max number of features to be used in the fitting process.
+#'        Each feature selection methods contain a way to limit its number.
+#' @param featuresParams additional params to be passed to selectBestFeaturesFnc
+#'        if custom function is used.
+#' @param .verbose logical. if true prints additional values.
+#' @param .progress internal param to be used by applications.
+#' @param .epsilonRNAseq GREP param.
+#' @param .otherParams list of other parameters to be saved with the model.
+#' @param .extraClass other class to be added to \code{class} vector. Allows to
+#'        use custom methods. For advanced users.
 #' @param ...
-#' @param task 
 #'
-#' 
 #' @importFrom FutureManager is.fmError
 #' @export
 #' @return

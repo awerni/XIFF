@@ -416,33 +416,8 @@ getVarImp <- function(model, stats){
     
 }
 
-
-#' Create machine learning model using XIFF package.
-#'
-#' @param trainingSet 
-#' @param geneSet 
-#' @param geneAnno 
-#' @param classLabel 
-#' @param trainingData data frame with training data. 
-#'                     If null \code{getDataForModelFnc} will be used.
-#' @param getDataForModelFnc function to extract training data.
-#' @param dataParams list with additional params for \code{getDataForModelFnc}.
-#' @param method 
-#' @param tuneLength 
-#' @param number 
-#' @param repeats 
-#' @param selectBestFeaturesFnc 
-#' @param threshold 
-#' @param maxFeatures 
-#' @param featuresParams list with custom params passed to 
-#'                       selectBestFeaturesFnc
-#' @param ... 
-#' @param .verbose 
-#' @param .progress 
-#'
 #' @importFrom glue glue
 #' @importFrom logger log_trace
-#' 
 createMachineLearningModel <- function(trainingSet,
                                        geneSet,
                                        geneAnno,

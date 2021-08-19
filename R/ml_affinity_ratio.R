@@ -28,7 +28,8 @@ getGrepFeatureSelection <- function(df,
     epsilonRNAseq
   )
   log_trace("GREP: Feature Selection - after low expression: {ncol(dfNum)}")
-    
+  
+  .otherParams$epsilonRNAseq <- epsilonRNAseq
   ratioMatrix <- mlGetLog2RatiosMatrix(dfNum, epsilonRNAseq = epsilonRNAseq)
   
   
@@ -210,7 +211,9 @@ mlGrepTransformExpr2Ratio <- function(x, model, epsilonRNAseq = 10) {
   
   features <- as_tibble(as.data.frame(quotientMatrix[, model$bestFeatures]))
   
-  res <- x %>% select(class, !!rlang::sym(getOption("xiff.column")))
+  class <- mlGetClassColumn(model, asSymbol = TRUE)
+  
+  res <- x %>% select(!!class, !!rlang::sym(getOption("xiff.column")))
   bind_cols(res, features)  
   
 }
