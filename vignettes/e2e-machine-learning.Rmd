@@ -41,30 +41,19 @@ cs <- list(class1 = sensitive, class2 = resistant)
 ```
 
 ```{r}
-cs <- getStashedData("0766b1")
-
-cs <- list(
-      class1 = cs %>% filter(MDM2_class == "resistant") %>% pull,
-      class2 = cs %>% filter(MDM2_class == "sensitive") %>% pull
-    )
-
-```
-
-```{r}
-
-sets <- XIFF::splitTrainingValidationSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
-sets$training
-
-trainingSet <- with(sets$training, split(celllinename, class))
-validationSet <- with(sets$validation, split(celllinename, class))
-
 # Hallmark gene set
-hallmarkGeneSet <- "P53_PATHWAY"
-geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+geneSet <- CLIFF::getGSEAdata("human", "hallmark")[["HALLMARK_P53_PATHWAY"]]
 
 # Gene Annotation
 geneAnno <- CLIFF::getGeneAnno()[["human"]]
+
+# Get data and split it into train and validation set
+cs <- getStashedData("0766b1")
+sets <- XIFF::splitTrainingValidationSets(cs, 0.2)
+trainingSet <- sets$training
+validationSet <- sets$validation
 ```
+
 
 # Training the model using `buildMachineLearning`
 
@@ -74,7 +63,9 @@ defaultFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
-  maxFeatures = 5
+  classColumn = "MDM2_class", 
+  classLabel = "sensitive",
+  p_validation = 0.2
 )
 
 # model using caret functionality. It does not implement 
@@ -83,7 +74,10 @@ glmnetFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
-  method = "glmnet"
+  method = "glmnet",
+  classColumn = "MDM2_class", 
+  classLabel = "sensitive",
+  p_validation = 0.2
 )
 ```
 # Making Predictions
@@ -103,14 +97,16 @@ predict(glmnetFit)
 modelValidationData <- getDataForModel(assignment = defaultFit$validationSet,
                                        features = defaultFit)
 ## Making predition
-predict(defaultFit, newdata = modelValidationData)
+modelValidationData %>% select(celllinename, class) %>%
+  mutate(predicted = predict(defaultFit, newdata = modelValidationData))
 
 # GLMNET
 ## Getting data
 modelValidationDataGlmnet <- getDataForModel(assignment = glmnetFit$validationSet,
                                        features = glmnetFit)
 ## Making predition
-predict(glmnetFit, newdata = modelValidationDataGlmnet)
+modelValidationDataGlmnet %>% select(celllinename, class) %>%
+  mutate(predicted = predict(glmnetFit, newdata = modelValidationDataGlmnet))
 ```
 ### Using the validation set created at the beginning.
 
@@ -129,7 +125,7 @@ prf <- predict(defaultFit, newdata = modelValidationData)
 pglm <- predict(glmnetFit, newdata = modelValidationData)
 
 # Adding the predictions to the table with celllinename and class
-modelValidationData %>% dplyr::select(celllinename, class) %>%
+modelValidationData %>% dplyr::select(celllinename, MDM2_class) %>%
   mutate(RandomForest = prf, Glmnet = pglm)
 
 ```
@@ -161,15 +157,15 @@ generateErrorPlot(defaultFit)
 
 ```{r}
 validationData <- getDataForModel(assignment = validationSet, features = defaultFit)
-annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(validationSet))
+annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% validationSet$celllinename)
 
 
 predictionSummary <- getPredictionSummary(
   items = validationData$celllinename,
   preds = predict(defaultFit, newdata = validationData),
-  refs = validationData$class,
-  positive_model = "class1",
-  positive_cs = "class1",
+  refs = validationData$MDM2_class,
+  positive_model = "sensitive",
+  positive_cs = "sensitive",
   classes = c("positive", "negative"),
   classes_model = c("sensitive", "resistant"),
   classes_cs = c("sensitive", "resistant"),
@@ -177,7 +173,6 @@ predictionSummary <- getPredictionSummary(
 )
 
 predictionSummary$res
-
 predictionSummary$data
 ```
 
@@ -185,8 +180,8 @@ predictionSummary$data
 ```{r}
 df <- prepareTablePlotData(
   df = predictionSummary$data,
-  positive_preds = "class1",
-  positive_refs = "class1",
+  positive_preds = "sensitive",
+  positive_refs = "sensitive",
   labels_preds = c("sensitive", "resistant"),
   labels_refs = c("sensitive", "resistant"),
   labels = c("positive", "negative")
@@ -202,7 +197,7 @@ gatherPredictionResults(predictions = list(predictionSummary))
 
 validation <- validateModel(
   defaultFit,
-  validationSet = stackClasses(validationSet),
+  validationSet = validationSet,
   anno = annoFocus)
 ```
 
@@ -210,20 +205,22 @@ validation <- validateModel(
 ```{r}
 makeModelPlots <- function(model, validationSet) {
   
-  annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(validationSet))
+  annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% validationSet$celllinename)
   
   validation <- validateModel(
     model,
-    validationSet = stackClasses(validationSet),
+    validationSet = validationSet,
     anno = annoFocus
   )
   
+  labels <- XIFF:::classLabel2levels(model$classLabel)
+  
   df <- prepareTablePlotData(
     df = validation$data,
-    positive_preds = "class1",
-    positive_refs = "class1",
-    labels_preds = c("sensitive", "resistant"),
-    labels_refs = c("sensitive", "resistant"),
+    positive_preds = labels[1],
+    positive_refs = labels[1],
+    labels_preds = labels,
+    labels_refs = labels,
     labels = c("positive", "negative")
   )
   
@@ -263,7 +260,9 @@ svmFit <- XIFF::buildMachineLearning(
   cs = cs,
   geneSet = geneSet,
   geneAnno = geneAnno,
-  method = "svmLinear2"
+  method = "svmLinear2",
+  classColumn = "MDM2_class", 
+  classLabel = "sensitive"
 )
 
 makeModelPlots(svmFit, validationSet)
@@ -278,7 +277,9 @@ if(XIFF::packageInstalled("rpart")) {
     cs = cs,
     geneSet = geneSet,
     geneAnno = geneAnno,
-    method = "rpart"
+    method = "rpart",
+    classColumn = "MDM2_class", 
+    classLabel = "sensitive"
   )
   makeModelPlots(rpartFit, validationSet)
 }
@@ -297,7 +298,9 @@ grepFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
-  method = "GREP"
+  method = "GREP",
+  classColumn = "MDM2_class", 
+  classLabel = "sensitive"
 )
 
 annoFocus <- CLIFF::getCellLineAnno("human") %>%
@@ -305,7 +308,7 @@ annoFocus <- CLIFF::getCellLineAnno("human") %>%
   
 validation <- validateModel(
   grepFit,
-  validationSet = stackClasses(validationSet),
+  validationSet = validationSet,
   anno = annoFocus
 )
 
@@ -323,6 +326,8 @@ grepFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
+  classColumn = "MDM2_class", 
+  classLabel = "sensitive",
   method = "glm",
   selectBestFeaturesFnc = getGrepFeatureSelection,
   threshold = 0.1,
@@ -337,7 +342,7 @@ valData <- getDataForModel(validationSet, grepFit)
 
 validation <- validateModel(
   grepFit,
-  validationSet = stackClasses(validationSet),
+  validationSet = validationSet,
   anno = annoFocus
 )
 
