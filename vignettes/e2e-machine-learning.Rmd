@@ -105,7 +105,7 @@ modelValidationData %>% select(celllinename, class) %>%
 modelValidationDataGlmnet <- getDataForModel(assignment = glmnetFit$validationSet,
                                        features = glmnetFit)
 ## Making predition
-modelValidationDataGlmnet %>% select(celllinename, class) %>%
+modelValidationDataGlmnet %>% select(celllinename, MDM2_class) %>%
   mutate(predicted = predict(glmnetFit, newdata = modelValidationDataGlmnet))
 ```
 ### Using the validation set created at the beginning.

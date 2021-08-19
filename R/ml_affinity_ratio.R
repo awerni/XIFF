@@ -236,7 +236,7 @@ mlGenerateExpressionPlot.XiffGREP <- function(model, df, ca, plotType = "point",
 #' @export
 mlGetTpmData.XiffGREP <- function(model, ensg, annoFocus) {
   
-  cs <- model$cs
+  cs <- model$trainingItems
   ensg <- strsplit(ensg, split = "\\.") %>% unlist %>% sort
   
   data <- getDataGeneExpressionById(ensg, cs) %>% 

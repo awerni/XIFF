@@ -16,7 +16,25 @@ mlGetClassColumn <- function(model, asSymbol = FALSE) {
   
   column
 }
+ 
+
+mlModelSet2ClassSelectionList <- function(model, set = NULL) {
   
+  if(is.null(set)) {
+    set <- model$trainingSet
+  }
+  
+  cs <- split(
+    set[[model$itemsColumn]],
+    set[[model$classColumn]]
+  )
+  
+  names(cs) <- c("class1", "class2")
+  attr(cs, "classLabel") <- model$classLabel
+  cs
+  
+}
+ 
 #' @export
 getPredictionSummary <- function(items,
                                  preds,

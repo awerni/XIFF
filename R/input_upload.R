@@ -510,7 +510,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     anno <- Annotation()
     req(m, anno)
     log_trace("mlUploadInput: Training Set - translating")
-    translated <- translationFun(tibble(!!colname := m$trainingSet), anno)
+    translated <- translationFun(tibble(!!colname := m$trainingItems), anno)
     if (is.null(translated)) return()
     log_trace("mlUploadInput: Training Set - translated.")
     translated

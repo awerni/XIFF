@@ -104,7 +104,7 @@ handleValidationSet <- function(classSelection, p_validation = 0.2) {
 #' @param featuresParams additional params to be passed to selectBestFeaturesFnc
 #'        if custom function is used.
 #' @param .verbose logical. if true prints additional values.
-#' @param .progress internal param to be used by applications.
+#' @param task internal param to be used by applications.
 #' @param .epsilonRNAseq GREP param.
 #' @param .otherParams list of other parameters to be saved with the model.
 #' @param .extraClass other class to be added to \code{class} vector. Allows to
@@ -141,7 +141,7 @@ buildMachineLearning <- function(cs,
                                  ...,
                                  # misc parameters
                                  .verbose = TRUE,
-                                 .progress = FALSE,
+                                 task = FALSE,
                                  .epsilonRNAseq = 10,
                                  .otherParams = list(),
                                  .extraClass = NULL) {
@@ -171,7 +171,7 @@ buildMachineLearning <- function(cs,
     ...,
     # misc parameters
     .verbose = .verbose,
-    .progress = .progress,
+    .progress = task,
     .epsilonRNAseq = .epsilonRNAseq,
     .otherParams = .otherParams,
     .extraClass = .extraClass
@@ -181,13 +181,25 @@ buildMachineLearning <- function(cs,
   if (is.null(res)) return() # handle the task cancel
   if (FutureManager::is.fmError(res)) return(res)
   
-  res$validationSet <- sets$validationSet
   res$classLabel    <- attr(classSelection, "classLabel")
+  res$validationSet <-
+    mlSets2OriginalNames(sets$validationSet, classColumn, res$classLabel)
+  res$trainingSet <-
+    mlSets2OriginalNames(res$trainingSet, classColumn, res$classLabel)
+  
   res$species       <- species
   res$classColumn   <- classColumn
+  res$itemsColumn   <- itemsColumn
   
   res
   
+}
+
+#' Rename column name and levels in the ml set to original values.
+mlSets2OriginalNames <- function(set, classColumn, classLabel) {
+  levels(set[["class"]]) <- classLabel2levels(classLabel)
+  names(set)[names(set) == "class"] <- classColumn
+  set  
 }
 
 #' Get a vector machine learning models that are supported by XIFF package.
@@ -304,7 +316,7 @@ mlGetTableData.default <- function(model) {
 #' @export
 mlGetTpmData.default <- function(model, ensg, annoFocus) {
   
-  cs <- model$cs
+  cs <- model$trainingItems
   data <- getDataGeneExpressionById(ensg, cs) %>% 
     addTumortypes(annoFocus)
   
