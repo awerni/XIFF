@@ -621,6 +621,22 @@ print.MLXIFF <- function(x, ...) {
 }
 
 
+
+#' Convert classLabel list into vector of levels
+#'
+#' @param cl classLabel list
+#'
+#' @return character vector with 2 elements.
+#' @export
+#'
+#' @examples
+#' 
+#' cl1 <- list(class1_name = "cl1", class2_name = "cl2")
+#' classLabel2levels(cl1)
+#' 
+#' cl2 <- list(class2_name = "cl2", class1_name = "cl1")
+#' classLabel2levels(cl1) == classLabel2levels(cl2)
+#' 
 classLabel2levels <- function(cl) {
   c(cl$class1_name, cl$class2_name)
 }

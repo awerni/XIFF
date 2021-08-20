@@ -14,8 +14,8 @@ handleClassSelection <- function(cs,
       stop("`cs` must be a list of 2 character vectors - class1 and class2.")
     }
     
-    attr(cs, "classLabel") <- classLabel
-    attr(cs, "classColumn")   <- classColumn
+    attr(cs, "classLabel")  <- classLabel
+    attr(cs, "classColumn") <- classColumn
     
     return(cs)
   }
@@ -26,6 +26,9 @@ handleClassSelection <- function(cs,
   }
   
   if(is.null(classLabel)) {
+    # if classLabel name is not available
+    # then the first level in alfabetical order is
+    # selected as positive class
     levels <- sort(unique(cs[[classColumn]]))
     positiveClass <- levels[1]
   } else if(is.character(classLabel)) {
@@ -51,8 +54,8 @@ handleClassSelection <- function(cs,
     )
   }
   
-  attr(classSelection, "classLabel") <- classLabel
-  attr(classSelection, "classColumn")   <- classColumn
+  attr(classSelection, "classLabel")  <- classLabel
+  attr(classSelection, "classColumn") <- classColumn
   classSelection
 }
 
