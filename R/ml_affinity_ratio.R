@@ -35,7 +35,7 @@ getGrepFeatureSelection <- function(df,
   filteredRatioMatrix <- mlGrepGetSignificantFeatures(
     mat = ratioMatrix,
     class = df[["class"]],
-    maxN = maxFeatures)
+    N = maxFeatures)
   
   
   examplarsFeaturesMatrix <- mlGrepAffinityPropagation(
@@ -127,8 +127,7 @@ mlGrepGetSignificantFeatures <- function(mat, class, N = 600) {
   
   log_trace(
     "GREP - Significant features, ",
-    " fdr: {fdr}",
-    " maxN: {maxN}",
+    " N: {N}",
     " Before: {ncol(mat)}",
     " After: {nrow(featuresInfo)}"
   )
