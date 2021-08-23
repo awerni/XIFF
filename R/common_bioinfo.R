@@ -620,7 +620,14 @@ createMachineLearningModel <- function(trainingSet,
   }
 
   importanceRes <- getVarImp(trainingOutput$finalModel, stats)
-  df <- importanceRes %>% left_join(geneAnno, by = "ensg")
+  if(.extraClass == "XiffGREP") {
+    # TODO: expose this as an additional param to be able to
+    # join any result from importanceRes with geneAnno
+    # it should be tackled after solving #BIARD-295
+    df <- mlGrepJoinAnno(importanceRes, geneAnno)
+  } else {
+    df <- importanceRes %>% left_join(geneAnno, by = "ensg")
+  }
   df <- tbl2XiffImportanceTable(df, attr(importanceRes, "importanceName"))
 
   progress$update(1.0, "job done")
