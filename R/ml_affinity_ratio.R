@@ -11,7 +11,7 @@
 #'
 #' @examples
 getGrepFeatureSelection <- function(df,
-                                    threshold = 0.1,
+                                    threshold = 0.05,
                                     maxFeatures = 600,
                                     maxGenes = 300,
                                     minFeatures = 15,
@@ -35,7 +35,6 @@ getGrepFeatureSelection <- function(df,
   filteredRatioMatrix <- mlGrepGetSignificantFeatures(
     mat = ratioMatrix,
     class = df[["class"]],
-    fdr = threshold,
     maxN = maxFeatures)
   
   
@@ -115,26 +114,14 @@ mlGetLog2RatiosMatrix <- function (df, epsilonRNAseq = 10) {
   ratios
 }
 
-mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.1, maxN = 600) {
+mlGrepGetSignificantFeatures <- function(mat, class, N = 600) {
   if(is.character(class)) class <- as.factor(class)
   
   featuresInfo <- genefilter::colttests(mat, class) %>% 
     tibble::rownames_to_column(var = "feature") %>% 
     tibble::as_tibble() %>%
-    dplyr::mutate(p_adj = p.adjust(p.value, method = "BH")) %>%
-    dplyr::arrange(p_adj)
-  
-  
-  featuresInfo <- featuresInfo %>% filter(p_adj <= fdr) %>% arrange(p_adj) %>% head(maxN)
-  
-  if(nrow(featuresInfo) == 0) {
-    msg <- glue::glue(
-      "There are no significant features below fdr ({fdr}) threshold.",
-      " The model cannot be build. Please try different machine learning",
-      " method or dataset."
-    )
-    stop(msg)
-  }
+    dplyr::arrange(p.value) %>%
+    head(N)
   
   log_trace(
     "GREP - Significant features, ",
