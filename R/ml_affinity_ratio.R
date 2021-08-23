@@ -76,13 +76,15 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
     stop(msg)
   }
   
+  epsilon <- 0.0001
   varCoef <- vapply(dfNum, FUN.VALUE = 0.0, FUN = function(x) {
     xx <- 2^x
+    if(sd(xx) < epsilon) return(0.0)
     sd(xx) / mean(xx)
   })
   
   varCoef <- sort(varCoef, decreasing = TRUE) %>% head(maxFeatures)
-  
+  varCoef <- varCoef[varCoef > epsilon]
   log_trace(
     "GREP - prefilter genes:",
     " Before filtering: {length(maxExprAboveTreshold)}",
