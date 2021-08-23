@@ -1,7 +1,8 @@
 #' Feature selection using GREP methodology.
 #'
 #' @param df data frame with ensg.
-#' @param threshold threshold for FDR.
+#' @param threshold not used, can be anything. Rquired only for compability
+#'        with different feature selection methods.
 #' @param maxFeatures max number of genes to be used in ratio calculations.
 #' @param minFeatures min number of features resulting from affinity propagation.
 #' @param epsilonRNAseq

@@ -509,7 +509,7 @@ createMachineLearningModel <- function(trainingSet,
       maxFeatures <- 600
     }
     
-    log_trace("GREP: Max Features: {maxFeatures}, fdr threshold: {threshold}")
+    log_trace("GREP: Max Features: {maxFeatures}.")
     method <- "glm"
     modelSelectionMethod <- "GREP"
     .otherParams$epsilonRNAseq <- .epsilonRNAseq
