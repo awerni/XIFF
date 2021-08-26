@@ -182,12 +182,15 @@ mlGetTableData.XiffGREP <- function(model) {
 getDataForModel.XiffGREP <- function(assignment,
                                      features,
                                      schema = getOption("xiff.schema"),
-                                     column = getOption("xiff.column")) {
+                                     column = getOption("xiff.column"),
+                                     classLabel = NULL) {
   
+  if(is.null(classLabel)) features$classLabel
   df <- getDataForModel(assignment,
                     mlGrepGetBestFeatures(features$bestFeatures),
                     schema = schema,
-                    column = column)
+                    column = column,
+                    classLabel = classLabel)
   
   mlGrepTransformExpr2Ratio(df, features, features$otherParams$epsilonRNAseq)
   

@@ -72,7 +72,7 @@ handleClassSelection <- function(cs,
 }
 
 handleValidationSet <- function(classSelection, p_validation = 0.2) {
-  
+
   assignment <- XIFF::stackClasses(classSelection, return_factor = TRUE)
   sets <- XIFF::splitTrainingValidationSets(assignment, p_validation)
   trainingSet <- sets$training
@@ -198,7 +198,7 @@ buildMachineLearning <- function(cs,
   
   res$classLabel    <- attr(classSelection, "classLabel")
   
-  if(!is.null(res$validationSet)) {
+  if(!is.null(sets$validationSet)) {
     res$validationSet <-
       mlSets2OriginalNames(sets$validationSet, classColumn, res$classLabel)
   }
@@ -244,7 +244,8 @@ xiffSupportedModels <- function() {
 getDataForModel <- function(assignment,
                             features,
                             schema = getOption("xiff.schema"),
-                            column = getOption("xiff.column")) {
+                            column = getOption("xiff.column"),
+                            classLabel = NULL) {
   UseMethod("getDataForModel", features)
 }
 
@@ -345,10 +346,15 @@ mlGetTpmData.default <- function(model, ensg, annoFocus) {
 getDataForModel.character <- function(assignment,
                                     features,
                                     schema = getOption("xiff.schema"),
-                                    column = getOption("xiff.column")) {
+                                    column = getOption("xiff.column"),
+                                    classLabel = NULL) {
+  
+  if(is.null(classLabel) && is(assignment, "classAssignment")) {
+    classLabel <- getClassLabel(assignment)
+  }
   
   if(is.list(assignment) && !is.data.frame(assignment)) {
-    assignment <- stackClasses(assignment)
+    assignment <- stackClasses(assignment, classLabel = classLabel)
   }
   
   getRawDataForModel(
@@ -363,14 +369,18 @@ getDataForModel.character <- function(assignment,
 
 #' @export
 getDataForModel.MLXIFF <- function(assignment,
-                                      features,
-                                      schema = getOption("xiff.schema"),
-                                      column = getOption("xiff.column")) {
+                                   features,
+                                   schema = getOption("xiff.schema"),
+                                   column = getOption("xiff.column"),
+                                   classLabel = NULL) {
+  
+  if(is.null(classLabel)) features$classLabel
   
   getDataForModel(assignment,
                   features$bestFeatures,
                   schema = schema,
-                  column = column)
+                  column = column, 
+                  classLabel = classLabel)
 }
 
 #' @export
@@ -381,3 +391,42 @@ getRawDataForModel.MLXIFF <- function(features,
   getRawDataForModel(features$bestFeatures, names, schema, column)
 }
 
+
+##########
+#' Create all ML plots in one go.
+#'
+#' @param model MLXIFF model
+#' @param validationSet validation set
+#' @param annoFocus annoFocus
+#'
+#' @export
+makeMlModelPlots <- function(model, validationSet, annoFocus) {
+  
+  validation <- validateModel(
+    model,
+    validationSet = validationSet,
+    anno = annoFocus
+  )
+  
+  labels <- XIFF:::classLabel2levels(model$classLabel)
+  
+  df <- prepareTablePlotData(
+    df = validation$data,
+    positive_preds = labels[1],
+    positive_refs = labels[1],
+    labels_preds = labels,
+    labels_refs = labels,
+    labels = c("positive", "negative")
+  )
+  
+  
+  
+  
+  df2 <- getPerformanceDataFrame(validation$res$table)
+  list(
+    TablePlot <- generateTablePlot(df),
+    ApplyPerformancePlot = generateApplyPerformancePlot(df2),
+    PerformancePlot = generatePerformancePlot(model),
+    VariableImportancePlot = generateVarImpPlot(model)
+  )
+}
