@@ -14,6 +14,18 @@ handleClassSelection <- function(cs,
       stop("`cs` must be a list of 2 character vectors - class1 and class2.")
     }
     
+    if(is.null(classLabel)) {
+      
+      if(is(cs, "classAssignment")) {
+        classLabel <- getClassLabel(cs)
+      } else {
+        classLabel <- list(
+          class1_name = "class1",
+          class2_name = "class2"
+        )
+      }
+    }
+    
     attr(cs, "classLabel")  <- classLabel
     attr(cs, "classColumn") <- classColumn
     
