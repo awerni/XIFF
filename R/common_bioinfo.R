@@ -124,7 +124,14 @@ ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
 
 # Machine learning ------------------------------------------------------------
 #' @export
-splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
+splitTrainingValidationSets <- function(assignment,
+                                        p_validation = 0.2){
+  UseMethod("splitTrainingValidationSets")
+}
+
+#' @export
+splitTrainingValidationSets.data.frame <- function(assignment,
+                                                   p_validation = 0.2){
   trainingSet <- assignment
   validationSet <- NULL
 
@@ -141,6 +148,33 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
     validation = validationSet
   )
 }
+
+#' @export
+splitTrainingValidationSets.classAssignment <- function(assignment,
+                                                        p_validation = 0.2){
+  trainingSet   <- assignment
+  validationSet <- NULL
+  if(p_validation > 0) {
+    cl    <- getClassLabel(assignment)
+    split <- splitTrainingValidationSets(stackClasses(assignment))
+    
+    trainingSet <- XIFF::makeClassAssignment(
+      split(split$training[[1]], split$training$class),
+      classLabel = cl
+    )
+    validationSet <- XIFF::makeClassAssignment(
+      split(split$validation[[1]], split$validation$class),
+      classLabel = cl
+    )
+  }
+  
+  list(
+    training = trainingSet,
+    validation = validationSet
+  )
+  
+}
+
 
 #' @export
 selectBestFeatures <-
