@@ -171,16 +171,26 @@ validateModel <- function(m,
   
   itemColumnSymbol <- rlang::sym(itemColumn)
   
-  if(is.null(classColumn)) {
-    classColumn <- m$classColumn
-  }
   
-  classColumnSymbol <- rlang::sym(classColumn)
+  
+  
+  
+  if(is(validationSet, "classAssignment")) {
+    validationSet <- stackClasses(validationSet, getClassLabel(validationSet))
+  }
   
   df <- getDataForModel(
     assignment = validationSet,
     features = m
   )
+  
+  if(is.null(classColumn)) {
+    classColumn <- m$classColumn
+    if(!classColumn %in% colnames(df)) {
+      classColumn <- "class"
+    }
+  }
+  classColumnSymbol <- rlang::sym(classColumn)
   
   refs <- df[[classColumn]]
   items <- df[[itemColumn]]
