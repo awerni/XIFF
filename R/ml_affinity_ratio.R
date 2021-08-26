@@ -172,9 +172,8 @@ mlGetTableData.XiffGREP <- function(model) {
   model$df %>%
     mutate(importance = signif(importance, 3)) %>%
     rename(!!importanceLabel := importance) %>%
-    mutate(ensg2 = ensg) %>%
     rename(`variable name` = ensg) %>%
-    select(-symbol, -name, -location) %>% tidyr::separate(ensg2, c("ensg1", "ensg2"), sep = "\\.")
+    select(`variable name`, !!importanceLabel, ensg1, ensg2, symbol1, symbol2)
 }
 
 ######### getDataForModel for GREP with support functions #########
@@ -288,4 +287,19 @@ getRawDataForModel.XiffGREP <- function(features,
   data2 <- data2 %>% filter(ensg %in% features$bestFeatures)
   
   data2
+}
+
+mlGrepJoinAnno <- function(importanceRes, geneAnno) {
+  
+  importanceRes <- importanceRes  %>% mutate(ensg2 = ensg) %>%
+    tidyr::separate(ensg2, c("ensg1", "ensg2"), sep = "\\.") %>%
+    left_join(geneAnno, by = c("ensg1" = "ensg")) %>%
+    left_join(geneAnno, by = c("ensg2" = "ensg"))
+  
+  colnames(importanceRes) <- 
+    gsub(colnames(importanceRes), pattern = "\\.x$", replacement = "1")
+  colnames(importanceRes) <- 
+    gsub(colnames(importanceRes), pattern = "\\.y$", replacement = "2")
+  importanceRes
+  
 }

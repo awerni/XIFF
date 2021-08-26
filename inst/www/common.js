@@ -122,17 +122,25 @@ function ensgRowCallback(row, data, species, idx){
   if (idx === undefined){
     idx = 0;
   }
-  var ensg = data[idx];
-  var itemDefs = [
-    {
-      label: 'Ensembl',
-      url: 'https://www.ensembl.org/' + species + '/Gene/Summary?db=core;g=' + ensg
-    },
-    {
-      label: 'NCBI',
-      url: 'https://www.ncbi.nlm.nih.gov/gene/?term=' + ensg
-    }
-  ];
-  $(row).find('td').eq(idx).html(buildDropdownLinkMenu(itemDefs, ensg));
+  
+  if(!Array.isArray(idx)) {
+    idx = [idx]
+  }
+  
+  for(const ii of idx) {
+    var ensg = data[ii];
+    var itemDefs = [
+      {
+        label: 'Ensembl',
+        url: 'https://www.ensembl.org/' + species + '/Gene/Summary?db=core;g=' + ensg
+      },
+      {
+        label: 'NCBI',
+        url: 'https://www.ncbi.nlm.nih.gov/gene/?term=' + ensg
+      }
+    ];
+    $(row).find('td').eq(ii).html(buildDropdownLinkMenu(itemDefs, ensg));
+  }
+
   preventLinkSelections(row);
 }
