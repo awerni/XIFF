@@ -149,7 +149,14 @@ styleHigherCol <- function(condition, cl){
 #' @export
 getEnsgRowCallback <- function(species, idx = 1){
   spFull <- getEnsemblSpecies(species)
-  htmlwidgets::JS(paste0("function(row, data, dataIndex) { ensgRowCallback(row, data, '", spFull, "', ", idx - 1, "); }"))
+  
+  if(length(idx) > 1) {
+    idx <- sprintf("[%s]", paste(idx - 1, collapse = ","))
+  } else {
+    idx <- idx - 1
+  }
+  
+  htmlwidgets::JS(paste0("function(row, data, dataIndex) { ensgRowCallback(row, data, '", spFull, "', ", idx, "); }"))
 }
 
 #' Set DB options
