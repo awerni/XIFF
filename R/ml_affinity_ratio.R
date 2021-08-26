@@ -29,7 +29,8 @@ getGrepFeatureSelection <- function(df,
     epsilonRNAseq
   )
   log_trace("GREP: Feature Selection - after low expression: {ncol(dfNum)}")
-    
+  
+  .otherParams$epsilonRNAseq <- epsilonRNAseq
   ratioMatrix <- mlGetLog2RatiosMatrix(dfNum, epsilonRNAseq = epsilonRNAseq)
   
   
@@ -160,9 +161,8 @@ mlGetTableData.XiffGREP <- function(model) {
   model$df %>%
     mutate(importance = signif(importance, 3)) %>%
     rename(!!importanceLabel := importance) %>%
-    mutate(ensg2 = ensg) %>%
     rename(`variable name` = ensg) %>%
-    select(-symbol, -name, -location) %>% tidyr::separate(ensg2, c("ensg1", "ensg2"), sep = "\\.")
+    select(`variable name`, !!importanceLabel, ensg1, ensg2, symbol1, symbol2)
 }
 
 ######### getDataForModel for GREP with support functions #########
@@ -170,12 +170,15 @@ mlGetTableData.XiffGREP <- function(model) {
 getDataForModel.XiffGREP <- function(assignment,
                                      features,
                                      schema = getOption("xiff.schema"),
-                                     column = getOption("xiff.column")) {
+                                     column = getOption("xiff.column"),
+                                     classLabel = NULL) {
   
+  if(is.null(classLabel)) features$classLabel
   df <- getDataForModel(assignment,
                     mlGrepGetBestFeatures(features$bestFeatures),
                     schema = schema,
-                    column = column)
+                    column = column,
+                    classLabel = classLabel)
   
   mlGrepTransformExpr2Ratio(df, features, features$otherParams$epsilonRNAseq)
   
@@ -199,7 +202,9 @@ mlGrepTransformExpr2Ratio <- function(x, model, epsilonRNAseq = 10) {
   
   features <- as_tibble(as.data.frame(quotientMatrix[, model$bestFeatures]))
   
-  res <- x %>% select(class, !!rlang::sym(getOption("xiff.column")))
+  class <- mlGetClassColumn(model, x, asSymbol = TRUE)
+  
+  res <- x %>% select(!!class, !!rlang::sym(getOption("xiff.column")))
   bind_cols(res, features)  
   
 }
@@ -222,7 +227,7 @@ mlGenerateExpressionPlot.XiffGREP <- function(model, df, ca, plotType = "point",
 #' @export
 mlGetTpmData.XiffGREP <- function(model, ensg, annoFocus) {
   
-  cs <- model$cs
+  cs <- model$trainingItems
   ensg <- strsplit(ensg, split = "\\.") %>% unlist %>% sort
   
   data <- getDataGeneExpressionById(ensg, cs) %>% 
@@ -271,4 +276,19 @@ getRawDataForModel.XiffGREP <- function(features,
   data2 <- data2 %>% filter(ensg %in% features$bestFeatures)
   
   data2
+}
+
+mlGrepJoinAnno <- function(importanceRes, geneAnno) {
+  
+  importanceRes <- importanceRes  %>% mutate(ensg2 = ensg) %>%
+    tidyr::separate(ensg2, c("ensg1", "ensg2"), sep = "\\.") %>%
+    left_join(geneAnno, by = c("ensg1" = "ensg")) %>%
+    left_join(geneAnno, by = c("ensg2" = "ensg"))
+  
+  colnames(importanceRes) <- 
+    gsub(colnames(importanceRes), pattern = "\\.x$", replacement = "1")
+  colnames(importanceRes) <- 
+    gsub(colnames(importanceRes), pattern = "\\.y$", replacement = "2")
+  importanceRes
+  
 }

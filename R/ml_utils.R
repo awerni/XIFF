@@ -1,3 +1,46 @@
+#' Get class column name from MLXIFF model.
+#'
+#' @param model MLXIFF object. 
+#' @param asSymbol logical. If FALSE returns string. If true returns symbol.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+mlGetClassColumn <- function(model, data = NULL, asSymbol = FALSE) {
+  column <- if(is.null(model$classColumn)) "class" else model$classColumn
+  
+  if(!is.null(data) && !column %in% colnames(data)) {
+    # handle the case when classColumn is not present in selected data.
+    # requried for UI when it might be just 'class' column
+    column <- "class"
+  }
+  
+  if(asSymbol) {
+    column <- rlang::sym(column)
+  }
+  
+  column
+}
+ 
+
+mlModelSet2ClassSelectionList <- function(model, set = NULL) {
+  
+  if(is.null(set)) {
+    set <- model$trainingSet
+  }
+  
+  cs <- split(
+    set[[model$itemsColumn]],
+    set[[model$classColumn]]
+  )
+  
+  names(cs) <- c("class1", "class2")
+  attr(cs, "classLabel") <- model$classLabel
+  cs
+  
+}
+ 
 #' @export
 getPredictionSummary <- function(items,
                                  preds,
@@ -28,12 +71,25 @@ getPredictionSummary <- function(items,
   
   anno <- annoFocus %>% select(!!itemColumnSymbol, tumortype)
   
+  # handle raw forecasts
+  preds <- if(all(preds %in% c("class1", "class2"))) {
+    ifelse(preds == "class1", classes_model[1], classes_model[2])
+  } else {
+    preds
+  }
+  
+  refs <- if(all(refs %in% c("class1", "class2"))) {
+    ifelse(refs == "class1", classes_cs[1], classes_cs[2])
+  } else {
+    refs
+  }
+  
   df <- tibble(
     !!itemColumnSymbol := items,
     predicted = preds_pn,
     reference = refs_pn,
-    predicted_original = ifelse(preds == "class1", classes_model[1], classes_model[2]),
-    reference_original = ifelse(refs == "class1", classes_cs[1], classes_cs[2]),
+    predicted_original = preds,
+    reference_original = refs,
     correct = preds_pn == refs_pn,
   ) %>%
     left_join(anno, by = itemColumn) %>%
@@ -109,28 +165,46 @@ prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds
 validateModel <- function(m,
                           validationSet,
                           anno,
-                          itemColumn = getOption("xiff.column")) {
+                          itemColumn = getOption("xiff.column"),
+                          classColumn = NULL
+                          ) {
   
   itemColumnSymbol <- rlang::sym(itemColumn)
+  
+  
+  
+  
+  
+  if(is(validationSet, "classAssignment")) {
+    validationSet <- stackClasses(validationSet, getClassLabel(validationSet))
+  }
   
   df <- getDataForModel(
     assignment = validationSet,
     features = m
   )
   
-  refs <- df$class
+  if(is.null(classColumn)) {
+    classColumn <- m$classColumn
+    if(!classColumn %in% colnames(df)) {
+      classColumn <- "class"
+    }
+  }
+  classColumnSymbol <- rlang::sym(classColumn)
+  
+  refs <- df[[classColumn]]
   items <- df[[itemColumn]]
-  df <- df %>% select(-class, -!!itemColumnSymbol)
+  df <- df %>% select(-!!classColumnSymbol, -!!itemColumnSymbol)
   preds <- predict(m, newdata = df)
   
-  cl <- unlist(m$classLabel, use.names = FALSE)
+  cl <- classLabel2levels(m$classLabel)
   
   getPredictionSummary(
     items = items,
     preds = preds,
     refs = refs,
-    positive_model = "class1",
-    positive_cs = "class1",
+    positive_model = levels(preds)[1],
+    positive_cs = levels(preds)[1],
     classes = c("positive", "negative"),
     classes_model = cl,
     classes_cs = cl,
