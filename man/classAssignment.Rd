@@ -4,14 +4,26 @@
 \alias{classAssignment}
 \title{Class assignment}
 \usage{
-classAssignment(...)
+classAssignment(..., positiveClass = NULL)
 }
 \arguments{
 \item{...}{named character vectors}
+
+\item{positiveClass}{name of the positive class. If NULL (default), the first
+class is used.}
 }
 \value{
 classAssignment object
 }
 \description{
 Helper class that holds class samples with class labels
+}
+\examples{
+classAssignment(a = c("a","b"), b = c("x", "y", "z"))
+classAssignment(a = c("a","b"), b = c("x", "y", "z"), positiveClass = "b")
+
+cs <- list(a = c("a","b"), b = c("x", "y", "z"))
+classAssignment(cs)
+classAssignment(cs, positiveClass = "b")
+
 }

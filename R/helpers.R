@@ -9,6 +9,15 @@
 #' 
 #' @return classAssignment object
 #' @export
+#' 
+#' @examples 
+#' classAssignment(a = c("a","b"), b = c("x", "y", "z"))
+#' classAssignment(a = c("a","b"), b = c("x", "y", "z"), positiveClass = "b")
+#' 
+#' cs <- list(a = c("a","b"), b = c("x", "y", "z"))
+#' classAssignment(cs)
+#' classAssignment(cs, positiveClass = "b")
+#' 
 classAssignment <- function(..., positiveClass = NULL){
   theDots <- list(...)
   
