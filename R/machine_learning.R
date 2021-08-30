@@ -1,15 +1,131 @@
+handleClassSelection <- function(cs,
+                                 classColumn = "class",
+                                 classLabel    = NULL,
+                                 names = getOption("xiff.column")) {
+  
+  if(is.list(cs) && !is.data.frame(cs)) {
+    
+    log_trace("handleClassSelection - using cs as list.")
+    
+    if(length(cs) != 2 ||
+       !all(c("class1", "class2") %in% names(cs)) ||
+       !all(vapply(cs, FUN.VALUE = TRUE, is.character))
+    ) {
+      stop("`cs` must be a list of 2 character vectors - class1 and class2.")
+    }
+    
+    if(is.null(classLabel)) {
+      
+      if(is(cs, "classAssignment")) {
+        classLabel <- getClassLabel(cs)
+      } else {
+        classLabel <- list(
+          class1_name = "class1",
+          class2_name = "class2"
+        )
+      }
+    }
+    
+    attr(cs, "classLabel")  <- classLabel
+    attr(cs, "classColumn") <- classColumn
+    
+    return(cs)
+  }
+  
+  
+  if(!classColumn %in% names(cs)) {
+    stop(glue::glue("`{classColumn}` is not a column name in `cs`."))
+  }
+  
+  if(is.null(classLabel)) {
+    # if classLabel name is not available
+    # then the first level in alfabetical order is
+    # selected as positive class
+    levels <- sort(unique(cs[[classColumn]]))
+    positiveClass <- levels[1]
+  } else if(is.character(classLabel)) {
+    positiveClass <- classLabel
+    classLabel <- NULL
+  } else {
+    positiveClass <- classLabel$class1_name
+  }
+  
+  if(!positiveClass %in% cs[[classColumn]]) {
+    stop(glue::glue("'{positiveClass}' is not value in cs[['{classColumn}']]"))
+  }
+    
+  classSelection <- list(
+    class1 = subset(cs[[names]], cs[[classColumn]] == positiveClass),
+    class2 = subset(cs[[names]], cs[[classColumn]] != positiveClass)
+  )
+  
+  if(is.null(classLabel)) {
+    classLabel <- list(
+      class1_name = positiveClass,
+      class2_name = setdiff(unique(cs[[classColumn]]), positiveClass)
+    )
+  }
+  
+  attr(classSelection, "classLabel")  <- classLabel
+  attr(classSelection, "classColumn") <- classColumn
+  classSelection
+}
+
+handleValidationSet <- function(classSelection, p_validation = 0.2) {
+
+  assignment <- XIFF::stackClasses(classSelection, return_factor = TRUE)
+  sets <- XIFF::splitTrainingValidationSets(assignment, p_validation)
+  trainingSet <- sets$training
+  validationSet <- sets$validation
+  
+  list(
+    trainingSet = trainingSet,
+    validationSet = validationSet
+  )
+  
+}
+
 #' Workhorse for machine learning.
 #'
-#' @param cs 
-#' @param geneSet 
-#' @param geneAnno 
-#' @param species 
-#' @param method 
-#' @param p_validation 
+#' @param cs class selection. Can be a list with two character vectors or
+#'           data.frame.
+#' @param geneSet list of genes to be used as model features.
+#' @param geneAnno gene annotation table.
+#' @param species species.
+#' @param method name of ml methods (use values from 
+#'        \code{xiffSupportedModels()}) or model names from caret package.
+#' @param p_validation percentage of the cs that will be assigned as validation.
+#' @param classColumn name of the column that will be used to assgin classes.
+#'        Used when cs is data.frame.
+#' @param classLabel classLable assigment (list with class1_name and
+#'        class2_name) or single string containing the name of the positive
+#'        class.
+#' @param itemsColumn if cs is data.frame, specifies the name of column that 
+#'        contains items (celllines or tissues). Usually it should not be
+#'        used.
+#' @param trainingData data.frame if user wants to use custom data instead of 
+#'        the result of \code{getDataForModel}.
+#' @param getDataForModelFnc if the user wants to use custom function to get 
+#'        the data it can repleace \code{getDataForModel}.
+#' @param dataParams list with additional params to be passed to
+#'        \code{getDataForModelFnc}
+#' @param tuneLength caret fitting parameter.
+#' @param number caret fitting parameter.
+#' @param repeats caret fitting parameter.
+#' @param selectBestFeaturesFnc 
+#' @param threshold threshold for feature selection.
+#' @param maxFeatures max number of features to be used in the fitting process.
+#'        Each feature selection methods contain a way to limit its number.
+#' @param featuresParams additional params to be passed to selectBestFeaturesFnc
+#'        if custom function is used.
+#' @param .verbose logical. if true prints additional values.
+#' @param task internal param to be used by applications.
+#' @param .epsilonRNAseq GREP param.
+#' @param .otherParams list of other parameters to be saved with the model.
+#' @param .extraClass other class to be added to \code{class} vector. Allows to
+#'        use custom methods. For advanced users.
 #' @param ...
-#' @param task 
 #'
-#' 
 #' @importFrom FutureManager is.fmError
 #' @export
 #' @return
@@ -18,43 +134,90 @@ buildMachineLearning <- function(cs,
                                  geneSet,
                                  geneAnno,
                                  species = "human",
+                                 classColumn = "class",
+                                 classLabel = NULL,
+                                 p_validation = 0,
+                                 itemsColumn = getOption("xiff.column"),
+                                 # Training data params
+                                 trainingData = NULL,
+                                 getDataForModelFnc = getDataForModel,
+                                 dataParams = NULL,
+                                 # Caret params
                                  method = "rf",
-                                 p_validation = 0.2,
+                                 tuneLength = 5,
+                                 number = 10,
+                                 repeats = 10,
+                                 # Feature selection params
+                                 selectBestFeaturesFnc = "auto",
+                                 threshold = "Confirmed",
+                                 maxFeatures = "auto",
+                                 featuresParams = NULL,
+                                 # Other params passed to caret::train
                                  ...,
-                                 task = FALSE) {
+                                 # misc parameters
+                                 .verbose = TRUE,
+                                 task = FALSE,
+                                 .epsilonRNAseq = 10,
+                                 .otherParams = list(),
+                                 .extraClass = NULL) {
   
-  
-  assignment <- XIFF::stackClasses(cs, return_factor = TRUE)
-  
-  sets <- XIFF::splitTrainingValidationSets(assignment, p_validation)
-  trainingSet <- sets$training
-  validationSet <- sets$validation
-  
-  if (!is.null(validationSet)){
-    validationSet <- split(validationSet[[getOption("xiff.column")]], validationSet$class)
-    cs$class1 <- setdiff(cs$class1, validationSet$class1)
-    cs$class2 <- setdiff(cs$class2, validationSet$class2)
-  }
+  classSelection <- handleClassSelection(cs, classColumn, classLabel, itemsColumn)
+  sets <- handleValidationSet(classSelection, p_validation)
   
   res <- createMachineLearningModel(
-    trainingSet = trainingSet,
+    trainingSet = sets$trainingSet,
     geneSet = geneSet,
     geneAnno = geneAnno,
+    # Training data params
+    trainingData = trainingData,
+    getDataForModelFnc = getDataForModelFnc,
+    dataParams = dataParams,
+    # Caret params
     method = method,
+    tuneLength = tuneLength,
+    number = number,
+    repeats = repeats,
+    # Feature selection params
+    selectBestFeaturesFnc = selectBestFeaturesFnc,
+    threshold = threshold,
+    maxFeatures = maxFeatures,
+    featuresParams = featuresParams,
+    # Other params passed to caret::train
+    ...,
+    # misc parameters
+    .verbose = .verbose,
     .progress = task,
-    ...
+    .epsilonRNAseq = .epsilonRNAseq,
+    .otherParams = .otherParams,
+    .extraClass = .extraClass
   )
   
+
   if (is.null(res)) return() # handle the task cancel
   if (FutureManager::is.fmError(res)) return(res)
   
-  res$cs <- cs
-  res$species <- species
-  res$validationSet <- validationSet
+  res$classLabel    <- attr(classSelection, "classLabel")
   
-  class(res) <- c("XiffMachineLearningResult", class(res))
+  if(!is.null(sets$validationSet)) {
+    res$validationSet <-
+      mlSets2OriginalNames(sets$validationSet, classColumn, res$classLabel)
+  }
+  res$trainingSet <-
+    mlSets2OriginalNames(res$trainingSet, classColumn, res$classLabel)
+  
+  res$species       <- species
+  res$classColumn   <- classColumn
+  res$itemsColumn   <- itemsColumn
+  
   res
   
+}
+
+#' Rename column name and levels in the ml set to original values.
+mlSets2OriginalNames <- function(set, classColumn, classLabel) {
+  levels(set[["class"]]) <- classLabel2levels(classLabel)
+  names(set)[names(set) == "class"] <- classColumn
+  set  
 }
 
 #' Get a vector machine learning models that are supported by XIFF package.
@@ -81,7 +244,8 @@ xiffSupportedModels <- function() {
 getDataForModel <- function(assignment,
                             features,
                             schema = getOption("xiff.schema"),
-                            column = getOption("xiff.column")) {
+                            column = getOption("xiff.column"),
+                            classLabel = NULL) {
   UseMethod("getDataForModel", features)
 }
 
@@ -171,7 +335,7 @@ mlGetTableData.default <- function(model) {
 #' @export
 mlGetTpmData.default <- function(model, ensg, annoFocus) {
   
-  cs <- model$cs
+  cs <- model$trainingItems
   data <- getDataGeneExpressionById(ensg, cs) %>% 
     addTumortypes(annoFocus)
   
@@ -182,10 +346,15 @@ mlGetTpmData.default <- function(model, ensg, annoFocus) {
 getDataForModel.character <- function(assignment,
                                     features,
                                     schema = getOption("xiff.schema"),
-                                    column = getOption("xiff.column")) {
+                                    column = getOption("xiff.column"),
+                                    classLabel = NULL) {
+  
+  if(is.null(classLabel) && is(assignment, "classAssignment")) {
+    classLabel <- getClassLabel(assignment)
+  }
   
   if(is.list(assignment) && !is.data.frame(assignment)) {
-    assignment <- stackClasses(assignment)
+    assignment <- stackClasses(assignment, classLabel = classLabel)
   }
   
   getRawDataForModel(
@@ -200,14 +369,18 @@ getDataForModel.character <- function(assignment,
 
 #' @export
 getDataForModel.MLXIFF <- function(assignment,
-                                      features,
-                                      schema = getOption("xiff.schema"),
-                                      column = getOption("xiff.column")) {
+                                   features,
+                                   schema = getOption("xiff.schema"),
+                                   column = getOption("xiff.column"),
+                                   classLabel = NULL) {
+  
+  if(is.null(classLabel)) features$classLabel
   
   getDataForModel(assignment,
                   features$bestFeatures,
                   schema = schema,
-                  column = column)
+                  column = column, 
+                  classLabel = classLabel)
 }
 
 #' @export
@@ -218,3 +391,42 @@ getRawDataForModel.MLXIFF <- function(features,
   getRawDataForModel(features$bestFeatures, names, schema, column)
 }
 
+
+##########
+#' Create all ML plots in one go.
+#'
+#' @param model MLXIFF model
+#' @param validationSet validation set
+#' @param annoFocus annoFocus
+#'
+#' @export
+makeMlModelPlots <- function(model, validationSet, annoFocus) {
+  
+  validation <- validateModel(
+    model,
+    validationSet = validationSet,
+    anno = annoFocus
+  )
+  
+  labels <- XIFF:::classLabel2levels(model$classLabel)
+  
+  df <- prepareTablePlotData(
+    df = validation$data,
+    positive_preds = labels[1],
+    positive_refs = labels[1],
+    labels_preds = labels,
+    labels_refs = labels,
+    labels = c("positive", "negative")
+  )
+  
+  
+  
+  
+  df2 <- getPerformanceDataFrame(validation$res$table)
+  list(
+    TablePlot <- generateTablePlot(df),
+    ApplyPerformancePlot = generateApplyPerformancePlot(df2),
+    PerformancePlot = generatePerformancePlot(model),
+    VariableImportancePlot = generateVarImpPlot(model)
+  )
+}

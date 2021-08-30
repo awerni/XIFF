@@ -28,7 +28,8 @@ getGrepFeatureSelection <- function(df,
     epsilonRNAseq
   )
   log_trace("GREP: Feature Selection - after low expression: {ncol(dfNum)}")
-    
+  
+  .otherParams$epsilonRNAseq <- epsilonRNAseq
   ratioMatrix <- mlGetLog2RatiosMatrix(dfNum, epsilonRNAseq = epsilonRNAseq)
   
   
@@ -180,12 +181,15 @@ mlGetTableData.XiffGREP <- function(model) {
 getDataForModel.XiffGREP <- function(assignment,
                                      features,
                                      schema = getOption("xiff.schema"),
-                                     column = getOption("xiff.column")) {
+                                     column = getOption("xiff.column"),
+                                     classLabel = NULL) {
   
+  if(is.null(classLabel)) features$classLabel
   df <- getDataForModel(assignment,
                     mlGrepGetBestFeatures(features$bestFeatures),
                     schema = schema,
-                    column = column)
+                    column = column,
+                    classLabel = classLabel)
   
   mlGrepTransformExpr2Ratio(df, features, features$otherParams$epsilonRNAseq)
   
@@ -209,7 +213,9 @@ mlGrepTransformExpr2Ratio <- function(x, model, epsilonRNAseq = 10) {
   
   features <- as_tibble(as.data.frame(quotientMatrix[, model$bestFeatures]))
   
-  res <- x %>% select(class, !!rlang::sym(getOption("xiff.column")))
+  class <- mlGetClassColumn(model, x, asSymbol = TRUE)
+  
+  res <- x %>% select(!!class, !!rlang::sym(getOption("xiff.column")))
   bind_cols(res, features)  
   
 }
@@ -232,7 +238,7 @@ mlGenerateExpressionPlot.XiffGREP <- function(model, df, ca, plotType = "point",
 #' @export
 mlGetTpmData.XiffGREP <- function(model, ensg, annoFocus) {
   
-  cs <- model$cs
+  cs <- model$trainingItems
   ensg <- strsplit(ensg, split = "\\.") %>% unlist %>% sort
   
   data <- getDataGeneExpressionById(ensg, cs) %>% 

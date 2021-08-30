@@ -124,7 +124,14 @@ ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
 
 # Machine learning ------------------------------------------------------------
 #' @export
-splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
+splitTrainingValidationSets <- function(assignment,
+                                        p_validation = 0.2){
+  UseMethod("splitTrainingValidationSets")
+}
+
+#' @export
+splitTrainingValidationSets.data.frame <- function(assignment,
+                                                   p_validation = 0.2){
   trainingSet <- assignment
   validationSet <- NULL
 
@@ -141,6 +148,33 @@ splitTrainingValidationSets <- function(assignment, p_validation = 0.2){
     validation = validationSet
   )
 }
+
+#' @export
+splitTrainingValidationSets.classAssignment <- function(assignment,
+                                                        p_validation = 0.2){
+  trainingSet   <- assignment
+  validationSet <- NULL
+  if(p_validation > 0) {
+    cl    <- getClassLabel(assignment)
+    split <- splitTrainingValidationSets(stackClasses(assignment))
+    
+    trainingSet <- XIFF::makeClassAssignment(
+      split(split$training[[1]], split$training$class),
+      classLabel = cl
+    )
+    validationSet <- XIFF::makeClassAssignment(
+      split(split$validation[[1]], split$validation$class),
+      classLabel = cl
+    )
+  }
+  
+  list(
+    training = trainingSet,
+    validation = validationSet
+  )
+  
+}
+
 
 #' @export
 selectBestFeatures <-
@@ -416,39 +450,11 @@ getVarImp <- function(model, stats){
     
 }
 
-
-#' Create machine learning model using XIFF package.
-#'
-#' @param trainingSet 
-#' @param geneSet 
-#' @param geneAnno 
-#' @param classLabel 
-#' @param trainingData data frame with training data. 
-#'                     If null \code{getDataForModelFnc} will be used.
-#' @param getDataForModelFnc function to extract training data.
-#' @param dataParams list with additional params for \code{getDataForModelFnc}.
-#' @param method 
-#' @param tuneLength 
-#' @param number 
-#' @param repeats 
-#' @param selectBestFeaturesFnc 
-#' @param threshold 
-#' @param maxFeatures 
-#' @param featuresParams list with custom params passed to 
-#'                       selectBestFeaturesFnc
-#' @param ... 
-#' @param .verbose 
-#' @param .progress 
-#'
 #' @importFrom glue glue
 #' @importFrom logger log_trace
-#' @export
-#' 
 createMachineLearningModel <- function(trainingSet,
                                        geneSet,
                                        geneAnno,
-                                       classLabel = list(class1_name = "class1",
-                                                         class2_name = "class2"),
                                        # Training data params
                                        trainingData = NULL,
                                        getDataForModelFnc = getDataForModel,
@@ -636,9 +642,9 @@ createMachineLearningModel <- function(trainingSet,
   
   trainingOutput$featureSelectionResult <- selectedFeatures
   trainingOutput$df <- df
-  trainingOutput$classLabel <- classLabel
   trainingOutput$bestFeatures <- df[["ensg"]]
-  trainingOutput$trainingSet <- trainingSet[[getOption("xiff.column")]]
+  trainingOutput$trainingSet <- trainingSet
+  trainingOutput$trainingItems <- trainingSet[[getOption("xiff.column")]]
   trainingOutput$otherParams <- .otherParams
   
   trainingOutput
@@ -656,12 +662,35 @@ print.MLXIFF <- function(x, ...) {
 }
 
 
+
+#' Convert classLabel list into vector of levels
+#'
+#' @param cl classLabel list
+#'
+#' @return character vector with 2 elements.
+#' @export
+#'
+#' @examples
+#' 
+#' cl1 <- list(class1_name = "cl1", class2_name = "cl2")
+#' classLabel2levels(cl1)
+#' 
+#' cl2 <- list(class2_name = "cl2", class1_name = "cl1")
+#' classLabel2levels(cl1) == classLabel2levels(cl2)
+#' 
+classLabel2levels <- function(cl) {
+  c(cl$class1_name, cl$class2_name)
+}
+
 #' @exportS3Method
-predict.MLXIFF <- function(x, newdata = NULL, ...) {
+predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
   
-  class(x) <- class(x)[!class(x) %in% c("XiffMachineLearningResult", "MLXIFF")]
-  predict(x, newdata = newdata, ...)  
-    
+  class(x) <- class(x)[!class(x) %in% c("MLXIFF")]
+  result <- predict(x, newdata = newdata, ...)  
+  if(useClassLabels && is.factor(result) && !is.null(x$classLabel)) {
+    levels(result) <- classLabel2levels(x$classLabel)
+  }
+  result
 }
 
 #' @export

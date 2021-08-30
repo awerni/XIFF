@@ -37,7 +37,46 @@ classAssignment <- function(...){
 
 #' @export
 makeClassAssignment <- function(sampleClasses, classLabel){
-  if (is.null(sampleClasses) || is.null(classLabel)) return()
+  
+  shiny::validate(
+    shiny::need(
+      !is.null(sampleClasses),
+      message = "sampleClasses cannot be null."
+    ),
+    shiny::need(
+      !is.null(classLabel),
+      message = "classLabel cannot be null."
+    )
+  )
+  
+  if(is.character(classLabel)) {
+    
+    if(length(classLabel) == 2) {
+      classLabel <- list(
+        class1_name = classLabel[1],
+        class2_name = classLabel[2]
+      )
+    } else if(length(classLabel) == 1) {
+      
+      if(!classLabel %in% names(sampleClasses)) {
+        stop("classLabel must be one of the names of sampleClasses")
+      }
+      levels <- names(sampleClasses)
+      classLabel <- c(classLabel, levels[classLabel != levels])
+      classLabel <- list(
+        class1_name = classLabel[1],
+        class2_name = classLabel[2]
+      )
+      
+    } else {
+      stop("classLabel should be character vector",
+           " with 1 or 2 elements or a list")
+    }
+    
+    sampleClasses <- sampleClasses[classLabel2levels(classLabel)]
+    names(sampleClasses) <- c("class1", "class2")
+  }
+  
   
   # make sure the order is fine
   sampleClasses <- sampleClasses[c("class1", "class2")]
@@ -51,7 +90,7 @@ print.classAssignment <- function(x){
   n1 <- length(x$class1)
   n2 <- length(x$class2)
   cat("Class assignment object\n")
-  cat(paste0("Class1 (", dict$class1, "): ", n1, " items\n"))
+  cat(paste0("Class1 (", dict$class1, "): ", n1, " items <-- Positive Class\n"))
   cat(paste0("Class2 (", dict$class2, "): ", n2, " items\n"))
 }
 
@@ -72,6 +111,22 @@ classIdToLabel <- function(x, ca){
   }
   
   res
+}
+
+
+#' Get class label list from classAssignment object.
+#'
+#' @param ca classAssignment object
+#'
+#' @export
+getClassLabel <- function(ca) {
+  stopifnot(
+    is(ca, "classAssignment")
+  )
+  
+  labels <- attr(ca, "labels")
+  names(labels) <- paste0(names(labels), "_name")
+  labels
 }
 
 #' @export

@@ -155,6 +155,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
       method = input$method,
       geneAnno = gene_anno(),
       species = Species(),
+      classLabel = reactiveValuesToList(classLabel),
       p_validation = input$validation_size / 100
     )
   })
@@ -182,7 +183,6 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
     
     res <- Results()
     FutureManager::fmValidate(res)
-    
     mlGetTpmData(
       model = res[["value"]],
       ensg = ExpressionGene()$ensg,
@@ -196,7 +196,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
     FutureManager::fmValidate(res)
     
     res <- res[["value"]]
-    cs <- res$cs
+    cs <- mlModelSet2ClassSelectionList(res)
     cl <- reactiveValuesToList(classLabel)
     switch(
       EXPR = plotType,

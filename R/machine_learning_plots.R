@@ -67,8 +67,8 @@ generatePerformancePlot <- function(x){
 #' 
 generateVarImpPlot <- function(x){
   
-  if(!inherits(x, "XiffMachineLearningResult")) {
-    stop("Error in XIFF::generateVarImpPlot - x must be XiffMachineLearningResult object!")
+  if(!inherits(x, "MLXIFF")) {
+    stop("Error in XIFF::generateVarImpPlot - x must be MLXIFF object!")
   }
   
   importanceData <- x$df[, c("ensg", "importance")]

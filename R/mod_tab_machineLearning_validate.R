@@ -18,7 +18,7 @@ machineLearningValidateModelTab <- function(input, output, session, classLabel, 
     FutureManager::fmValidate(Results())
     res <- Results()[["value"]]
     
-    validationSet <- res$validationSet
+    validationSet <- mlModelSet2ClassSelectionList(res, res$validationSet)
     validate(need(validationSet, "validation set not provided"))
     validateXiffMachineLearningResult(res)
 
