@@ -2,7 +2,7 @@
 #'
 #' @param df data frame with ensg.
 #' @param threshold not used, can be anything. Rquired only for compability
-#'        with different feature selection methods.
+#'        with other feature selection methods.
 #' @param maxFeatures max number of genes to be used in ratio calculations.
 #' @param minFeatures min number of features resulting from affinity propagation.
 #' @param epsilonRNAseq
@@ -63,7 +63,8 @@ getGrepFeatureSelection <- function(df,
 ################## Internal GREP/Ratios functions #################
 mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
                                                          maxFeatures,
-                                                         epsilonRNAseq) {
+                                                         epsilonRNAseq,
+                                                         varianceEpsilon = 0.0001) {
   
   maxExprAboveTreshold <- vapply(dfNum, FUN.VALUE = 0.0, FUN = max) > log2(epsilonRNAseq)
   
@@ -78,15 +79,15 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
     stop(msg)
   }
   
-  epsilon <- 0.0001
+  
   varCoef <- vapply(dfNum, FUN.VALUE = 0.0, FUN = function(x) {
     xx <- 2^x
-    if(sd(xx) < epsilon) return(0.0)
+    if(sd(xx) < varianceEpsilon) return(0.0) # filter nearly zero variance genes
     sd(xx) / mean(xx)
   })
   
   varCoef <- sort(varCoef, decreasing = TRUE) %>% head(maxFeatures)
-  varCoef <- varCoef[varCoef > epsilon]
+  varCoef <- varCoef[varCoef > varianceEpsilon]
   log_trace(
     "GREP - prefilter genes:",
     " Before filtering: {length(maxExprAboveTreshold)}",
