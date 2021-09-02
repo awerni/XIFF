@@ -128,5 +128,20 @@ test_that(
       res3[["class"]], 
       c("class1", "class1", "class1", "class2", "class2", "class2")
     )
+    
+    ca <- classAssignment(
+      c1 = c("a", "b", "c"),
+      c2 = c("d", "e", "f"),
+      positiveClass = "c1"
+    )
+    expect_equal(classLabel2levels(getClassLabel(ca)), c("c1", "c2"))
+    
+    ca <- classAssignment(
+      c1 = c("a", "b", "c"),
+      c2 = c("d", "e", "f"),
+      positiveClass = "c2"
+    )
+    expect_equal(classLabel2levels(getClassLabel(ca)), c("c2", "c1"))
+    
   }
 )

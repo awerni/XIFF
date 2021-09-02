@@ -52,8 +52,8 @@ annoFocus <- CLIFF::getCellLineAnno("human")
 # Get data and split it into train and validation set
 cs <- getStashedData("0766b1")
 cs <- split(cs$celllinename, cs$MDM2_class)
-cs <- XIFF::makeClassAssignment(
-  cs, classLabel = "sensitive"
+cs <- classAssignment(
+  cs, positiveClass = "sensitive"
 )
 
 print(cs)

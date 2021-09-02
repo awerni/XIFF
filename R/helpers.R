@@ -4,9 +4,21 @@
 #' Helper class that holds class samples with class labels
 #' 
 #' @param ... named character vectors
+#' @param positiveClass name of the positive class. If NULL (default), the first
+#'        class is used.
+#' 
 #' @return classAssignment object
 #' @export
-classAssignment <- function(...){
+#' 
+#' @examples 
+#' classAssignment(a = c("a","b"), b = c("x", "y", "z"))
+#' classAssignment(a = c("a","b"), b = c("x", "y", "z"), positiveClass = "b")
+#' 
+#' cs <- list(a = c("a","b"), b = c("x", "y", "z"))
+#' classAssignment(cs)
+#' classAssignment(cs, positiveClass = "b")
+#' 
+classAssignment <- function(..., positiveClass = NULL){
   theDots <- list(...)
   
   if (length(theDots) == 1 && is.list(theDots[[1]])){
@@ -20,6 +32,22 @@ classAssignment <- function(...){
   labels <- names(theDots)
   if (is.null(labels)){
     labels <- c("class1", "class2")
+  }
+  
+  if(!is.null(positiveClass)) {
+    
+    if(positiveClass %in% labels) {
+      
+      # for positiveClass == labels[1] nothing needs to be done
+      if(positiveClass == labels[2]) {
+        labels  <- rev(labels)
+        theDots <- rev(theDots)
+      }
+      
+    } else {
+      stop("`positiveClass` must be one of the class labels.")
+    }
+    
   }
   
   structure(
