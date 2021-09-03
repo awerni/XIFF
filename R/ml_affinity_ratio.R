@@ -303,3 +303,44 @@ mlGrepJoinAnno <- function(importanceRes, geneAnno) {
   importanceRes
   
 }
+
+
+stripGrepModel <- function(grepFit, geneAnno) {
+  
+  finalModel <- grepFit$finalModel
+  
+  coefs <- data.frame(Coefficient = coefficients(finalModel)) %>%
+    tibble::rownames_to_column(var = "Ratios")
+    
+  
+  anno <- geneAnno %>% select(ensg, symbol) %>% as_tibble()
+  anno
+  
+  coefs <- coefs %>% tidyr::separate(
+    col = "Ratios",
+    sep = "\\.",
+    into = c("ensg1", "ensg2"),
+    remove = FALSE,
+    fill = "left"
+  )
+  
+  epsilon <- grepFit$otherParams$epsilonRNAseq
+    
+  coefs[coefs$Ratios == "(Intercept)",]$ensg2 <- NA
+  
+  modelCoef <- left_join(coefs, anno %>% rename(gene1 = symbol), by = c("ensg1" = "ensg")) %>%
+  left_join(anno %>% rename(gene2 = symbol), by = c("ensg2" = "ensg"))
+  
+  
+  modelCoef <- modelCoef %>% mutate(Ratios = paste(gene1, gene2, sep = "."))
+  modelCoef[modelCoef$Ratios == "NA.NA",]$Ratios <- "(Intercept)"
+  
+  modelCoef <- modelCoef %>% select(Ratios, Coefficient, gene1, gene2, ensg1, ensg2)
+  
+  list(
+    modelCoefficients = modelCoef,
+    epsilon = epsilon
+  )
+  
+}
+
