@@ -114,7 +114,7 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
 #' @export
 calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE){
   if (is.null(UMAPData)) return()
-
+  
   progress <- ProcessProgress$new("UMAP", p)
   progress$update(0.3, "sorting genes by variance...")
 
@@ -139,4 +139,33 @@ calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = 
   )
   res[[getOption("xiff.name")]] <- ncol(data.cross)
   res
+}
+
+calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE){
+  
+  
+  if (is.null(PHATEdata)) return()
+  
+  progress <- ProcessProgress$new("PHATE", p)
+  progress$update(0.3, "sorting genes by variance...")
+  
+  data.cross <- PHATEdata[[paste0("data.", unit)]]
+  maxVarRows <- order(apply(data.cross, 1, var), decreasing = TRUE)
+  if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
+  data.cross <- data.cross[maxVarRows, ]
+  
+  phate <- phateR::phate(t(data.cross))
+  
+  colname <- getOption("xiff.column")
+  phateData <- phate$embedding %>%
+    as.data.frame() %>%
+    rename(X1 = PHATE1, X2 = PHATE2) %>% 
+    tibble::rownames_to_column(colname)
+  
+  res <- list(
+    data = left_join(phateData, PHATEdata[["assignment"]], by = colname)
+  )
+  res[[getOption("xiff.name")]] <- ncol(data.cross)
+  res
+  
 }

@@ -253,6 +253,19 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
     xlabel <- "umap-1"
     ylabel <- "umap-2"
     title <- paste0("UMAP plot\n", data$title)
+  } else if(progressText == "plot PHATE") {
+    
+    mapping <- aes(
+      x = X1,
+      y = X2,
+      color = class,
+      label = plotlabel,
+      dummy = !!colname
+    )
+    
+    xlabel <- "PHATE-1"
+    ylabel <- "PHATE-2"
+    title <- "PHATE plot"
   }
 
   df <- data$data %>% mutate(class = factor(class))
