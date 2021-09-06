@@ -317,12 +317,9 @@ stripGrepModel <- function(grepFit, geneAnno) {
   
   finalModel <- grepFit$finalModel
   
+  ### extract coefficients ###
   coefs <- data.frame(Coefficient = coefficients(finalModel)) %>%
     tibble::rownames_to_column(var = "Ratios")
-    
-  
-  anno <- geneAnno %>% select(ensg, symbol) %>% as_tibble()
-  anno
   
   coefs <- coefs %>% tidyr::separate(
     col = "Ratios",
@@ -330,24 +327,28 @@ stripGrepModel <- function(grepFit, geneAnno) {
     into = c("ensg1", "ensg2"),
     remove = FALSE,
     fill = "left"
-  )
+  ) %>% mutate(ensg2 = ifelse(Ratios == "(Intercept)", NA, ensg2))
   
-  epsilon <- grepFit$otherParams$epsilonRNAseq
+  ### add gene symbols
+  anno <- geneAnno %>% select(ensg, symbol) %>% as_tibble()
     
-  coefs[coefs$Ratios == "(Intercept)",]$ensg2 <- NA
+  anno1 <- anno %>% rename(gene1 = symbol)
+  anno2 <- anno %>% rename(gene2 = symbol)
+  modelCoef <- coefs %>%
+    left_join(anno1, by = c("ensg1" = "ensg")) %>%
+    left_join(anno2, by = c("ensg2" = "ensg"))
   
-  modelCoef <- left_join(coefs, anno %>% rename(gene1 = symbol), by = c("ensg1" = "ensg")) %>%
-  left_join(anno %>% rename(gene2 = symbol), by = c("ensg2" = "ensg"))
   
-  
-  modelCoef <- modelCoef %>% mutate(Ratios = paste(gene1, gene2, sep = "."))
-  modelCoef[modelCoef$Ratios == "NA.NA",]$Ratios <- "(Intercept)"
-  
-  modelCoef <- modelCoef %>% select(Ratios, Coefficient, gene1, gene2, ensg1, ensg2)
+  modelCoef <-
+    modelCoef %>% mutate(Ratios = ifelse(
+      Ratios == "(Intercept)",
+      "(Intercept)",
+      paste(gene1, gene2, sep = ".")
+    )) %>% select(Ratios, Coefficient, gene1, gene2, ensg1, ensg2)
   
   list(
     modelCoefficients = modelCoef,
-    epsilon = epsilon
+    epsilon = grepFit$otherParams$epsilonRNAseq
   )
   
 }
