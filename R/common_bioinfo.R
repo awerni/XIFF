@@ -440,7 +440,7 @@ getVarImp <- function(model, stats){
           dplyr::arrange(desc(abs(importance))) %>%
           tbl2XiffImportanceTable("olden"),
       lm = {
-        coef <- abs(coefficients(model)[-1])
+        coef <- abs(coefficients(model)[-1]) # remove intercept
         data.frame(coef) %>% tibble::rownames_to_column("ensg") %>%
           rename(importance = coef) %>%
           dplyr::arrange(desc(abs(importance))) %>%
