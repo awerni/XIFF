@@ -12,10 +12,9 @@ TRAILR2_sens <- XIFF::getStashedData("06bd26") %>%
   filter(tumortype %in% tt)
 
 cs <- split(TRAILR2_sens$celllinename, TRAILR2_sens$consensus_sensitivity)
-cs
 
-TRAILR2_sens_class <-  XIFF::makeClassAssignment(
-  cs, classLabel = "Sensitive"
+TRAILR2_sens_class <-  XIFF::classAssignment(
+  cs, positiveClass = "Sensitive"
 )
 TRAILR2_sens_class
 
@@ -45,7 +44,7 @@ directResult <- bind_cols(
 
 
 
-grepModel <- stripGrepModel(grepFit, gene_anno)
+grepModel <- XIFF::stripGrepModel(grepFit, gene_anno)
 
 ensg <- grepModel$modelCoefficients %>%
   select(ensg1, ensg2) %>%
@@ -87,5 +86,4 @@ resAll <- left_join(directResult, res_grep_cl)
 resAll <- resAll %>% mutate(diff = score - class2)
 max(abs(resAll$diff))
 
-tibble(class = paste(myModel$ensg1, myModel$ensg2, sep = "."), value = log2(y[as.character(myModel$ensg1)] / y[as.character(myModel$ensg2)]))
-
+resAll

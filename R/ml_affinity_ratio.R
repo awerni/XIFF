@@ -305,6 +305,14 @@ mlGrepJoinAnno <- function(importanceRes, geneAnno) {
 }
 
 
+#' Strip GREP model into simple format.
+#'
+#' @param grepFit GREP model. 
+#' @param geneAnno gene annotations
+#'
+#' @return list with modelCoefficients and epsilon
+#' 
+#' @export
 stripGrepModel <- function(grepFit, geneAnno) {
   
   finalModel <- grepFit$finalModel
