@@ -11,9 +11,6 @@ mlGetClassColumn(model, data = NULL, asSymbol = FALSE)
 
 \item{asSymbol}{logical. If FALSE returns string. If true returns symbol.}
 }
-\value{
-
-}
 \description{
 Get class column name from MLXIFF model.
 }

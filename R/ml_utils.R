@@ -3,10 +3,8 @@
 #' @param model MLXIFF object. 
 #' @param asSymbol logical. If FALSE returns string. If true returns symbol.
 #'
-#' @return
 #' @export
-#'
-#' @examples
+#' 
 mlGetClassColumn <- function(model, data = NULL, asSymbol = FALSE) {
   column <- if(is.null(model$classColumn)) "class" else model$classColumn
   
