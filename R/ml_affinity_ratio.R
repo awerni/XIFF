@@ -293,3 +293,53 @@ mlGrepJoinAnno <- function(importanceRes, geneAnno) {
   importanceRes
   
 }
+
+
+#' Strip GREP model into simple format.
+#'
+#' @param grepFit GREP model. 
+#' @param geneAnno gene annotations
+#'
+#' @return list with modelCoefficients and epsilon
+#' 
+#' @export
+stripGrepModel <- function(grepFit, geneAnno) {
+  
+  finalModel <- grepFit$finalModel
+  
+  ### extract coefficients ###
+  coefs <- data.frame(Coefficient = coefficients(finalModel)) %>%
+    tibble::rownames_to_column(var = "Ratios")
+  
+  coefs <- coefs %>% tidyr::separate(
+    col = "Ratios",
+    sep = "\\.",
+    into = c("ensg1", "ensg2"),
+    remove = FALSE,
+    fill = "left"
+  ) %>% mutate(ensg2 = ifelse(Ratios == "(Intercept)", NA, ensg2))
+  
+  ### add gene symbols
+  anno <- geneAnno %>% select(ensg, symbol) %>% as_tibble()
+    
+  anno1 <- anno %>% rename(gene1 = symbol)
+  anno2 <- anno %>% rename(gene2 = symbol)
+  modelCoef <- coefs %>%
+    left_join(anno1, by = c("ensg1" = "ensg")) %>%
+    left_join(anno2, by = c("ensg2" = "ensg"))
+  
+  
+  modelCoef <-
+    modelCoef %>% mutate(Ratios = ifelse(
+      Ratios == "(Intercept)",
+      "(Intercept)",
+      paste(gene1, gene2, sep = ".")
+    )) %>% select(Ratios, Coefficient, gene1, gene2, ensg1, ensg2)
+  
+  list(
+    modelCoefficients = modelCoef,
+    epsilon = grepFit$otherParams$epsilonRNAseq
+  )
+  
+}
+
