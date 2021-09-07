@@ -46,7 +46,6 @@ machineLearningCreateModelTabUI_main <- function(id){
 
 #' Shiny module used for creating ml-models.
 #'
-#' @rdname machineLearningCreateModelTab
 #' @noRd
 #'
 machineLearningCreateModelTabUI_sidebar <- function(id){
@@ -108,7 +107,6 @@ machineLearningCreateModelTabUI_sidebar <- function(id){
   )
 }
 
-#' @rdname machineLearningCreateModelTab
 machineLearningCreateModelTab <- function(input, output, session, fm, classSelection, classLabel, 
                                           gsea_data_hallmark, gene_anno, AnnotationFocus, Species){
   # Sidebar --------------------------------------------------------------------
