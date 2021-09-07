@@ -1,7 +1,8 @@
 #' Feature selection using GREP methodology.
 #'
 #' @param df data frame with ensg.
-#' @param threshold threshold for FDR.
+#' @param threshold not used, can be anything. Rquired only for compability
+#'        with other feature selection methods.
 #' @param maxFeatures max number of genes to be used in ratio calculations.
 #' @param minFeatures min number of features resulting from affinity propagation.
 #' @param epsilonRNAseq
@@ -11,7 +12,7 @@
 #'
 #' @examples
 getGrepFeatureSelection <- function(df,
-                                    threshold = 0.1,
+                                    threshold = 0.05,
                                     maxFeatures = 600,
                                     maxGenes = 300,
                                     minFeatures = 15,
@@ -36,8 +37,7 @@ getGrepFeatureSelection <- function(df,
   filteredRatioMatrix <- mlGrepGetSignificantFeatures(
     mat = ratioMatrix,
     class = df[["class"]],
-    fdr = threshold,
-    maxN = maxFeatures)
+    N = maxFeatures)
   
   
   examplarsFeaturesMatrix <- mlGrepAffinityPropagation(
@@ -63,7 +63,8 @@ getGrepFeatureSelection <- function(df,
 ################## Internal GREP/Ratios functions #################
 mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
                                                          maxFeatures,
-                                                         epsilonRNAseq) {
+                                                         epsilonRNAseq,
+                                                         varianceEpsilon = 0.0001) {
   
   maxExprAboveTreshold <- vapply(dfNum, FUN.VALUE = 0.0, FUN = max) > log2(epsilonRNAseq)
   
@@ -78,13 +79,15 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
     stop(msg)
   }
   
+  
   varCoef <- vapply(dfNum, FUN.VALUE = 0.0, FUN = function(x) {
     xx <- 2^x
+    if(sd(xx) < varianceEpsilon) return(0.0) # filter nearly zero variance genes
     sd(xx) / mean(xx)
   })
   
   varCoef <- sort(varCoef, decreasing = TRUE) %>% head(maxFeatures)
-  
+  varCoef <- varCoef[varCoef > varianceEpsilon]
   log_trace(
     "GREP - prefilter genes:",
     " Before filtering: {length(maxExprAboveTreshold)}",
@@ -116,31 +119,18 @@ mlGetLog2RatiosMatrix <- function (df, epsilonRNAseq = 10) {
   ratios
 }
 
-mlGrepGetSignificantFeatures <- function(mat, class, fdr = 0.1, maxN = 600) {
+mlGrepGetSignificantFeatures <- function(mat, class, N = 600) {
   if(is.character(class)) class <- as.factor(class)
   
   featuresInfo <- genefilter::colttests(mat, class) %>% 
     tibble::rownames_to_column(var = "feature") %>% 
     tibble::as_tibble() %>%
-    dplyr::mutate(p_adj = p.adjust(p.value, method = "BH")) %>%
-    dplyr::arrange(p_adj)
-  
-  
-  featuresInfo <- featuresInfo %>% filter(p_adj <= fdr) %>% arrange(p_adj) %>% head(maxN)
-  
-  if(nrow(featuresInfo) == 0) {
-    msg <- glue::glue(
-      "There are no significant features below fdr ({fdr}) threshold.",
-      " The model cannot be build. Please try different machine learning",
-      " method or dataset."
-    )
-    stop(msg)
-  }
+    dplyr::arrange(p.value) %>%
+    head(N)
   
   log_trace(
     "GREP - Significant features, ",
-    " fdr: {fdr}",
-    " maxN: {maxN}",
+    " N: {N}",
     " Before: {ncol(mat)}",
     " After: {nrow(featuresInfo)}"
   )
