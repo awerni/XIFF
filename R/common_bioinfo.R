@@ -418,6 +418,12 @@ getVarImp <- function(model, stats){
       tbl2XiffImportanceTable(name)
   }
   
+  if(inherits(model, "lm")) {
+    # to make it into switch statement below,
+    # it requires that the expression is of the length 1
+    class(model) <- "lm" 
+  }
+  
   if(length(class(model)) == 1) { 
     # e.g. result of glmnet has 2 classes "lognet" and "glmnet"
     # checks for custom implemented models
@@ -432,8 +438,14 @@ getVarImp <- function(model, stats){
       nn = modelInfoNeuralNetwork()$varImp(model) %>%
           tibble::rownames_to_column("ensg") %>%
           dplyr::arrange(desc(abs(importance))) %>%
-          tbl2XiffImportanceTable("olden")
-      ,
+          tbl2XiffImportanceTable("olden"),
+      lm = {
+        coef <- abs(coefficients(model)[-1]) # remove intercept
+        data.frame(coef) %>% tibble::rownames_to_column("ensg") %>%
+          rename(importance = coef) %>%
+          dplyr::arrange(desc(abs(importance))) %>%
+          tbl2XiffImportanceTable("Model Coefficient")
+      },
       NULL
     )
     
