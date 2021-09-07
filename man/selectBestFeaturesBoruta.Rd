@@ -8,7 +8,8 @@ selectBestFeaturesBoruta(
   df,
   threshold = c("Confirmed", "Tentative"),
   maxFeatures = Inf,
-  threads = getOption("xiff.boruta.threads", 2)
+  threads = getOption("xiff.boruta.threads", 2),
+  .otherParams = list()
 )
 }
 \arguments{
