@@ -342,8 +342,7 @@ selectBestFeaturesBoruta <-
 #' @param number 
 #' @param repeats 
 #'
-#' @export
-#' 
+#' @noRd
 #' @examples 
 #' 
 #' \dontrun{
