@@ -57,7 +57,7 @@ ensg <- grepModel$modelCoefficients %>%
 rawData <- getRawDataForModel(ensg, grepFit$validationSet$celllinename)
 
 expr_cl <- rawData %>%
-  mutate(tpm = 2^score) %>%
+  mutate(tpm = 2^score - 1) %>%
   select(-score) %>%
   pivot_wider(names_from = ensg, values_from = tpm) %>% 
   column_to_rownames("celllinename")

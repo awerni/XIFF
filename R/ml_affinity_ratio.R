@@ -66,7 +66,12 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
                                                          epsilonRNAseq,
                                                          varianceEpsilon = 0.0001) {
   
-  maxExprAboveTreshold <- vapply(dfNum, FUN.VALUE = 0.0, FUN = max) > log2(epsilonRNAseq)
+  maxExprAboveTreshold <-
+    vapply(
+      dfNum,
+      FUN.VALUE = 0.0,
+      FUN = function(x) max(2^x - 1)
+    ) > epsilonRNAseq
   
   dfNum <- dfNum[,maxExprAboveTreshold]
   
@@ -81,7 +86,7 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
   
   
   varCoef <- vapply(dfNum, FUN.VALUE = 0.0, FUN = function(x) {
-    xx <- 2^x
+    xx <- 2^x - 1
     if(sd(xx) < varianceEpsilon) return(0.0) # filter nearly zero variance genes
     sd(xx) / mean(xx)
   })
@@ -108,7 +113,7 @@ mlGetLog2RatiosMatrix <- function (df, epsilonRNAseq = 10) {
   
   
   mat <- as.matrix(df)
-  mat <- 2^mat
+  mat <- 2^mat - 1
   mat <- log2(mat + epsilonRNAseq)
   
   combs <- combn(sort(colnames(mat)), m = 2)
@@ -269,7 +274,7 @@ getRawDataForModel.XiffGREP <- function(features,
   
   data2 <- data %>% mutate(
     ensg = paste(lensg, rensg, sep = "."),
-    score = log2(2^score.x + eps) - log2(2^score.y + eps)
+    score = log2(2^score.x - 1 + eps) - log2(2^score.y - 1 + eps)
   ) %>% select(
     -score.x, -score.y, -rensg, -lensg
   )
