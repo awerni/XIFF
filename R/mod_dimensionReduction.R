@@ -1,3 +1,26 @@
+
+#' Returns the list of supported dimension reduction methods.
+#'
+#' @return character vector with supported methods.
+#' @export
+#'
+dimRedAvailableMethods <- function() {
+  
+  hasPhate <- requireNamespace("phateR", quietly = TRUE)
+  
+  methods <- c(
+    "t-SNE" = "tsne",
+    "principal component analysis" = "pca",
+    "UMAP" = "umap"
+  )
+  
+  if(hasPhate) {
+    methods <- c(methods, c("PHATE" = "phate"))
+  }
+  methods
+}
+
+
 #' @export
 dimensionReductionUI <- function(id, width = "100%", height = "800px"){
   ns <- NS(id)
@@ -9,9 +32,19 @@ dimensionReductionUI <- function(id, width = "100%", height = "800px"){
 }
 
 #' @export
-dimensionReduction <- function(input, output, session,
-                               InputData, AnalysisParams, ClusterMethod, PlotParams, classLabel,
-                               funTSNE = calcTSNE, funPCA = calcPCA_expression, funUMAP = calcUMAP){
+dimensionReduction <- function(input,
+                               output,
+                               session,
+                               InputData,
+                               AnalysisParams,
+                               ClusterMethod,
+                               PlotParams,
+                               classLabel,
+                               funTSNE = calcTSNE,
+                               funPCA = calcPCA_expression,
+                               funUMAP = calcUMAP,
+                               funPHATE = calcPHATE) {
+  
   colname <- getOption("xiff.column")
 
   Results <- reactive({
@@ -30,7 +63,7 @@ dimensionReduction <- function(input, output, session,
 
     res <- inputData$df
     annotationFocus <- inputData$annotationFocus
-
+    
     switch(
       EXPR = method,
       tsne = {
@@ -44,6 +77,10 @@ dimensionReduction <- function(input, output, session,
       umap = {
         progressText <- "plot umap"
         d <- funUMAP(res, dataSource, n, unit, p = session)
+      },
+      phate = {
+        progressText <- "plot PHATE"
+        d <- funPHATE(res, dataSource, n, unit, p = session)
       }
     )
     if (is.null(d)) return()
@@ -97,7 +134,7 @@ dimensionReduction <- function(input, output, session,
       ),
       levels = labels
     )
-
+    
     p <- plotDimRed(res$d, params, res$annotationFocus, p = session)
     validate(need(p$plot, "nothing to show yet..."))
     colorTooltip <<- p$colorTooltip
