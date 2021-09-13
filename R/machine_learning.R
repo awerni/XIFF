@@ -227,8 +227,7 @@ mlSets2OriginalNames <- function(set, classColumn, classLabel) {
 #' @details First element should be treated as default model.
 #' 
 #' @export
-#'
-#' @examples
+#' 
 xiffSupportedModels <- function() {
   c(
     "Random Forest" = "rf",

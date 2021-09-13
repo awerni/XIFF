@@ -44,25 +44,10 @@ machineLearningCreateModelTabUI_main <- function(id){
   tabLayoutUI_main(ns("tab"))
 }
 
-#' Title
+#' Shiny module used for creating ml-models.
 #'
-#' @param id
-#' @param input 
-#' @param output 
-#' @param session 
-#' @param fm 
-#' @param classSelection 
-#' @param classLabel 
-#' @param gsea_data_hallmark 
-#' @param gene_anno 
-#' @param AnnotationFocus 
-#' @param Species 
+#' @noRd
 #'
-#' @rdname machineLearningCreateModelTab
-#' @noMd
-#'
-#' @examples
-#' 
 machineLearningCreateModelTabUI_sidebar <- function(id){
   ns <- NS(id)
   
@@ -122,7 +107,6 @@ machineLearningCreateModelTabUI_sidebar <- function(id){
   )
 }
 
-#' @rdname machineLearningCreateModelTab
 machineLearningCreateModelTab <- function(input, output, session, fm, classSelection, classLabel, 
                                           gsea_data_hallmark, gene_anno, AnnotationFocus, Species){
   # Sidebar --------------------------------------------------------------------

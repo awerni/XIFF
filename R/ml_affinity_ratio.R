@@ -9,8 +9,7 @@
 #'
 #' @return
 #' @export
-#'
-#' @examples
+#' 
 getGrepFeatureSelection <- function(df,
                                     threshold = 0.05,
                                     maxFeatures = 600,

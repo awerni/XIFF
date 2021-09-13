@@ -34,6 +34,13 @@ addClustering <- function(df, cluster_method, p = FALSE) {
   df
 }
 
+# Returns genes order by variance and limits their number if needed
+orderByVariance <- function(data.cross, geneSource, numGenes) {
+  maxVarRows <- order(apply(data.cross, 1, var), decreasing = TRUE)
+  if (geneSource == "varying_genes") maxVarRows <- head(maxVarRows, numGenes)
+  maxVarRows
+}
+
 #' @export
 calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE) {
   if (is.null(PCAData)) return()
@@ -41,11 +48,9 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE) {
   progress <- ProcessProgress$new("PCA", p)
   progress$update(0.3, "sorting genes by variance...")
 
-  data.counts <- PCAData[["data.counts"]]
-  maxVarRows <- order(apply(PCAData[["data.log2tpm"]], 1, var), decreasing = TRUE)
-  if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
-  data.counts <- data.counts[maxVarRows, ]
-
+  maxVarRows <- orderByVariance(PCAData[["data.log2tpm"]], geneSource, numGenes)
+  data.counts <- PCAData[["data.counts"]][maxVarRows, ]
+  
   progress$update(0.4, "transforming count matrix...")
 
   assignment <- PCAData[["assignment"]]
@@ -89,10 +94,9 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
   progress$update(0.1, "sorting genes by variance...")
 
   data.cross <- TSNEData[[paste0("data.", unit)]]
-  maxVarRows <- order(apply(data.cross, 1, var), decreasing = TRUE)
-  if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
+  maxVarRows <- orderByVariance(data.cross, geneSource, numGenes)
   data.cross <- data.cross[maxVarRows, ]
-
+  
   progress$update(0.5, "calculating t-SNE...")
 
   perp <- min(50, round(0.5 + ncol(data.cross)/10))
@@ -114,13 +118,12 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
 #' @export
 calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE){
   if (is.null(UMAPData)) return()
-
+  
   progress <- ProcessProgress$new("UMAP", p)
   progress$update(0.3, "sorting genes by variance...")
 
   data.cross <- UMAPData[[paste0("data.", unit)]]
-  maxVarRows <- order(apply(data.cross, 1, var), decreasing = TRUE)
-  if (geneSource == "varying_genes") maxVarRows <- maxVarRows[1:numGenes]
+  maxVarRows <- orderByVariance(data.cross, geneSource, numGenes)
   data.cross <- data.cross[maxVarRows, ]
 
   progress$update(0.6, "calculating umap...")
@@ -139,4 +142,32 @@ calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = 
   )
   res[[getOption("xiff.name")]] <- ncol(data.cross)
   res
+}
+
+calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE){
+  
+  
+  if (is.null(PHATEdata)) return()
+  
+  progress <- ProcessProgress$new("PHATE", p)
+  progress$update(0.3, "sorting genes by variance...")
+  
+  data.cross <- PHATEdata[[paste0("data.", unit)]]
+  maxVarRows <- orderByVariance(data.cross, geneSource, numGenes)
+  data.cross <- data.cross[maxVarRows, ]
+  
+  phate <- phateR::phate(t(data.cross))
+  
+  colname <- getOption("xiff.column")
+  phateData <- phate$embedding %>%
+    as.data.frame() %>%
+    rename(X1 = PHATE1, X2 = PHATE2) %>% 
+    tibble::rownames_to_column(colname)
+  
+  res <- list(
+    data = left_join(phateData, PHATEdata[["assignment"]], by = colname)
+  )
+  res[[getOption("xiff.name")]] <- ncol(data.cross)
+  res
+  
 }
