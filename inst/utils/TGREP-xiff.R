@@ -70,7 +70,7 @@ ensg <- grepModel$modelCoefficients %>%
 rawData <- getRawDataForModel(ensg, grepFit$validationSet$celllinename)
 
 expr_cl <- rawData %>%
-  mutate(tpm = 2^score - 1) %>%
+  mutate(tpm = tpmGREPtransform(score)) %>%
   select(-score) %>%
   pivot_wider(names_from = ensg, values_from = tpm) %>% 
   column_to_rownames("celllinename")
@@ -117,7 +117,7 @@ ensg <- grepModel$modelCoefficients %>%
 rawData <- getRawDataForModel(ensg, grepFitEps3$validationSet$celllinename)
 
 expr_cl <- rawData %>%
-  mutate(tpm = 2^score - 1) %>%
+  mutate(tpm = tpmGREPtransform(score)) %>%
   select(-score) %>%
   pivot_wider(names_from = ensg, values_from = tpm) %>% 
   column_to_rownames("celllinename")
