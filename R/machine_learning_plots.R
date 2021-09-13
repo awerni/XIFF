@@ -1,4 +1,7 @@
 # Machine learning ------------------------------------------------------------
+
+#' Generate Machine Learning Performance Plot
+#' 
 #' @export
 #' @importFrom tidyr pivot_longer
 #' @importFrom purrr map_dfr map
@@ -7,7 +10,6 @@
 #' @examples 
 #' \dontrun{
 #' # TODO: create models here
-#' # check buildMachineLearning docs for fit and fitNN creation.
 #' generatePerformancePlot(fit$trainingOutput)
 #' generatePerformancePlot(fitNN$trainingOutput)
 #' 
@@ -54,12 +56,13 @@ generatePerformancePlot <- function(x){
     coord_cartesian(xlim = c(0, 1))
 }
 
+#' Create Machine Learning Variable Importance Plot. 
+#' 
 #' @export
 #' @examples 
 #' 
 #' \dontrun{
 #' # TODO: create models here
-#' # check buildMachineLearning docs for fit and fitNN creation.
 #' generateVarImpPlot(fit)
 #' generateVarImpPlot(fitNN)
 #' 

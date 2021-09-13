@@ -342,8 +342,7 @@ selectBestFeaturesBoruta <-
 #' @param number 
 #' @param repeats 
 #'
-#' @export
-#' 
+#' @noRd
 #' @examples 
 #' 
 #' \dontrun{
@@ -395,11 +394,12 @@ tbl2XiffImportanceTable <- function(tbl, name) {
   tbl
 }
 
-#' @export
+#' A function that returns formatted table for variable importance.
 #' 
-#' @details 
+#' If some model from caret requires some custom variable importance code
+#' implement it here.
 #' 
-#' A function that returns formatted 
+#' @noRd
 #' 
 #' @importFrom tibble rownames_to_column
 #' @importFrom dplyr rename arrange select
