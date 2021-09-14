@@ -531,6 +531,7 @@ createMachineLearningModel <- function(trainingSet,
     method <- "glm"
     modelSelectionMethod <- "GREP"
     .otherParams$epsilonRNAseq <- .epsilonRNAseq
+    featuresParams <- c(featuresParams, list(epsilonRNAseq = .epsilonRNAseq))
     .extraClass <- "XiffGREP"
   }
   

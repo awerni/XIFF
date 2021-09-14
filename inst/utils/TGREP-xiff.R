@@ -1,6 +1,19 @@
 library(XIFF)
 library(tidyverse)
 
+calcGREP <- function(expr, myModel, epsilon = 15) {
+  exprA <- expr + epsilon
+  ret <- apply(exprA, 1, function(y) {
+    myRatio <- log2(y[as.character(myModel$ensg1)] / y[as.character(myModel$ensg2)])
+    myRatio[1] <- 1
+    myT <- sum(myRatio * myModel$Coefficient)
+    1/(1 + exp(-myT))
+  }
+  )
+  return(ret)
+}
+
+
 XIFF::setDbOptions()
 
 gene_anno <- CLIFF::getGeneAnno()$human
@@ -57,26 +70,13 @@ ensg <- grepModel$modelCoefficients %>%
 rawData <- getRawDataForModel(ensg, grepFit$validationSet$celllinename)
 
 expr_cl <- rawData %>%
-  mutate(tpm = 2^score) %>%
+  mutate(tpm = tpmGREPtransform(score)) %>%
   select(-score) %>%
   pivot_wider(names_from = ensg, values_from = tpm) %>% 
   column_to_rownames("celllinename")
 
 
 # ----------- calc T-GREP-V2 ------------
-calcGREP <- function(expr, myModel, epsilon = 15) {
-  exprA <- expr + epsilon
-  ret <- apply(exprA, 1, function(y) {
-    myRatio <- log2(y[as.character(myModel$ensg1)] / y[as.character(myModel$ensg2)])
-    myRatio[1] <- 1
-    myT <- sum(myRatio * myModel$Coefficient)
-    1/(1 + exp(-myT))
-  }
-  )
-  return(ret)
-}
-
-
 res_grep_cl <- data.frame(score = calcGREP(expr_cl, myModel = grepModel$modelCoefficients, grepModel$epsilon)) %>%
   rownames_to_column("celllinename") 
 
@@ -84,6 +84,51 @@ res_grep_cl <- data.frame(score = calcGREP(expr_cl, myModel = grepModel$modelCoe
 resAll <- left_join(directResult, res_grep_cl)
 
 resAll <- resAll %>% mutate(diff = score - class2)
+print(max(abs(resAll$diff)))
+
+resEpsDefault <- resAll
+
+##################### Custom epsilon in GREP ##################### 
+set.seed(321)
+grepFitEps3 <- XIFF::buildMachineLearning(
+  cs = trainingSet,
+  geneSet = geneSet,
+  geneAnno = gene_anno,
+  method = "GREP", p_validation = 0.2,
+  .epsilonRNAseq = 3
+)
+
+grepModel <- XIFF::stripGrepModel(grepFitEps3, gene_anno)
+
+validationData <- getDataForModel(grepFitEps3$validationSet, grepFitEps3)
+
+directResult <- bind_cols(
+  validationData %>% select(class, celllinename),
+  predict(grepFitEps3, newdata = validationData, type = "prob") %>%
+    as.data.frame()
+)
+ensg <- grepModel$modelCoefficients %>%
+  select(ensg1, ensg2) %>%
+  unlist() %>%
+  na.omit() %>%
+  unique()
+
+
+rawData <- getRawDataForModel(ensg, grepFitEps3$validationSet$celllinename)
+
+expr_cl <- rawData %>%
+  mutate(tpm = tpmGREPtransform(score)) %>%
+  select(-score) %>%
+  pivot_wider(names_from = ensg, values_from = tpm) %>% 
+  column_to_rownames("celllinename")
+
+res_grep_cl <- data.frame(score = calcGREP(expr_cl, myModel = grepModel$modelCoefficients, grepModel$epsilon)) %>%
+  rownames_to_column("celllinename") 
+
+resAll <- left_join(directResult, res_grep_cl)
+resAll <- resAll %>% mutate(diff = score - class2)
 max(abs(resAll$diff))
 
-resAll
+resEps3 <- resAll
+
+full_join(resEpsDefault, resEps3, by = c("class", "celllinename"))

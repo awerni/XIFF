@@ -65,7 +65,12 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
                                                          epsilonRNAseq,
                                                          varianceEpsilon = 0.0001) {
   
-  maxExprAboveTreshold <- vapply(dfNum, FUN.VALUE = 0.0, FUN = max) > log2(epsilonRNAseq)
+  maxExprAboveTreshold <-
+    vapply(
+      dfNum,
+      FUN.VALUE = 0.0,
+      FUN = function(x) max(tpmGREPtransform(x))
+    ) > epsilonRNAseq
   
   dfNum <- dfNum[,maxExprAboveTreshold]
   
@@ -80,7 +85,7 @@ mlGrepFilterLowExpressionAndVariabilityGenes <- function(dfNum,
   
   
   varCoef <- vapply(dfNum, FUN.VALUE = 0.0, FUN = function(x) {
-    xx <- 2^x
+    xx <- tpmGREPtransform(x)
     if(sd(xx) < varianceEpsilon) return(0.0) # filter nearly zero variance genes
     sd(xx) / mean(xx)
   })
@@ -107,8 +112,8 @@ mlGetLog2RatiosMatrix <- function (df, epsilonRNAseq = 10) {
   
   
   mat <- as.matrix(df)
-  mat <- 2^mat
-  mat <- log2(mat + epsilonRNAseq)
+  mat <- tpmGREPtransform(mat, epsilonRNAseq)
+  mat <- log2(mat)
   
   combs <- combn(sort(colnames(mat)), m = 2)
   log_trace("GREP - number of ratios: {ncol(combs)}")
@@ -268,7 +273,9 @@ getRawDataForModel.XiffGREP <- function(features,
   
   data2 <- data %>% mutate(
     ensg = paste(lensg, rensg, sep = "."),
-    score = log2(2^score.x + eps) - log2(2^score.y + eps)
+    score =
+      log2(tpmGREPtransform(score.x, eps)) -
+      log2(tpmGREPtransform(score.y, eps))
   ) %>% select(
     -score.x, -score.y, -rensg, -lensg
   )
@@ -342,3 +349,17 @@ stripGrepModel <- function(grepFit, geneAnno) {
   
 }
 
+#' log2tpm to tpm transformation for GREP method.
+#'
+#' @param x vector of log2tpm
+#' @param epsilon value to be added after applying transformation.
+#' 
+#' @details 
+#' It's a little bit different than standrd transformation 2^x
+#' but it matches the original GREP definition 
+#'
+#' @return transformed x values.
+#' @export
+tpmGREPtransform <- function(x, epsilon = 0) {
+  2^x - 1 + epsilon
+} 
