@@ -51,8 +51,9 @@ Imports:
       NeuralNetTools,
       systemfonts,
       glmnet,
-      apcluster
-RoxygenNote: 7.1.1
+      apcluster,
+      caret
+RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 2.1.0),
     shinytest,
