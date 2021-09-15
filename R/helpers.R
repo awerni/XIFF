@@ -265,11 +265,14 @@ stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE
 fmButtonOneClass <- function(inputId, fm, cs, defaultValue = FALSE){
   condition <- length(cs$class1) == 0 && length(cs$class2) == 0
 
-  FutureManager::fmRunButton(
-    inputId = inputId,
-    fm = fm,
-    defaultValue = defaultValue,
-    blocked = condition
+  tagList(
+    FutureManager::fmRunButton(
+      inputId = inputId,
+      fm = fm,
+      defaultValue = defaultValue,
+      blocked = condition
+    ),
+    uiOutput(paste0(inputId, "ClassLabel"))
   )
 }
 
@@ -277,11 +280,14 @@ fmButtonOneClass <- function(inputId, fm, cs, defaultValue = FALSE){
 fmButtonBothClasses <- function(inputId, fm, cs, defaultValue = FALSE){
   condition <- length(cs$class1) == 0 || length(cs$class2) == 0
 
-  FutureManager::fmRunButton(
-    inputId = inputId,
-    fm = fm,
-    defaultValue = defaultValue,
-    blocked = condition
+  tagList(
+    FutureManager::fmRunButton(
+      inputId = inputId,
+      fm = fm,
+      defaultValue = defaultValue,
+      blocked = condition
+    ),
+    uiOutput(paste0(inputId, "ClassLabel"))
   )
 }
 
