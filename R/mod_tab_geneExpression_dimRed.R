@@ -53,7 +53,7 @@ geneExpressionDimRedTabUI_sidebar <- function(id){
 }
 
 #' @importFrom tibble column_to_rownames
-#' @importFrom FutureManager fmValidate
+#' @importFrom FutureManager fmValidate fmGenerateTaskId
 #' @importFrom tidyr pivot_wider
 #' @export
 geneExpressionDimRedTab <- function(input, output, session, fm, Results, TableData, getDataGeneExpression){
