@@ -223,3 +223,34 @@ validateArgs <- function(args){
   filtered <- args[!vapply(args, is.null, FUN.VALUE=logical(1))]
   length(filtered) == length(args)
 }
+
+.isMustRerun <- function(id, fm) {
+  status <- fm$getButtonState(id)
+  if(is.null(status)) {
+    FALSE
+  } else {
+    status$status == "rerun"
+  }
+}
+
+#' @export
+registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
+  resultClassLabel <- reactiveValues(class1_name = NULL, class2_name = NULL)
+  
+  output$runClassLabel <- renderUI({
+    
+    status <- .isMustRerun(id, fm)
+    log_trace("Class label - {id} status: {status}.")
+    
+    if(!status) {
+      resultClassLabel$class1_name <- classLabel$class1_name
+      resultClassLabel$class2_name <- classLabel$class2_name
+    } 
+    
+    Results()
+    
+    NULL
+  })
+  
+  resultClassLabel
+}
