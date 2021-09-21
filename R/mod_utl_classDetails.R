@@ -45,7 +45,8 @@ classDetailsUI_show <- function(id){
 }
 
 #' @export
-classDetails <- function(input, output, session, index, classLabel, classSelection, SelectedCellline, onChange){
+classDetails <- function(input, output, session, index, classLabel, classSelection, Selected, onChange){
+  colname <- getOption("xiff.column")
   selectionId <- paste0("class", index)
   labelId <- paste0(selectionId, "_name")
   anotherSelectionId <- paste0("class", index %% 2 + 1) # 1 -> 2 or 2 -> 1
@@ -76,12 +77,12 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
   observeEvent(
     eventExpr = input$add, 
     handlerExpr = {
-      s <- SelectedCellline()
+      s <- Selected()
       old <- Selection()
-      cl <- sort(unique(union(s$celllinename, old)))
+      cl <- sort(unique(union(s[[colname]], old)))
       
       classSelection[[selectionId]] <- onChange(
-        SelectedCellline = s, 
+        Selected = s, 
         old = old,
         new = cl,
         checkOverlap = TRUE,
@@ -93,12 +94,12 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
   observeEvent(
     eventExpr = input$remove, 
     handlerExpr = {
-      s <- SelectedCellline()
+      s <- Selected()
       old <- Selection()
-      cl <- sort(unique(setdiff(old, s$celllinename)))
+      cl <- sort(unique(setdiff(old, s[[colname]])))
       
       classSelection[[selectionId]] <- onChange(
-        SelectedCellline = s, 
+        Selected = s, 
         old = old,
         new = cl
       )
@@ -108,12 +109,12 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
   observeEvent(
     eventExpr = input$intersect, 
     handlerExpr = {
-      s <- SelectedCellline()
+      s <- Selected()
       old <- Selection()
-      cl <- sort(unique(intersect(old, s$celllinename)))
+      cl <- sort(unique(intersect(old, s[[colname]])))
       
       classSelection[[selectionId]] <- onChange(
-        SelectedCellline = s, 
+        Selected = s, 
         old = old,
         new = cl
       )
@@ -125,7 +126,7 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
     handlerExpr = {
       old <- Selection()
       classSelection[[selectionId]] <- onChange(
-        SelectedCellline = SelectedCellline(), 
+        Selected = Selected(), 
         old = old,
         new = NULL,
         reset = FALSE
