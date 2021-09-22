@@ -1,4 +1,3 @@
-#' @export
 classDetailsUI_main <- function(id, label, defaultName){
   ns <- NS(id)
   styleDetails <- "padding:4px; margin:3px; font-size:90%"
@@ -8,6 +7,11 @@ classDetailsUI_main <- function(id, label, defaultName){
       inputId = ns("name"), 
       label = paste(label, "name:"), 
       value = defaultName
+    ),
+    shinyjs::hidden(
+      span("Classes must have different names.",
+         " class1/class2 will be used.",
+         class = "help-block red-help-block", id = ns("sameNamesInfo"))
     ),
     p(),
     actionButton(
@@ -34,7 +38,6 @@ classDetailsUI_main <- function(id, label, defaultName){
   )
 }
 
-#' @export
 classDetailsUI_show <- function(id){
   ns <- NS(id)
   
@@ -44,12 +47,12 @@ classDetailsUI_show <- function(id){
   )
 }
 
-#' @export
 classDetails <- function(input, output, session, index, classLabel, classSelection, Selected, onChange){
   colname <- getOption("xiff.column")
   selectionId <- paste0("class", index)
   labelId <- paste0(selectionId, "_name")
   anotherSelectionId <- paste0("class", index %% 2 + 1) # 1 -> 2 or 2 -> 1
+  anotherLabelId <- paste0(anotherSelectionId, "_name")
   
   Selection <- reactive({
     classSelection[[selectionId]]
@@ -70,6 +73,10 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
   observeEvent(
     eventExpr = input$name, 
     handlerExpr = {
+      
+      if(input$name == classLabel[[anotherLabelId]]) {
+        shinyjs::show("sameNamesInfo")
+      } 
       classLabel[[labelId]] <- input$name
     }
   )
@@ -133,4 +140,89 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
       )
     }
   )
+}
+
+# Main class which handles all the tasks related to classDetails
+# it contains two classDetails modules.
+#' @export
+classDetailsWrapperUI_main <- function(id,
+                                       defaults = c("sensitive", "resistant")) {
+  ns <- NS(id)
+  tagList(
+    classDetailsUI_main(
+      id = ns("class1"), 
+      label = "Class1", 
+      defaultName = defaults[1]
+    ),
+    hr(),
+    classDetailsUI_main(
+      id = ns("class2"), 
+      label = "Class 2", 
+      defaultName = defaults[2]
+    )
+  )
+  
+}
+
+#' @export
+classDetailsWrapperUI_show <- function(id) {
+  ns <- NS(id)
+  tagList(
+    column_2(
+      br(),
+      classDetailsUI_show(ns("class1"))
+    ),
+    column_2(
+      br(),
+      classDetailsUI_show(ns("class2"))
+    )
+  )
+}
+
+
+
+#' @export
+classDetailsWrapper <- function(input, output, session, classLabel, classSelection, Selected, onChange){
+  
+  safeClassLabel <- reactiveValues(class1_name = "class1", class2_name = "class2")
+    
+  callModule(
+    module = classDetails,
+    id = "class1",
+    index = 1,
+    classLabel = safeClassLabel,
+    classSelection = classSelection,
+    Selected = Selected,
+    onChange = onChange
+  )
+  
+  callModule(
+    module = classDetails,
+    id = "class2",
+    index = 2,
+    classLabel = safeClassLabel,
+    classSelection = classSelection,
+    Selected = Selected,
+    onChange = onChange
+  )
+  
+  observe({
+    
+    cl <- reactiveValuesToList(safeClassLabel)
+    if(anyDuplicated(unlist(cl))) {
+      log_trace("Duplicated class labels")
+      classLabel$class1_name <- "class1"
+      classLabel$class2_name <- "class2"
+    } else {
+      
+      log_trace("Normal class labels: c1: {safeClassLabel$class1_name}",
+                " c2: {safeClassLabel$class2_name}")
+      classLabel$class1_name <- safeClassLabel$class1_name
+      classLabel$class2_name <- safeClassLabel$class2_name
+      shinyjs::hide("class1-sameNamesInfo")
+      shinyjs::hide("class2-sameNamesInfo")
+    }
+    
+  })
+  
 }

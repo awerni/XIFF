@@ -139,3 +139,7 @@ body:not(.modal-open) {
 .brush-container .shiny-plot-output.recalculating + .loader {
   visibility: visible;
 }
+
+.red-help-block {
+  color: red;
+}
