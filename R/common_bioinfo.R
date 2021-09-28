@@ -714,7 +714,7 @@ predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
 
 # Unbalanced tumortypes -------------------------------------------------------
 #' @export
-dropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
+shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
   anno <- AnnotationFocus()
   if (is.null(anno) || nrow(anno) == 0) return()
 
@@ -730,6 +730,23 @@ dropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
 
   classSelection$class1 <- intersect(classSelection$class1, validItems)
   classSelection$class2 <- intersect(classSelection$class2, validItems)
+}
+
+#' @export
+dropUnbalancedTumortypes <- function(cs, anno) {
+  
+  balancedTT <- getValidTumorTypes(cs, anno)
+  
+  colname <- getOption("xiff.column")
+  colname <- rlang::sym(colname)
+  
+  validItems <- anno %>%
+    filter(tumortype %in% balancedTT) %>%
+    pull(!!colname)
+  
+  cs$class1 <- intersect(cs$class1, validItems)
+  cs$class2 <- intersect(cs$class2, validItems)
+  cs
 }
 
 #' Get valid tumor types
