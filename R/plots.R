@@ -14,9 +14,12 @@ commonPlotTheme <- function(legend.position = "right", textSize = 16){
 }
 
 #' @export
-generatePlotByType <- function(data, ca, plotType, dataCol, title = NULL,
+generatePlotByType <- function(data, plotType, dataCol, title = NULL, ca = NULL, 
                                rocPlotFun = generateROCPlot, 
                                diffPlotFun = generateDiffPlot, ...) {
+  
+  if(is.null(ca)) ca <- getClassAssigmentAttribute(data)
+  
   switch(
     EXPR = plotType,
     roc = rocPlotFun(

@@ -53,7 +53,14 @@ generateVolcanoPlot <- function(diffExpr, minuslog10pval, minuslog10adjpval, log
 }
 
 #' @export
-generateGSEA_plot <- function(diffExResult, ensg_geneset, rankType, classLabels = c("class1", "class2")) {
+generateGSEA_plot <- function(diffExResult, ensg_geneset, rankType, classLabels = NULL) {
+  
+  if(is.null(classLabels) && inherits(diffExResult, "ClassAssigmentInAttribute")) {
+    classLabels <- getClassLabelVector(diffExResult)
+  } else {
+    classLabels <- c("class1", "class2")
+  }
+  
   ensg_rank <- if (rankType == "logFC") {
     diffExResult %>% 
       arrange(logFC) %>% 
