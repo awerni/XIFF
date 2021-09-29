@@ -77,3 +77,14 @@ getClassAssigmentAttribute <- function(x) {
   }
   attr(x, "ClassSelection")
 }
+
+#' @export
+getClassAssigmentAttributeIfNull <- function(ca, x) {
+  if(!is.null(ca)) return(ca)
+  if(!inherits(x, "ClassAssigmentInAttribute")) {
+    stop("Cannot infer the classAssigment from input data.",
+         " Please provide the `ca` parameter on your own.")
+  }
+  
+  attr(x, "ClassSelection")
+}
