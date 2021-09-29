@@ -58,7 +58,7 @@ calculateTSNE <- function(df, useCorrelation = TRUE, perplexity = "auto", inital
   
   list(
     res = resDf,
-    perp = perp,
+    perp = perplexity,
     xlabel = "t-SNE-1",
     ylabel = "t-SNE-2",
     dimRedObj = res
@@ -120,7 +120,7 @@ calculateUMAP <- function(df, useCorrelation = TRUE, perplexity = "auto", ...){
   
   list(
     res = resDf,
-    perp = perp,
+    perp = perplexity,
     xlabel = "umap-1",
     ylabel = "umap-2",
     dimRedObj = res
