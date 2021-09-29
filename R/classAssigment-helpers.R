@@ -62,7 +62,7 @@ unlistClassAssignment <- function(ca) {
 #' @export
 addClassAssigmentAttribute <- function(x, ca) {
   attr(x, "ClassSelection") <- ca
-  attr(x, "class") <- c(class(x), "ClassAssigmentInAttribute")
+  attr(x, "class") <- unique(c("ClassAssigmentInAttribute", class(x)))
   x
 }
 
