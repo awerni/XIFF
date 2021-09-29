@@ -20,6 +20,23 @@ generatePlotByType <- function(data, plotType, dataCol, title = NULL, ca = NULL,
   
   if(is.null(ca)) ca <- getClassAssigmentAttribute(data)
   
+  if(plotType == "all") {
+      types <- c("point", "roc", "violin", "box", "coverage")
+      res <-
+        lapply(types, function(t)
+          generatePlotByType(
+            data = data,
+            ca = ca,
+            plotType = t,
+            dataCol = dataCol,
+            rocPlotFun = rocPlotFun,
+            diffPlotFun = diffPlotFun,
+            title = title,
+            ...
+          ))
+     return(res) 
+  }
+  
   switch(
     EXPR = plotType,
     roc = rocPlotFun(
