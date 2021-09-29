@@ -236,7 +236,6 @@ geneExpressionDimRed <-
 geneExpressionDimRedPlot <- function(dimRed, useLabels = FALSE) {
   
   df <- dimRed$clusterRes
-  X
   labelVar <- if(useLabels) "label"
   
   generatePointPlot(
