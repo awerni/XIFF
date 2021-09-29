@@ -78,7 +78,7 @@ calculatePCA <- function(df, useCorrelation = TRUE){
     res <- list(x = res[,1:2])
     
   } else {
-    res <- prcomp(df)
+    res <- prcomp(df, ...)
   }
   
   resDf <- tibble::tibble(
@@ -110,7 +110,7 @@ calculateUMAP <- function(df, useCorrelation = TRUE, perplexity = "auto", ...){
     perplexity <- min(50, round(0.5 + n/10))  
   }
   
-  res <- umap::umap(df, perplexity = perplexity)
+  res <- umap::umap(df, perplexity = perplexity, ...)
   
   colnames(res$layout) <- c("X1", "X2")
   resDf <- res$layout %>% 
