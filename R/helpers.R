@@ -142,20 +142,7 @@ classIdToLabel <- function(x, ca){
 }
 
 
-#' Get class label list from classAssignment object.
-#'
-#' @param ca classAssignment object
-#'
-#' @export
-getClassLabel <- function(ca) {
-  stopifnot(
-    is(ca, "classAssignment")
-  )
-  
-  labels <- attr(ca, "labels")
-  names(labels) <- paste0(names(labels), "_name")
-  labels
-}
+
 
 #' @export
 renameClassIdToLabel <- function(df, column, ca){
