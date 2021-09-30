@@ -34,6 +34,7 @@ generatePlotByType <- function(data, plotType, dataCol, title = NULL, ca = NULL,
             title = title,
             ...
           ))
+     names(res) <- types
      return(res) 
   }
   
