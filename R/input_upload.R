@@ -282,7 +282,7 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     return(list(df = df, col_type = col_type))
   })
 
-  observe({
+  observeEvent(fileUploadRaw(), {
     df <- fileUploadRaw()$df
     req(df)
 
@@ -389,26 +389,31 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
   Upload_items
 }
 
-#' @export
 updateSplitChoices <- function(basicId, splitId, df, input, session){
   choices <- names(df)
   if (length(choices) == 0) return()
 
-  selected <- input[[basicId]]
+  selected <- isolate(input[[basicId]])
   if (is.null(selected) || !nzchar(selected) || !selected %in% choices){
     selected <- choices[[1]]
   }
+  
 
   choices_facet <- df %>%
     filterSplitChoices() %>%
-    names() %>%
-    setdiff(selected)
-
+    names()
+  facetSelected <- isolate(input[[splitId]])
+  if (is.null(facetSelected) ||
+      !nzchar(facetSelected) ||
+      !facetSelected %in% choices_facet){
+    facetSelected <- "-- none --"
+  }
+  
   updateSelectInput(
     session = session,
     inputId = splitId,
     choices = c("-- none --", choices_facet),
-    selected = "-- none --"
+    selected = facetSelected
   )
   updateSelectInput(
     session = session,
@@ -416,6 +421,8 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
     choices = choices,
     selected = selected
   )
+  freezeReactiveValue(input, splitId)
+  freezeReactiveValue(input, basicId)
 }
 
 filterSplitChoices <- function(df, min_number = 10, min_percent = 5, min_distinct = 2, max_distinct = 4){

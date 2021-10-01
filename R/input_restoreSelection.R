@@ -36,7 +36,7 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
   
-  observe({
+  observeEvent(classStack(), {
     df <- classStack()
     req(df)
 
