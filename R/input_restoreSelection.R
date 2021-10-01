@@ -52,7 +52,6 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
     facet_col <- input$column_facet
     req(sel_col)
     req(facet_col)
-    req(sel_col != facet_col)
     req(!is.null(input$display_bar))
 
     shouldFacet <- facet_col != "-- none --"

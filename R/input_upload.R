@@ -298,7 +298,6 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     facet_col <- input$column_facet
     req(sel_col)
     req(facet_col)
-    req(sel_col != facet_col)
 
     d <- file_data$df
     if ((is.null(d)) | (!sel_col %in% names(file_data$col_type))) return()
