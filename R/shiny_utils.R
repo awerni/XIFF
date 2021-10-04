@@ -246,8 +246,9 @@ registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
       resultClassLabel$class1_name <- classLabel$class1_name
       resultClassLabel$class2_name <- classLabel$class2_name
     } 
-    
-    Results()
+    # to depend on Results(), but not render the message if Results is an error
+    # or not yet completed
+    try(Results(), silent = TRUE) 
     
     NULL
   })
