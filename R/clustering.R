@@ -248,7 +248,7 @@ getExpressionDimRed <- function(data,
 
 #' getExpressionDimRedPlot
 #'
-#' @param dimRedResult result of \cpde{getExpressionDimRed}
+#' @param dimRedResult result of \code{getExpressionDimRed}
 #' @param colorCol column name for coloring.
 #' @param labelCol column name for labels.
 #' @param fontSize font size for labels
@@ -271,6 +271,8 @@ getExpressionDimRedPlot <- function(dimRedResult,
       mutate(plotlabel =  !!rlang::sym(labelCol))
   } else {
     showLabels <- FALSE
+    dimRedResult <- dimRedResult %>%
+      mutate(plotlabel =  NA)
   }
   
   dt <- list(data = dimRedResult, attrs$celllines)

@@ -719,7 +719,7 @@ shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
   if (is.null(anno) || nrow(anno) == 0) return()
 
   cs <- reactiveValuesToList(classSelection)
-  balancedTT <- getValidTumorTypes(cs, anno)
+  balancedTT <- getBalancedTumorTypes(cs, anno)
 
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
@@ -732,16 +732,17 @@ shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
   classSelection$class2 <- intersect(classSelection$class2, validItems)
 }
 
+#' @rdname getBalancedVariableValues
 #' @export
-dropUnbalancedTumortypes <- function(cs, anno) {
+dropUnbalancedVariableValues <- function(cs, anno, variable) {
   
-  balancedTT <- getValidTumorTypes(cs, anno)
+  balanced <- getBalancedVariableValues(cs, anno, variable)
   
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
   
   validItems <- anno %>%
-    filter(tumortype %in% balancedTT) %>%
+    filter(!!rlang::sym(variable) %in% balanced) %>%
     pull(!!colname)
   
   cs$class1 <- intersect(cs$class1, validItems)
@@ -749,28 +750,53 @@ dropUnbalancedTumortypes <- function(cs, anno) {
   cs
 }
 
-#' Get valid tumor types
+#' @rdname getBalancedVariableValues
+#' @export
+dropUnbalancedTumortypes <- function(cs, anno) {
+  dropUnbalancedVariableValues(cs, anno, "tumortype")
+}
+
+#' Get valid tumor types / variables
 #'
 #' This function returns tumor types that are available in the data for both classes
 #'
 #' @param cs list, class selection
 #' @param anno data.frame, item annotation
+#' @param variable column name from which the balanced values will be extracted
 #'
 #' @return character vector of valid tumortypes
+#' @rdname getBalancedVariableValues
 #' @export
-getValidTumorTypes <- function(cs, anno){
+getValidTumorTypes <- function(cs, anno) {
+  .Deprecated("getBalancedTumorTypes")
+  getBalancedTumorTypes(cs, anno)
+}
+
+#' @rdname getBalancedVariableValues
+#' @export
+getBalancedTumorTypes <- function(cs, anno) {
+  getBalancedVariableValues(cs, anno, "tumortype")
+}
+
+#' @rdname getBalancedVariableValues
+#' @export
+getBalancedVariableValues <- function(cs, anno, variable){
   if (is.null(anno) || nrow(anno) == 0) return()
 
   colname <- getOption("xiff.column")
 
+  stopifnot(variable %in% colnames(anno))
+  variable <- rlang::sym(variable)
+  
   stackClasses(cs) %>%
     left_join(anno, by = colname) %>%
-    group_by(class, tumortype) %>%
+    group_by(class, !!variable) %>%
     summarise(n = dplyr::n(), .groups = "drop") %>%
-    group_by(tumortype) %>%
+    group_by(!!variable) %>%
     summarize(ok = dplyr::n() > 1, .groups = "drop") %>% # must be present in both classes
     filter(ok) %>%
-    pull(tumortype) %>%
+    pull(!!variable) %>%
+    na.omit() %>%
     as.character()
 }
 
