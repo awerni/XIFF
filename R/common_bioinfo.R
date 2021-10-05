@@ -736,14 +736,20 @@ shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
 #' @export
 dropUnbalancedVariableValues <- function(cs, anno, variable) {
   
-  balanced <- getBalancedVariableValues(cs, anno, variable)
-  
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
   
-  validItems <- anno %>%
-    filter(!!rlang::sym(variable) %in% balanced) %>%
-    pull(!!colname)
+  if(is.numeric(anno[[variable]])) {
+    validItems <- anno %>%
+      filter(!is.na(!!rlang::sym(variable))) %>%
+      pull(!!colname)
+    
+  } else {
+    balanced <- getBalancedVariableValues(cs, anno, variable)
+    validItems <- anno %>%
+      filter(!!rlang::sym(variable) %in% balanced) %>%
+      pull(!!colname)
+  }
   
   cs$class1 <- intersect(cs$class1, validItems)
   cs$class2 <- intersect(cs$class2, validItems)
