@@ -33,8 +33,8 @@ $(document).on('click', '.set-brush', function(){
       plot.trigger({
         type: 'dblclick2.image_output', // double click on plot event
         which: 1,
-        pageX: offset.left + widthOffset,
-        pageY: offset.top + heightOffset
+        pageX: offset.left + (widthOffset / window.devicePixelRatio),
+        pageY: offset.top + (heightOffset / window.devicePixelRatio)
       });
 
       Shiny.onInputChange(eventId, new Date()); // trigger input
