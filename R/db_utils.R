@@ -130,6 +130,17 @@ prepareConditionSql <- function(...){
         } else {
           paste0(name, " = '", x, "'")
         }
+      } else if(length(x) > 0) {
+        if(is.list(x)) {
+          msg <- glue::glue("`{name}` argument is a list, but it should be",
+          " a character vector. Probably you've used `[\"{name}\"]`",
+          " instead of `[[\"{name}\"]]`")
+          stop(msg)
+        } else {
+          stop(glue::glue(
+            "`{name}` is `{class(x)}`, but character vector is required."
+          ))
+        }
       }
     }
   )
