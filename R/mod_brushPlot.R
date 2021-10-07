@@ -86,7 +86,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
 
-  output$plot <- renderPlot({
+  output$plot <- renderPlot(execOnResize = TRUE, {
     if (!checkExpr()){ # check expression is used to prevent unwanted re-rendering
       PlotData(NULL)
       return()

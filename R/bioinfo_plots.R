@@ -57,7 +57,7 @@ generateGSEA_plot <- function(diffExResult, ensg_geneset, rankType, classLabels 
   
   if(is.null(classLabels) && inherits(diffExResult, "ClassAssigmentInAttribute")) {
     classLabels <- getClassLabelVector(diffExResult)
-  } else {
+  } else if(is.null(classLabels)) {
     classLabels <- c("class1", "class2")
   }
   
