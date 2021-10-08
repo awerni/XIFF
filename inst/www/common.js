@@ -2,7 +2,10 @@ $(document).ready(function(){
   $('[data-toggle="tooltip"]').tooltip();
 });
 
+//// BRUSH PLOT FUNCTIONS START
+
 $(document).on('click', '.set-brush', function(){
+  
   var button = $(this);
   var plotId = button.data('plot-id');
   var eventId = button.data('event-id');
@@ -40,13 +43,6 @@ $(document).on('click', '.set-brush', function(){
       Shiny.onInputChange(eventId, new Date()); // trigger input
     }
   }
-});
-
-$(document).on('shiny:error', '.downloadable-plot.ready .tooltip-plot-output, .downloadable-plot.ready .shiny-plot-output', function(evt){
-  $('#' + evt.target.id).closest('.downloadable-plot').removeClass('ready');
-});
-$(document).on('shiny:value', '.downloadable-plot:not(.ready) .tooltip-plot-output, .downloadable-plot:not(.ready) .shiny-plot-output', function(evt){
-  $('#' + evt.target.id).closest('.downloadable-plot').addClass('ready');
 });
 
 function setPlotBrush(outputId, startX, endX, startY, endY){
@@ -89,6 +85,14 @@ function setPlotBrush(outputId, startX, endX, startY, endY){
     // shiny will send the brush area info to the backend
   }
 }
+//// BRUSH PLOT FUNCTIONS END
+
+$(document).on('shiny:error', '.downloadable-plot.ready .tooltip-plot-output, .downloadable-plot.ready .shiny-plot-output', function(evt){
+  $('#' + evt.target.id).closest('.downloadable-plot').removeClass('ready');
+});
+$(document).on('shiny:value', '.downloadable-plot:not(.ready) .tooltip-plot-output, .downloadable-plot:not(.ready) .shiny-plot-output', function(evt){
+  $('#' + evt.target.id).closest('.downloadable-plot').addClass('ready');
+});
 
 // data tables
 function preventLinkSelections(row){

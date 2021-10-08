@@ -3,7 +3,7 @@ library(shinytest)
 test_that(
   desc = "Brush plot works fine",
   code = {
-    app <- ShinyDriver$new("app_mod_brushPlot")
+    app <- ShinyDriver$new("app_mod_brushPlot", loadTimeout = 100000)
     appState <- app$getAllValues()
 
     pd <- appState$export[["test-pd"]]
