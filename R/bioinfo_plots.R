@@ -136,3 +136,10 @@ generateGSEA_plot <- function(diffExResult, ensg_geneset, rankType, classLabels 
   class(g) <- c("customPlotPrint", class(g))
   g
 }
+
+#' @importFrom grid grid.draw
+#' @exportS3Method grid.draw ggsurvplot
+#' @export
+grid.draw.ggsurvplot <- function(x){
+  print(x, newpage = FALSE)
+}
