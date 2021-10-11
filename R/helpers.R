@@ -29,6 +29,8 @@ classAssignment <- function(..., positiveClass = NULL){
     stop("please provide 2 sample name vectors")
   }
   
+  theDots <- lapply(theDots, as.character)
+  
   labels <- names(theDots)
   if (is.null(labels)){
     labels <- c("class1", "class2")
