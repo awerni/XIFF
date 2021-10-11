@@ -2,8 +2,6 @@ $(document).ready(function(){
   $('[data-toggle="tooltip"]').tooltip();
 });
 
-//// BRUSH PLOT FUNCTIONS START
-
 $(document).on('click', '.set-brush', function(){
   
   var button = $(this);
@@ -85,7 +83,6 @@ function setPlotBrush(outputId, startX, endX, startY, endY){
     // shiny will send the brush area info to the backend
   }
 }
-//// BRUSH PLOT FUNCTIONS END
 
 $(document).on('shiny:error', '.downloadable-plot.ready .tooltip-plot-output, .downloadable-plot.ready .shiny-plot-output', function(evt){
   $('#' + evt.target.id).closest('.downloadable-plot').removeClass('ready');
@@ -131,7 +128,9 @@ function ensgRowCallback(row, data, species, idx){
     idx = [idx]
   }
   
-  for(const ii of idx) {
+  for(var i = 0; i < idx.length; i++) {
+    
+    var ii = idx[i];
     var ensg = data[ii];
     var itemDefs = [
       {
