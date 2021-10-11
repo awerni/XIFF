@@ -176,13 +176,23 @@ sortByVariance <- function(df){
 #' @param method dimension reduction method
 #' @param clusterMethod clustering method
 #' @param useCorrelation should the dimension reduction be done on the corr matrix
-#' @param ... parameters passed to dimension reduction functions.
+#' @param ... parameters passed to dimension reduction functions. See details.
 #' @param ca 
 #'
-#' @return
+#' @md
+#' @details 
+#' 
+#' To check which additional arguments can be passed to specific dimension
+#' reduction methods, please refer to their documentation:
+#' 
+#' \enumerate{
+#'  \item tsne - [Rtsne::Rtsne]
+#'  \item pca - [prcomp]
+#'  \item umap - [umap::umap]
+#'  \item phate - [phateR::phate]
+#' }
+#' 
 #' @export
-#'
-#' @examples
 geneExpressionDimRed <-
   function(geneExpr,
            anno,

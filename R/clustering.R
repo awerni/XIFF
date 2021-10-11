@@ -42,7 +42,7 @@ orderByVariance <- function(data.cross, geneSource, numGenes) {
 }
 
 #' @export
-calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE) {
+calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE, ...) {
   if (is.null(PCAData)) return()
 
   progress <- ProcessProgress$new("PCA", p)
@@ -72,7 +72,7 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE) {
 
   progress$update(0.8, "calculating PCA...")
 
-  pcadata <- DESeq2::plotPCA(vst, intgroup = c("class"), returnData = TRUE)
+  pcadata <- DESeq2::plotPCA(vst, intgroup = c("class"), returnData = TRUE, ...)
   percentVar <- round(100 * attr(pcadata, "percentVar"))
 
   colnames(pcadata)[5] <- getOption("xiff.column")
@@ -87,7 +87,7 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE) {
 }
 
 #' @export
-calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p = FALSE) {
+calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p = FALSE, ...) {
   if (is.null(TSNEData)) return()
 
   progress <- ProcessProgress$new("t-SNE", p)
@@ -103,7 +103,8 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
   res <- Rtsne::Rtsne(
     X = t(data.cross),
     perplexity = perp,
-    inital_dims = min(50, numGenes)
+    inital_dims = min(50, numGenes),
+    ...
   )
   myTitle <- glue::glue("perplexity={res$perplexity}  #{getOption('xiff.label')}s={res$N}  #genes={nrow(data.cross)}")
 
@@ -116,7 +117,7 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
 }
 
 #' @export
-calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE){
+calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE, ...){
   if (is.null(UMAPData)) return()
   
   progress <- ProcessProgress$new("UMAP", p)
@@ -129,7 +130,7 @@ calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = 
   progress$update(0.6, "calculating umap...")
 
   perp <- min(50, round(0.5 + ncol(data.cross)/10))
-  res <- umap::umap(t(data.cross), perplexity = perp)
+  res <- umap::umap(t(data.cross), perplexity = perp, ...)
 
   colname <- getOption("xiff.column")
   umapdata <- res$layout %>% as.data.frame() %>% rename(X1 = 1, X2 = 2) %>% tibble::rownames_to_column(colname)
@@ -144,7 +145,7 @@ calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = 
   res
 }
 
-calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE){
+calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE, ...){
   
   
   if (is.null(PHATEdata)) return()
@@ -156,7 +157,7 @@ calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p 
   maxVarRows <- orderByVariance(data.cross, geneSource, numGenes)
   data.cross <- data.cross[maxVarRows, ]
   
-  phate <- phateR::phate(t(data.cross))
+  phate <- phateR::phate(t(data.cross), ...)
   
   colname <- getOption("xiff.column")
   phateData <- phate$embedding %>%
@@ -171,3 +172,117 @@ calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p 
   res
   
 }
+
+
+#' Create Expression DimReduction.
+#'
+#' @param data result of getExpressionDimRedData function.
+#' @param anno data annotation.
+#' @param method  method for dimension reduction. 
+#'        See: \code{dimRedAvailableMethods()} for supported methods.
+#' @param clusterMethod clustering method.
+#' @param geneSource 
+#' @param numGenes 
+#' @param unit 
+#' @param ... other parameters passed to dimension reduction functions.
+#' @param ca 
+#' @param .p 
+#'
+#' @export
+#'
+getExpressionDimRed <- function(data,
+                                anno,
+                                method = XIFF::dimRedAvailableMethods(),
+                                clusterMethod = c(
+                                  "pam k = automatic", "pam k = 2", "pam k = 3",
+                                  "pam k = 4", 
+                                  "affinity propagation",
+                                  "k-means k = automatic", "k-means k = 2",
+                                  "k-means k = 3", "k-means k = 4"
+                                ),
+                                geneSource = c("varying_genes", "gene_set"),
+                                numGenes   = 30,
+                                unit = "log2tpm",
+                                ...,
+                                .p = TRUE) {
+  
+  
+  method <- match.arg(method, XIFF::dimRedAvailableMethods())
+  geneSource <- match.arg(geneSource, c("varying_genes", "gene_set"))
+  clusterMethod <- clusterMethod[[1]]
+  
+  result <- switch(
+    EXPR = method,
+    tsne = {
+      progressText <- "plot t-SNE"
+      d <- calcTSNE(data, geneSource, numGenes, unit, p = .p, ...)
+    },
+    pca = {
+      progressText <- "plot PCA"
+      d <- calcPCA_expression(data, geneSource, numGenes, p = .p, ...)
+    },
+    umap = {
+      progressText <- "plot umap"
+      d <- calcUMAP(data, geneSource, numGenes, unit, p = .p, ...)
+    },
+    phate = {
+      progressText <- "plot PHATE"
+      d <- calcPHATE(data, geneSource, numGenes, unit, p = .p, ...)
+    }
+  )
+  
+  result$data <- addClustering(result$data, clusterMethod, p = .p)
+  
+  result$data <- left_join(result$data, anno, by = "celllinename")
+  
+  resultTable <- result$data
+  
+  attr(resultTable, "title") <- result$title
+  attr(resultTable, "celllines") <- result$celllines
+  attr(resultTable, "progressText") <- progressText
+  attr(resultTable, "method") <- method
+  
+  
+  resultTable
+}
+
+#' getExpressionDimRedPlot
+#'
+#' @param dimRedResult result of \code{getExpressionDimRed}
+#' @param colorCol column name for coloring.
+#' @param labelCol column name for labels.
+#' @param fontSize font size for labels
+#'
+#' @export
+getExpressionDimRedPlot <- function(dimRedResult,
+                                    colorCol = "class",
+                                    labelCol = NULL,
+                                    fontSize = 10) {
+  
+  attrs <- attributes(dimRedResult)
+  stopifnot(colorCol %in% colnames(dimRedResult))
+  dimRedResult <- dimRedResult %>%
+    mutate(class = !!rlang::sym(colorCol))
+  
+  if(!is.null(labelCol)) {
+    stopifnot(labelCol %in% colnames(dimRedResult))
+    showLabels <- TRUE
+    dimRedResult <- dimRedResult %>%
+      mutate(plotlabel =  !!rlang::sym(labelCol))
+  } else {
+    showLabels <- FALSE
+    dimRedResult <- dimRedResult %>%
+      mutate(plotlabel =  NA)
+  }
+  
+  dt <- list(data = dimRedResult, attrs$celllines)
+  names(dt)[2] <- getOption("xiff.name")
+  
+  generateDimRedPlot(
+    data = dt,
+    progressText = attrs$progressText,
+    colorCol = colorCol,
+    showLabels = showLabels,
+    fontSize = fontSize)$pl
+}
+
