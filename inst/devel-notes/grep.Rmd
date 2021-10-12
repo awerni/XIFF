@@ -120,12 +120,13 @@ ratioMatrix <- XIFF:::mlGetLog2RatiosMatrix(dtNum, epsilonRNAseq = epsilonRNAseq
 mat <- as.matrix(dt[,c("ENSG00000023892", "ENSG00000026103")]) # get two columns
 
 # transoform to count, add epsilon and get back to log scale
-mat <- log2(2^mat + epsilonRNAseq) 
+mat <- log2(tpmGREPtransform(mat, epsilonRNAseq))
 
 x <- mat[,1] - mat[,2] # calculate difference
 all(ratioMatrix[,1] == x) # they do agree
 
 ```
+
 ## Check if getDataForModel aggree with getRawDataForModel
 
 ```{r}
