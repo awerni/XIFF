@@ -71,16 +71,16 @@ handleClassSelection <- function(cs,
   classSelection
 }
 
-handleValidationSet <- function(classSelection, p_validation = 0.2) {
+handleTestSet <- function(classSelection, p_test = 0.2) {
 
   assignment <- XIFF::stackClasses(classSelection, return_factor = TRUE)
-  sets <- XIFF::splitTrainingValidationSets(assignment, p_validation)
+  sets <- XIFF::splitTrainingTestSets(assignment, p_test)
   trainingSet <- sets$training
-  validationSet <- sets$validation
+  testSet <- sets$test
   
   list(
     trainingSet = trainingSet,
-    validationSet = validationSet
+    testSet = testSet
   )
   
 }
@@ -94,7 +94,7 @@ handleValidationSet <- function(classSelection, p_validation = 0.2) {
 #' @param species species.
 #' @param method name of ml methods (use values from 
 #'        \code{xiffSupportedModels()}) or model names from caret package.
-#' @param p_validation percentage of the cs that will be assigned as validation.
+#' @param p_test percentage of the cs that will be assigned as test.
 #' @param classColumn name of the column that will be used to assgin classes.
 #'        Used when cs is data.frame.
 #' @param classLabel classLable assigment (list with class1_name and
@@ -136,7 +136,7 @@ buildMachineLearning <- function(cs,
                                  species = "human",
                                  classColumn = "class",
                                  classLabel = NULL,
-                                 p_validation = 0,
+                                 p_test = 0,
                                  itemsColumn = getOption("xiff.column"),
                                  # Training data params
                                  trainingData = NULL,
@@ -162,7 +162,7 @@ buildMachineLearning <- function(cs,
                                  .extraClass = NULL) {
   
   classSelection <- handleClassSelection(cs, classColumn, classLabel, itemsColumn)
-  sets <- handleValidationSet(classSelection, p_validation)
+  sets <- handleTestSet(classSelection, p_test)
   
   res <- createMachineLearningModel(
     trainingSet = sets$trainingSet,
@@ -198,9 +198,9 @@ buildMachineLearning <- function(cs,
   
   res$classLabel    <- attr(classSelection, "classLabel")
   
-  if(!is.null(sets$validationSet)) {
-    res$validationSet <-
-      mlSets2OriginalNames(sets$validationSet, classColumn, res$classLabel)
+  if(!is.null(sets$testSet)) {
+    res$testSet <-
+      mlSets2OriginalNames(sets$testSet, classColumn, res$classLabel)
   }
   res$trainingSet <-
     mlSets2OriginalNames(res$trainingSet, classColumn, res$classLabel)
@@ -395,22 +395,22 @@ getRawDataForModel.MLXIFF <- function(features,
 #' Create all ML plots in one go.
 #'
 #' @param model MLXIFF model
-#' @param validationSet validation set
+#' @param testSet test set
 #' @param annoFocus annoFocus
 #'
 #' @export
-makeMlModelPlots <- function(model, validationSet, annoFocus) {
+makeMlModelPlots <- function(model, testSet, annoFocus) {
   
-  validation <- validateModel(
+  test <- testModel(
     model,
-    validationSet = validationSet,
+    testSet = testSet,
     anno = annoFocus
   )
   
   labels <- XIFF:::classLabel2levels(model$classLabel)
   
   df <- prepareTablePlotData(
-    df = validation$data,
+    df = test$data,
     positive_preds = labels[1],
     positive_refs = labels[1],
     labels_preds = labels,
@@ -421,7 +421,7 @@ makeMlModelPlots <- function(model, validationSet, annoFocus) {
   
   
   
-  df2 <- getPerformanceDataFrame(validation$res$table)
+  df2 <- getPerformanceDataFrame(test$res$table)
   list(
     TablePlot <- generateTablePlot(df),
     ApplyPerformancePlot = generateApplyPerformancePlot(df2),

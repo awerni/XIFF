@@ -1,4 +1,4 @@
-machineLearningValidateModelTabUI_main <- function(id){
+machineLearningTestModelTabUI_main <- function(id){
   ns <- NS(id)
   
   div(
@@ -7,23 +7,23 @@ machineLearningValidateModelTabUI_main <- function(id){
   )
 }
 
-machineLearningValidateModelTabUI_sidebar <- function(id){
+machineLearningTestModelTabUI_sidebar <- function(id){
   ns <- NS(id)
   mlApplyModelUI_sidebar(ns("tab"))
 }
 
-machineLearningValidateModelTab <- function(input, output, session, classLabel, Results, AnnotationFocus){
-  classSelectionValidation <- reactiveValues(class1 = NULL, class2 = NULL)
+machineLearningTestModelTab <- function(input, output, session, classLabel, Results, AnnotationFocus){
+  classSelectionTest <- reactiveValues(class1 = NULL, class2 = NULL)
   Model <- reactive({
     FutureManager::fmValidate(Results())
     res <- Results()[["value"]]
     
-    validationSet <- mlModelSet2ClassSelectionList(res, res$validationSet)
-    validate(need(validationSet, "validation set not provided"))
+    testSet <- mlModelSet2ClassSelectionList(res, res$testSet)
+    validate(need(testSet, "test set not provided"))
     validateXiffMachineLearningResult(res)
 
-    classSelectionValidation$class1 <- validationSet$class1
-    classSelectionValidation$class2 <- validationSet$class2
+    classSelectionTest$class1 <- testSet$class1
+    classSelectionTest$class2 <- testSet$class2
     
     newClassLabel(res) <- reactiveValuesToList(classLabel)
     
@@ -34,7 +34,7 @@ machineLearningValidateModelTab <- function(input, output, session, classLabel, 
     module = mlApplyModel,
     id = "tab",
     Model = Model,
-    classSelection = classSelectionValidation,
+    classSelection = classSelectionTest,
     classLabel = classLabel,
     AnnotationFocus = AnnotationFocus
   )

@@ -42,11 +42,11 @@ cs <- list(
       class2 = cs %>% filter(MDM2_class == "sensitive") %>% pull
     )
 
-sets <- XIFF::splitTrainingValidationSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
+sets <- XIFF::splitTrainingTestSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
 sets$training
 
 trainingSet <- with(sets$training, split(celllinename, class))
-validationSet <- with(sets$validation, split(celllinename, class))
+testSet <- with(sets$test, split(celllinename, class))
 
 # Hallmark gene set
 hallmarkGeneSet <- "P53_PATHWAY"
@@ -70,18 +70,18 @@ grepFit <- XIFF::buildMachineLearning(
 )
 
 annoFocus <- CLIFF::getCellLineAnno("human") %>%
-  dplyr::filter(celllinename %in% unlist(validationSet))
+  dplyr::filter(celllinename %in% unlist(testSet))
   
-validation <- validateModel(
+test <- testModel(
   grepFit,
-  validationSet = stackClasses(validationSet),
+  testSet = stackClasses(testSet),
   anno = annoFocus
 )
 
 ```
 
 ```{r}
-getDataForModel(validationSet, grepFit)
+getDataForModel(testSet, grepFit)
 mlGetTableData(grepFit)
 ```
 
@@ -129,10 +129,10 @@ all(ratioMatrix[,1] == x) # they do agree
 ## Check if getDataForModel aggree with getRawDataForModel
 
 ```{r}
-data <- getDataForModel(validationSet, grepFit)
+data <- getDataForModel(testSet, grepFit)
 dataSorted <- data[,sort(names(data))] %>% select(-class) %>% arrange(celllinename)
 
-dataRaw <- getRawDataForModel(grepFit, unlist(validationSet))
+dataRaw <- getRawDataForModel(grepFit, unlist(testSet))
 dataRawWide <- dataRaw %>% tidyr::pivot_wider(names_from = ensg, values_from = score)
 dataRawSorted <- dataRawWide[,sort(names(dataRawWide))] %>% arrange(celllinename)
 

@@ -16,9 +16,9 @@ machineLearningTabUI_main <- function(id){
       machineLearningCreateModelTabUI_main(ns("create"))
     ),
     tabPanel(
-      title = "validate model",
-      value = "validate",
-      machineLearningValidateModelTabUI_main(ns("validate"))
+      title = "test model",
+      value = "test",
+      machineLearningTestModelTabUI_main(ns("test"))
     ),
     tabPanel(
       title = "apply model",
@@ -49,8 +49,8 @@ machineLearningTabUI_sidebar <- function(id){
       machineLearningCreateModelTabUI_sidebar(ns("create"))
     ),
     conditionalPanel(
-      condition = makeCondition("validate"),
-      machineLearningValidateModelTabUI_sidebar(ns("validate"))
+      condition = makeCondition("test"),
+      machineLearningTestModelTabUI_sidebar(ns("test"))
     ),
     conditionalPanel(
       condition = makeCondition("apply"),
@@ -90,8 +90,8 @@ machineLearningTab <- function(input, output, session, fm, classSelection, class
   )
   
   callModule(
-    module = machineLearningValidateModelTab,
-    id = "validate",
+    module = machineLearningTestModelTab,
+    id = "test",
     classLabel = classLabel,
     Results = Results,
     AnnotationFocus = AnnotationFocus

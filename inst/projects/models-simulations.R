@@ -294,14 +294,14 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
       )))
     }
     
-    validation <- try(validateModel(
+    test <- try(testModel(
       model,
-      validationSet = stackClasses(model$validationSet),
+      testSet = stackClasses(model$testSet),
       anno = annoFocus
     ))
     
     performanceData <- try(
-      getPerformanceDataFrame(validation$res$table)
+      getPerformanceDataFrame(test$res$table)
     )
     
     
@@ -309,7 +309,7 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
       params = params,
       #model = model,
       time = time,
-      validation = validation,
+      test = test,
       performanceData = performanceData
     )
     

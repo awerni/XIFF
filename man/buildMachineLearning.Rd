@@ -11,7 +11,7 @@ buildMachineLearning(
   species = "human",
   classColumn = "class",
   classLabel = NULL,
-  p_validation = 0,
+  p_test = 0,
   itemsColumn = getOption("xiff.column"),
   trainingData = NULL,
   getDataForModelFnc = getDataForModel,
@@ -49,7 +49,7 @@ Used when cs is data.frame.}
 class2_name) or single string containing the name of the positive
 class.}
 
-\item{p_validation}{percentage of the cs that will be assigned as validation.}
+\item{p_test}{percentage of the cs that will be assigned as test.}
 
 \item{itemsColumn}{if cs is data.frame, specifies the name of column that 
 contains items (celllines or tissues). Usually it should not be

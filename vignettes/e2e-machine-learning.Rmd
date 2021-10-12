@@ -49,7 +49,7 @@ geneAnno <- CLIFF::getGeneAnno()[["human"]]
 
 annoFocus <- CLIFF::getCellLineAnno("human")
 
-# Get data and split it into train and validation set
+# Get data and split it into train and test set
 cs <- getStashedData("0766b1")
 cs <- split(cs$celllinename, cs$MDM2_class)
 cs <- classAssignment(
@@ -61,9 +61,9 @@ print(cs)
 
 
 ```{r}
-sets <- XIFF::splitTrainingValidationSets(cs, 0.2)
+sets <- XIFF::splitTrainingTestSets(cs, 0.2)
 trainingSet <- sets$training
-validationSet <- sets$validation
+testSet <- sets$test
 ```
 
 
@@ -75,7 +75,7 @@ defaultFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = geneAnno,
-  p_validation = 0.2
+  p_test = 0.2
 )
 
 # model using caret functionality. It does not implement 
@@ -85,7 +85,7 @@ glmnetFit <- XIFF::buildMachineLearning(
   geneSet = geneSet,
   geneAnno = geneAnno,
   method = "glmnet",
-  p_validation = 0.2
+  p_test = 0.2
 )
 ```
 # Making Predictions
@@ -97,26 +97,26 @@ predict(defaultFit)
 predict(glmnetFit)
 ```
 
-### Prediction on model's validation set (note that each model has it's own validation created before training):
+### Prediction on model's test set (note that each model has it's own test created before training):
 
 ```{r}
 # Random forest
 ## Getting data
-modelValidationData <- getDataForModel(assignment = defaultFit$validationSet,
+modelTestData <- getDataForModel(assignment = defaultFit$testSet,
                                        features = defaultFit)
 ## Making predition
-modelValidationData %>% select(celllinename, class) %>%
-  mutate(predicted = predict(defaultFit, newdata = modelValidationData))
+modelTestData %>% select(celllinename, class) %>%
+  mutate(predicted = predict(defaultFit, newdata = modelTestData))
 
 # GLMNET
 ## Getting data
-modelValidationDataGlmnet <- getDataForModel(assignment = glmnetFit$validationSet,
+modelTestDataGlmnet <- getDataForModel(assignment = glmnetFit$testSet,
                                        features = glmnetFit)
 ## Making predition
-modelValidationDataGlmnet %>% select(celllinename, class) %>%
-  mutate(predicted = predict(glmnetFit, newdata = modelValidationDataGlmnet))
+modelTestDataGlmnet %>% select(celllinename, class) %>%
+  mutate(predicted = predict(glmnetFit, newdata = modelTestDataGlmnet))
 ```
-### Using the validation set created at the beginning.
+### Using the test set created at the beginning.
 
 ```{r}
 # Getting all features from rf and glmnet models
@@ -125,15 +125,15 @@ allFeatures <- list(defaultFit, glmnetFit) %>%
   sapply("[[", "bestFeatures") %>%
   unlist() %>% unique()
 
-modelValidationData <- getDataForModel(assignment = validationSet,
+modelTestData <- getDataForModel(assignment = testSet,
                                        features = allFeatures)
 
 # Making the prediction for two models
-prf <- predict(defaultFit, newdata = modelValidationData)
-pglm <- predict(glmnetFit, newdata = modelValidationData)
+prf <- predict(defaultFit, newdata = modelTestData)
+pglm <- predict(glmnetFit, newdata = modelTestData)
 
 # Adding the predictions to the table with celllinename and class
-modelValidationData %>% dplyr::select(celllinename, class) %>%
+modelTestData %>% dplyr::select(celllinename, class) %>%
   mutate(RandomForest = prf, Glmnet = pglm)
 
 ```
@@ -164,14 +164,14 @@ generateErrorPlot(defaultFit)
 
 
 ```{r}
-validationData <- getDataForModel(assignment = validationSet, features = defaultFit)
-annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(validationSet))
+testData <- getDataForModel(assignment = testSet, features = defaultFit)
+annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(testSet))
 
 
 predictionSummary <- getPredictionSummary(
-  items = validationData$celllinename,
-  preds = predict(defaultFit, newdata = validationData),
-  refs = validationData$class,
+  items = testData$celllinename,
+  preds = predict(defaultFit, newdata = testData),
+  refs = testData$class,
   positive_model = "sensitive",
   positive_cs = "sensitive",
   classes = c("positive", "negative"),
@@ -203,9 +203,9 @@ generateApplyPerformancePlot(df2)
 gatherPredictionResults(predictions = list(predictionSummary))
 
 
-validation <- validateModel(
+test <- testModel(
   defaultFit,
-  validationSet = validationSet,
+  testSet = testSet,
   anno = annoFocus)
 ```
 
@@ -213,13 +213,13 @@ validation <- validateModel(
 ### Random Forest
 
 ```{r}
-makeMlModelPlots(defaultFit, validationSet, annoFocus)
+makeMlModelPlots(defaultFit, testSet, annoFocus)
 ```
 
 ### Glmnet
 
 ```{r}
-makeMlModelPlots(glmnetFit, validationSet, annoFocus)
+makeMlModelPlots(glmnetFit, testSet, annoFocus)
 ```
 
 # More examples.
@@ -234,7 +234,7 @@ svmFit <- XIFF::buildMachineLearning(
   method = "svmLinear2"
 )
 
-makeMlModelPlots(svmFit, validationSet, annoFocus)
+makeMlModelPlots(svmFit, testSet, annoFocus)
 ```
 
 ## CART
@@ -248,7 +248,7 @@ if(XIFF::packageInstalled("rpart")) {
     geneAnno = geneAnno,
     method = "rpart"
   )
-  makeMlModelPlots(rpartFit, validationSet, annoFocus)
+  makeMlModelPlots(rpartFit, testSet, annoFocus)
 }
 
 ```
@@ -269,13 +269,13 @@ grepFit <- XIFF::buildMachineLearning(
 )
 
   
-validation <- validateModel(
+test <- testModel(
   grepFit,
-  validationSet = validationSet,
+  testSet = testSet,
   anno = annoFocus
 )
 
-makeMlModelPlots(grepFit, validationSet, annoFocus)
+makeMlModelPlots(grepFit, testSet, annoFocus)
 
 ```
 
@@ -296,17 +296,17 @@ grepFit <- XIFF::buildMachineLearning(
 )
 
 annoFocus <- CLIFF::getCellLineAnno("human") %>%
-  dplyr::filter(celllinename %in% unlist(validationSet))
+  dplyr::filter(celllinename %in% unlist(testSet))
 
-valData <- getDataForModel(validationSet, grepFit)
+valData <- getDataForModel(testSet, grepFit)
 
-validation <- validateModel(
+test <- testModel(
   grepFit,
-  validationSet = validationSet,
+  testSet = testSet,
   anno = annoFocus
 )
 
-makeMlModelPlots(grepFit, validationSet, annoFocus)
+makeMlModelPlots(grepFit, testSet, annoFocus)
 
 
 ```

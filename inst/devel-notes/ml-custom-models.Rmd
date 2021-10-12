@@ -22,11 +22,11 @@ cs <- list(
       class2 = cs %>% filter(MDM2_class == "sensitive") %>% pull
     )
 
-sets <- XIFF::splitTrainingValidationSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
+sets <- XIFF::splitTrainingTestSets(XIFF::stackClasses(cs, return_factor = TRUE), 0.2)
 sets$training
 
 trainingSet <- with(sets$training, split(celllinename, class))
-validationSet <- with(sets$validation, split(celllinename, class))
+testSet <- with(sets$test, split(celllinename, class))
 
 # Hallmark gene set
 hallmarkGeneSet <- "P53_PATHWAY"
@@ -89,7 +89,7 @@ customFit <- XIFF::buildMachineLearning(
   .otherParams = list(thresholds = c(-Inf, -3, -2, -1, 0, 1, 2, 3, Inf))
 )
 
-# Having that function allows to run getDataForModel and validateModel
+# Having that function allows to run getDataForModel and testModel
 getDataForModel.CustomModel <- function(assignment,
                             features,
                             schema = getOption("xiff.schema"),
@@ -105,14 +105,14 @@ getDataForModel.CustomModel <- function(assignment,
   df
 }
 
-validationData <- getDataForModel(validationSet, customFit)
+testData <- getDataForModel(testSet, customFit)
 
 annoFocus <- CLIFF::getCellLineAnno("human") %>%
-  dplyr::filter(celllinename %in% unlist(validationSet))
+  dplyr::filter(celllinename %in% unlist(testSet))
   
-validation <- validateModel(
+test <- testModel(
   customFit,
-  validationSet = stackClasses(validationSet),
+  testSet = stackClasses(testSet),
   anno = annoFocus
 )
 

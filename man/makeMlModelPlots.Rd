@@ -4,12 +4,12 @@
 \alias{makeMlModelPlots}
 \title{Create all ML plots in one go.}
 \usage{
-makeMlModelPlots(model, validationSet, annoFocus)
+makeMlModelPlots(model, testSet, annoFocus)
 }
 \arguments{
 \item{model}{MLXIFF model}
 
-\item{validationSet}{validation set}
+\item{testSet}{test set}
 
 \item{annoFocus}{annoFocus}
 }
