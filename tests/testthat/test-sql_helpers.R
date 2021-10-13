@@ -52,5 +52,8 @@ test_that(
       object = prepareConditionSql(dummy = c("val1", "val2", "val3"), x = NULL, foo = c("v1", "v2", "v3")),
       expected = "dummy IN ('val1','val2','val3') AND foo IN ('v1','v2','v3')"
     )
+    expect_error(prepareConditionSql(x = 1))
+    expect_error(prepareConditionSql(x = 1:3))
+    expect_error(prepareConditionSql(x = list(val = 1:10)))
   }
 )
