@@ -3,6 +3,7 @@ $(document).ready(function(){
 });
 
 $(document).on('click', '.set-brush', function(){
+  
   var button = $(this);
   var plotId = button.data('plot-id');
   var eventId = button.data('event-id');
@@ -40,13 +41,6 @@ $(document).on('click', '.set-brush', function(){
       Shiny.onInputChange(eventId, new Date()); // trigger input
     }
   }
-});
-
-$(document).on('shiny:error', '.downloadable-plot.ready .tooltip-plot-output, .downloadable-plot.ready .shiny-plot-output', function(evt){
-  $('#' + evt.target.id).closest('.downloadable-plot').removeClass('ready');
-});
-$(document).on('shiny:value', '.downloadable-plot:not(.ready) .tooltip-plot-output, .downloadable-plot:not(.ready) .shiny-plot-output', function(evt){
-  $('#' + evt.target.id).closest('.downloadable-plot').addClass('ready');
 });
 
 function setPlotBrush(outputId, startX, endX, startY, endY){
@@ -90,6 +84,13 @@ function setPlotBrush(outputId, startX, endX, startY, endY){
   }
 }
 
+$(document).on('shiny:error', '.downloadable-plot.ready .tooltip-plot-output, .downloadable-plot.ready .shiny-plot-output', function(evt){
+  $('#' + evt.target.id).closest('.downloadable-plot').removeClass('ready');
+});
+$(document).on('shiny:value', '.downloadable-plot:not(.ready) .tooltip-plot-output, .downloadable-plot:not(.ready) .shiny-plot-output', function(evt){
+  $('#' + evt.target.id).closest('.downloadable-plot').addClass('ready');
+});
+
 // data tables
 function preventLinkSelections(row){
   $(row).find('a').each(function(){
@@ -127,7 +128,9 @@ function ensgRowCallback(row, data, species, idx){
     idx = [idx]
   }
   
-  for(const ii of idx) {
+  for(var i = 0; i < idx.length; i++) {
+    
+    var ii = idx[i];
     var ensg = data[ii];
     var itemDefs = [
       {

@@ -19,7 +19,7 @@ shinyApp(
       shinyjs::useShinyjs(),
       useXIFF()
     ),
-    brushPlotUI("test")
+    column_8(brushPlotUI("test"))
   ),
   server = function(input, output, session){
     Res <- callModule(
