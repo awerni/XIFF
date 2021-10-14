@@ -124,53 +124,53 @@ ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
 
 # Machine learning ------------------------------------------------------------
 #' @export
-splitTrainingValidationSets <- function(assignment,
-                                        p_validation = 0.2){
-  UseMethod("splitTrainingValidationSets")
+splitTrainingTestSets <- function(assignment,
+                                        p_test = 0.2){
+  UseMethod("splitTrainingTestSets")
 }
 
 #' @export
-splitTrainingValidationSets.data.frame <- function(assignment,
-                                                   p_validation = 0.2){
+splitTrainingTestSets.data.frame <- function(assignment,
+                                                   p_test = 0.2){
   trainingSet <- assignment
-  validationSet <- NULL
+  testSet <- NULL
 
-  if (p_validation > 0){
+  if (p_test > 0){
     n <- nrow(assignment)
     # full random selection; no stratification included
-    validationIdx <- sort(sample(x = n, size = p_validation * n))
-    validationSet <- assignment[validationIdx, ]
-    trainingSet <- assignment[-validationIdx, ]
+    testIdx <- sort(sample(x = n, size = p_test * n))
+    testSet <- assignment[testIdx, ]
+    trainingSet <- assignment[-testIdx, ]
   }
 
   list(
     training = trainingSet,
-    validation = validationSet
+    test = testSet
   )
 }
 
 #' @export
-splitTrainingValidationSets.classAssignment <- function(assignment,
-                                                        p_validation = 0.2){
+splitTrainingTestSets.classAssignment <- function(assignment,
+                                                        p_test = 0.2){
   trainingSet   <- assignment
-  validationSet <- NULL
-  if(p_validation > 0) {
+  testSet <- NULL
+  if(p_test > 0) {
     cl    <- getClassLabel(assignment)
-    split <- splitTrainingValidationSets(stackClasses(assignment))
+    split <- splitTrainingTestSets(stackClasses(assignment))
     
     trainingSet <- XIFF::makeClassAssignment(
       split(split$training[[1]], split$training$class),
       classLabel = cl
     )
-    validationSet <- XIFF::makeClassAssignment(
-      split(split$validation[[1]], split$validation$class),
+    testSet <- XIFF::makeClassAssignment(
+      split(split$test[[1]], split$test$class),
       classLabel = cl
     )
   }
   
   list(
     training = trainingSet,
-    validation = validationSet
+    test = testSet
   )
   
 }

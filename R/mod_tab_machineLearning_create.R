@@ -81,8 +81,8 @@ machineLearningCreateModelTabUI_sidebar <- function(id){
     ),
     hr(),
     sliderInput(
-      inputId = ns("validation_size"),
-      label = "% data for validation set",
+      inputId = ns("test_size"),
+      label = "% data for test set",
       min = 0,
       max = 50,
       value = 20
@@ -140,7 +140,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
       geneAnno = gene_anno(),
       species = Species(),
       classLabel = reactiveValuesToList(classLabel),
-      p_validation = input$validation_size / 100
+      p_test = input$test_size / 100
     )
   })
   

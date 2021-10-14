@@ -160,12 +160,12 @@ prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds
 }
 
 #' @export
-validateModel <- function(m,
-                          validationSet,
-                          anno,
-                          itemColumn = getOption("xiff.column"),
-                          classColumn = NULL
-                          ) {
+testModel <- function(m,
+                      testSet,
+                      anno,
+                      itemColumn = getOption("xiff.column"),
+                      classColumn = NULL
+                      ) {
   
   itemColumnSymbol <- rlang::sym(itemColumn)
   
@@ -173,12 +173,12 @@ validateModel <- function(m,
   
   
   
-  if(is(validationSet, "classAssignment")) {
-    validationSet <- stackClasses(validationSet, getClassLabel(validationSet))
+  if(is(testSet, "classAssignment")) {
+    testSet <- stackClasses(testSet, getClassLabel(testSet))
   }
   
   df <- getDataForModel(
-    assignment = validationSet,
+    assignment = testSet,
     features = m
   )
   

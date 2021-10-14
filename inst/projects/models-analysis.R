@@ -30,7 +30,7 @@ readMetrics <- function(path) {
     stop("Cannot find positive class")
   }
   
-  data <- res$validation
+  data <- res$test
   
   hash <- params$hash
   if(hash == "0766b1") {

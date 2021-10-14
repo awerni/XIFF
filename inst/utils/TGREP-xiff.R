@@ -32,9 +32,9 @@ TRAILR2_sens_class <-  XIFF::classAssignment(
 TRAILR2_sens_class
 
 
-sets <- XIFF::splitTrainingValidationSets(TRAILR2_sens_class, 0.2)
+sets <- XIFF::splitTrainingTestSets(TRAILR2_sens_class, 0.2)
 trainingSet <- sets$training
-validationSet <- sets$validation
+testSet <- sets$test
 
 geneSetName <- "WP_APOPTOSIS_MODULATION_AND_SIGNALING"
 geneSet <- CLIFF::getGSEAdata("human", "curated")[[geneSetName]]
@@ -44,14 +44,14 @@ grepFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = gene_anno,
-  method = "GREP", p_validation = 0.2
+  method = "GREP", p_test = 0.2
 )
 
-validationData <- getDataForModel(grepFit$validationSet, grepFit)
+testData <- getDataForModel(grepFit$testSet, grepFit)
 
 directResult <- bind_cols(
-  validationData %>% select(class, celllinename),
-  predict(grepFit, newdata = validationData, type = "prob") %>%
+  testData %>% select(class, celllinename),
+  predict(grepFit, newdata = testData, type = "prob") %>%
     as.data.frame()
 )
 
@@ -67,7 +67,7 @@ ensg <- grepModel$modelCoefficients %>%
 
 
 
-rawData <- getRawDataForModel(ensg, grepFit$validationSet$celllinename)
+rawData <- getRawDataForModel(ensg, grepFit$testSet$celllinename)
 
 expr_cl <- rawData %>%
   mutate(tpm = tpmGREPtransform(score)) %>%
@@ -94,17 +94,17 @@ grepFitEps3 <- XIFF::buildMachineLearning(
   cs = trainingSet,
   geneSet = geneSet,
   geneAnno = gene_anno,
-  method = "GREP", p_validation = 0.2,
+  method = "GREP", p_test = 0.2,
   .epsilonRNAseq = 3
 )
 
 grepModel <- XIFF::stripGrepModel(grepFitEps3, gene_anno)
 
-validationData <- getDataForModel(grepFitEps3$validationSet, grepFitEps3)
+testData <- getDataForModel(grepFitEps3$testSet, grepFitEps3)
 
 directResult <- bind_cols(
-  validationData %>% select(class, celllinename),
-  predict(grepFitEps3, newdata = validationData, type = "prob") %>%
+  testData %>% select(class, celllinename),
+  predict(grepFitEps3, newdata = testData, type = "prob") %>%
     as.data.frame()
 )
 ensg <- grepModel$modelCoefficients %>%
@@ -114,7 +114,7 @@ ensg <- grepModel$modelCoefficients %>%
   unique()
 
 
-rawData <- getRawDataForModel(ensg, grepFitEps3$validationSet$celllinename)
+rawData <- getRawDataForModel(ensg, grepFitEps3$testSet$celllinename)
 
 expr_cl <- rawData %>%
   mutate(tpm = tpmGREPtransform(score)) %>%
