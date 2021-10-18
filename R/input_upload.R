@@ -564,11 +564,10 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
 
   DB_Data <- reactive({
     m <- Model()
-    req(m, Annotation())
+    req(m)
     
     withProgress(
-      expr = getRawDataForModel(features = m,
-                                names = Annotation() %>% pull(!!colname)),
+      expr = getRawDataForModel(features = m),
       value = 0.4,
       message = "fetching DB data..."
     )
