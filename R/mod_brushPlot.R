@@ -165,6 +165,15 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
     if (is.null(d) || is.null(pb)) return()
 
     pb <- reverseTrans(pb, d)
+    
+    # Fix the regression in shiny, link to the line which causes the problem:
+    # shiny:::fortifyDiscreteLimits
+    # https://github.com/rstudio/shiny/blame/ffef0c2eb16c2603a1954863948f1b9eef5e925b/R/image-interact.R#L270
+    # the logical discrete limits does not work, at least in shiny 1.7.1
+    pb$domain$discrete_limits <- lapply(pb$domain$discrete_limits, function(x) {
+      lapply(x, function(xx) if(is.logical(xx)) as.character(xx) else xx)
+    })
+    
     ti <- brushedPoints(d$data, pb, allRows = FALSE) %>%
       .[[colname]] %>%
       as.character() %>%
