@@ -80,6 +80,22 @@ machineLearningCreateModelTabUI_sidebar <- function(id){
       hidden = "coverage"
     ),
     hr(),
+    conditionalPanel(
+      condition = glue::glue(
+        "input['{ns(\"method\")}'] !== 'GREP' &&
+         input['{ns(\"method\")}'] !== 'neuralnetwork'"),
+      radioButtons(
+        inputId = ns("maxVariables"),
+        label = "Maximum number of variables",
+        choices = c(
+          "5" = 5,
+          "25" = 25,
+          "50" = 50,
+          "unlimited" = Inf
+        ),
+        selected = Inf
+      )
+    ),
     sliderInput(
       inputId = ns("test_size"),
       label = "% data for test set",
@@ -133,6 +149,17 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
   Args <- reactive({
     req(input$gene_set)
     
+    maxVariables <- if(input$method %in% c("neuralnetwork", "GREP")) {
+      "auto"
+    } else {
+      as.numeric(input$maxVariables)
+    }
+     
+    log_trace(
+      session$ns("ml-create"),
+      " maxVariables: {maxVariables}, {class(maxVariables)}"
+    )
+    
     list(
       cs = reactiveValuesToList(classSelection),
       geneSet = gsea_data_hallmark()[[input$gene_set]],
@@ -140,7 +167,8 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
       geneAnno = gene_anno(),
       species = Species(),
       classLabel = reactiveValuesToList(classLabel),
-      p_test = input$test_size / 100
+      p_test = input$test_size / 100,
+      maxFeatures = maxVariables
     )
   })
   
