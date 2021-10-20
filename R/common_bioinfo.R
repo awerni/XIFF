@@ -714,12 +714,12 @@ predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
 
 # Unbalanced tumortypes -------------------------------------------------------
 #' @export
-shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
+shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection, minCount = 1){
   anno <- AnnotationFocus()
   if (is.null(anno) || nrow(anno) == 0) return()
 
   cs <- reactiveValuesToList(classSelection)
-  balancedTT <- getBalancedTumorTypes(cs, anno)
+  balancedTT <- getBalancedTumorTypes(cs, anno, minCount)
 
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
@@ -734,7 +734,7 @@ shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection){
 
 #' @rdname getBalancedVariableValues
 #' @export
-dropUnbalancedVariableValues <- function(cs, anno, variable) {
+dropUnbalancedVariableValues <- function(cs, anno, variable, minCount = 1) {
   
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
@@ -745,7 +745,7 @@ dropUnbalancedVariableValues <- function(cs, anno, variable) {
       pull(!!colname)
     
   } else {
-    balanced <- getBalancedVariableValues(cs, anno, variable)
+    balanced <- getBalancedVariableValues(cs, anno, variable, minCount)
     validItems <- anno %>%
       filter(!!rlang::sym(variable) %in% balanced) %>%
       pull(!!colname)
@@ -758,8 +758,8 @@ dropUnbalancedVariableValues <- function(cs, anno, variable) {
 
 #' @rdname getBalancedVariableValues
 #' @export
-dropUnbalancedTumortypes <- function(cs, anno) {
-  dropUnbalancedVariableValues(cs, anno, "tumortype")
+dropUnbalancedTumortypes <- function(cs, anno, minCount = 1) {
+  dropUnbalancedVariableValues(cs, anno, "tumortype", minCount)
 }
 
 #' Get valid tumor types / variables
@@ -769,35 +769,81 @@ dropUnbalancedTumortypes <- function(cs, anno) {
 #' @param cs list, class selection
 #' @param anno data.frame, item annotation
 #' @param variable column name from which the balanced values will be extracted
+#' @param minCount minimum number of occurrences in each class to consider a level
+#'        as valid. If \code{minCount} is lower that 1, then all levels will
+#'        be returned (except NAs).
 #'
 #' @return character vector of valid tumortypes
 #' @rdname getBalancedVariableValues
 #' @export
-getValidTumorTypes <- function(cs, anno) {
+#' 
+#' @examples 
+#' anno <- tibble(
+#'  cl = c("a", "b", "c", "d", "e", "f", "g"),
+#'  tumortype = c("x", "x", "y", "x", "x", "y", "z")
+#' )
+#' colnames(anno)[1] <- getOption("xiff.column")
+#' 
+#' cs <- classAssignment(cl1 = c("a", "b", "c"), cl2 = c("d", "e", "f", "g"))
+#' 
+#' getBalancedTumorTypes(cs, anno) # "x" and "y" are available in both classes
+#' 
+#' # 'g' has unbalanced tumortype
+#' dropUnbalancedTumortypes(cs, anno)
+#' dropUnbalancedTumortypes(cs, anno)$class2
+#' 
+#' # only "x" appears at least 2 times in each class
+#' getBalancedTumorTypes(cs, anno, minCount = 2) 
+#' 
+#' cs2 <- dropUnbalancedTumortypes(cs, anno, 2)
+#' cs2$class1
+#' cs2$class2
+#' 
+#' # empty results
+#' getBalancedTumorTypes(cs, anno, 3)
+#' dropUnbalancedTumortypes(cs, anno, 3)
+#' 
+#' # getBalancedVariableValues and dropUnbalancedVariableValues
+#' getBalancedVariableValues(cs, anno, "tumortype", 1)
+#' getBalancedVariableValues(cs, anno, "tumortype", 2)
+#' dropUnbalancedVariableValues(cs, anno, "tumortype", 2)
+#' 
+#' # minCount == 0
+#' getBalancedVariableValues(cs, anno, "tumortype", 0)
+#' dropUnbalancedVariableValues(cs, anno, "tumortype", 0)
+#' 
+getValidTumorTypes <- function(cs, anno, minCount = 1) {
   .Deprecated("getBalancedTumorTypes")
-  getBalancedTumorTypes(cs, anno)
+  getBalancedTumorTypes(cs, anno, minCount)
 }
 
 #' @rdname getBalancedVariableValues
 #' @export
-getBalancedTumorTypes <- function(cs, anno) {
-  getBalancedVariableValues(cs, anno, "tumortype")
+getBalancedTumorTypes <- function(cs, anno, minCount = 1) {
+  getBalancedVariableValues(cs, anno, "tumortype", minCount)
 }
 
 #' @rdname getBalancedVariableValues
 #' @export
-getBalancedVariableValues <- function(cs, anno, variable){
+getBalancedVariableValues <- function(cs, anno, variable, minCount = 1){
   if (is.null(anno) || nrow(anno) == 0) return()
 
   colname <- getOption("xiff.column")
 
   stopifnot(variable %in% colnames(anno))
+  
+  if(minCount < 1) {
+    # if minCount < 1, e.g. 0, then it returns all levels
+    return(anno[[variable]] %>% na.omit() %>% unique() %>% as.character())
+  }
+  
   variable <- rlang::sym(variable)
   
   stackClasses(cs) %>%
     left_join(anno, by = colname) %>%
     group_by(class, !!variable) %>%
     summarise(n = dplyr::n(), .groups = "drop") %>%
+    filter(n >= minCount) %>%
     group_by(!!variable) %>%
     summarize(ok = dplyr::n() > 1, .groups = "drop") %>% # must be present in both classes
     filter(ok) %>%
