@@ -46,7 +46,7 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
 }
 
 #' @export
-uploadInputMode <- function(input, output, session, AnnotationFull, translationFun, AllTumortype){
+uploadInputMode <- function(input, output, session, AnnotationFull, translationFun, AllTumortype = NULL, AnnotationFiltered = NULL, mlUseTumortypeFilter = TRUE){
   ns <- session$ns
 
   Dummy_rds <- reactiveVal()
@@ -111,14 +111,25 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     translationFun = translationFun
   )
 
+  MlAnnotation <- reactive({
+    
+    if(mlUseTumortypeFilter) {
+      AnnotationFull()
+    } else {
+      AnnotationFiltered()
+    }
+    
+  })
+  
   MLItems <- callModule(
     module = mlUploadInputMode,
     id = "ml",
     FileInfo = FileInfo,
     topErrorId = topErrorId,
     bottomErrorId = bottomErrorId,
-    Annotation = AnnotationFull,
-    translationFun = translationFun
+    Annotation = MlAnnotation,
+    translationFun = translationFun,
+    useTumortypeFilter = mlUseTumortypeFilter
   )
 
   UploadItems <- reactive({
@@ -457,9 +468,13 @@ mlUploadInputModeUI_stat <- function(id){
   NULL
 }
 
-mlUploadInputModeUI_options <- function(id, input, AllTumortype){
+mlUploadInputModeUI_options <- function(id, input, AllTumortype = NULL){
   ns <- NS(id)
-  myT <- AllTumortype()
+  
+  if(!is.null(AllTumortype)) {
+    myT <- AllTumortype()  
+  }
+  
 
   fluidRow(
     column_6(
@@ -470,7 +485,7 @@ mlUploadInputModeUI_options <- function(id, input, AllTumortype){
         selected = "split training and unseen"
       )
     ),
-    column_6(
+    if(!is.null(AllTumortype)) column_6(
       selectInput(
         inputId = ns("tumortype"),
         label = "Tumor Types:",
@@ -490,7 +505,8 @@ mlUploadInputModeUI_plot <- function(id){
   brushPlotUI(ns("barplot"))
 }
 
-mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bottomErrorId, Annotation, translationFun){
+mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
+                              bottomErrorId, Annotation, translationFun, useTumortypeFilter = TRUE){
   ns <- session$ns
 
   colname <- getOption("xiff.column")
@@ -526,7 +542,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
     eventExpr = Model(),
     handlerExpr = {
       m <- Model()
-      req(m)
+      req(m, useTumortypeFilter)
 
       cl <- TrainingSet()$df[[colname]]
       req(length(cl) > 0)
@@ -563,14 +579,18 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
 
     req(d, m, TrainingSet())
     trainingSet <- TrainingSet()$df[[colname]]
-
-    tumortypes <- input$tumortype
-    if (length(tumortypes) == 0) return()
-
-    items <- Annotation() %>%
-      filter(tumortype %in% tumortypes) %>%
-      pull(!!colname)
-
+    
+    if(useTumortypeFilter) {
+      tumortypes <- input$tumortype
+      if (length(tumortypes) == 0) return()
+      
+      items <- Annotation() %>%
+        filter(tumortype %in% tumortypes) %>%
+        pull(!!colname)
+    } else {
+      items <- Annotation() %>% pull(!!colname)
+    }
+    
     showType <- input$show
 
     if (showType == "all"){
@@ -649,7 +669,9 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId, bott
   UploadPlotCheck <- reactive({
     
     validate(need(!is.null(Model()), "Please Load model."))
-    validate(need(length(input$tumortype) > 0, "Please select tumors."))
+    if(useTumortypeFilter) {
+      validate(need(length(input$tumortype) > 0, "Please select tumors."))
+    }
     validate(
       need(!is.null(Data()), 
         paste(
