@@ -18,7 +18,7 @@
 #' classAssignment(cs)
 #' classAssignment(cs, positiveClass = "b")
 #' 
-classAssignment <- function(..., positiveClass = NULL){
+classAssignment <- function(..., positiveClass = NULL) {
   theDots <- list(...)
   
   if (length(theDots) == 1 && is.list(theDots[[1]])){
@@ -29,11 +29,17 @@ classAssignment <- function(..., positiveClass = NULL){
     stop("please provide 2 sample name vectors")
   }
   
-  theDots <- lapply(theDots, as.character)
   
   labels <- names(theDots)
   if (is.null(labels)){
     labels <- c("class1", "class2")
+  } else {
+    
+    stopifnot("The classes names must be unique." =
+              length(unique(labels)) == 2)
+    stopifnot("One of the class names is an empty string" =
+              all(nchar(labels) > 0))
+    
   }
   
   if(!is.null(positiveClass)) {
@@ -52,7 +58,21 @@ classAssignment <- function(..., positiveClass = NULL){
     
   }
   
-  structure(
+  theDots <- mapply(theDots, labels, 1:2, FUN = function(x, l, i) {
+    if(anyDuplicated(x)) {
+      warning(glue::glue("Duplicated values found in the Class{i} ({l})."), 
+              " Only the unique values will be used.")
+    }  
+    x <- unique(as.character(x))
+    if(length(x) == 0) NULL else x # enforce NULL when length of 0
+  }, SIMPLIFY = FALSE)
+  
+  
+  if(anyDuplicated(theDots[[1]])) {
+    warning(glue::glue("Duplicated values found in Class1 ({labels[[1]]})"))
+  }
+  
+  res <- structure(
     list(
       class1 = theDots[[1]],
       class2 = theDots[[2]]
@@ -63,6 +83,16 @@ classAssignment <- function(..., positiveClass = NULL){
     ),
     class = c("classAssignment", "list")
   )
+  
+  duplicated <- intersect(res$class1, res$class2)
+  
+  if(length(duplicated) > 0) {
+    entries <-
+      substr(paste(duplicated, collapse = ", "), 1 , getOption("width") * 0.8)
+    stop("Duplicated values between classes are prohibited: ", entries)
+  }
+  
+  res
 }
 
 #' @export
