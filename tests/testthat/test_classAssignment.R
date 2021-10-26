@@ -143,5 +143,20 @@ test_that(
     )
     expect_equal(classLabel2levels(getClassLabel(ca)), c("c2", "c1"))
     
+    expect_error(classAssignment(1:5, 1:3), regexp = "1, 2, 3")
+    expect_warning(classAssignment(c(1:5, 1:3), 6:10),
+                   regexp = "Duplicated values found in the Class1")
+    expect_warning(classAssignment(1:5, c(6:10, 6)),
+                   regexp = "Duplicated values found in the Class2")
+    expect_warning(classAssignment(c(1:5, 1:2), c(6:10, 6)),
+                   regexp = "Duplicated values found in the Class")
+    expect_error(classAssignment(c(1:5, 1:2), class2 = c(6:10, 6)),
+                 "One of the class names is an empty string")
+    
+    ca <- suppressWarnings(classAssignment(c(1:5, 1:2), c(6:10, 6)))
+    
+    expect_equal(ca$class1, as.character(1:5))
+    expect_equal(ca$class2, as.character(6:10))
+       
   }
 )
