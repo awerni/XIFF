@@ -192,3 +192,34 @@ getStashedData <- function(hash){
     jsonlite::fromJSON(res$playload)
   }
 }
+
+
+#' Get gene symbol
+#'
+#' @param ensgs gene ensg
+#' @param species single character string determining the species
+#'
+#' @return vector of gene symbols. If there's no ensg in the database the NA is
+#' returned for that gene.
+#' 
+#' @export
+#'
+#' @examples
+#' 
+#' \dontrun{
+#' 
+#' getGeneSymbol(c("ENSG00000133703", "xx", "ENSG00000268173", "ENSG00000133703"))
+#' 
+#' }
+#' 
+getGeneSymbol <- function(ensgs, species = "human"){
+  sql <- paste0(
+    "SELECT ensg, coalesce(symbol, ensg) as symbol FROM gene ",
+    "WHERE ", prepareConditionSql(ensg = ensgs, species = species)
+  )
+  res <- getPostgresql(sql)
+  
+  res <- (res %>% tibble::column_to_rownames("ensg"))[ensgs,,drop = FALSE]
+  res$symbol
+}
+
