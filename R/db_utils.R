@@ -194,7 +194,7 @@ getStashedData <- function(hash){
 }
 
 
-#' Get gene symbols
+#' Get gene symbol
 #'
 #' @param ensgs gene ensg
 #' @param species single character string determining the species
@@ -208,11 +208,11 @@ getStashedData <- function(hash){
 #' 
 #' \dontrun{
 #' 
-#' getGenesSymbols(c("ENSG00000133703", "xx", "ENSG00000268173", "ENSG00000133703"))
+#' getGeneSymbol(c("ENSG00000133703", "xx", "ENSG00000268173", "ENSG00000133703"))
 #' 
 #' }
 #' 
-getGenesSymbols <- function(ensgs, species = "human"){
+getGeneSymbol <- function(ensgs, species = "human"){
   sql <- paste0(
     "SELECT ensg, coalesce(symbol, ensg) as symbol FROM gene ",
     "WHERE ", prepareConditionSql(ensg = ensgs, species = species)
