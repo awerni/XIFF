@@ -88,3 +88,44 @@ getClassAssigmentAttributeIfNull <- function(ca, x) {
   
   attr(x, "ClassSelection")
 }
+
+#' Convert classAssigment to data.frame containing class assignment column
+#'
+#' @param ca classAssigment object
+#'
+#' @return data.frame
+#' @export
+#'
+#' @examples
+#' 
+#' ca <- classAssignment(cl1 = 1:5, cl2 = 6:10)
+#' classAssignment2df(ca)
+#' 
+classAssignment2df <- function(ca) {
+  
+  if(inherits(ca, "list") && !inherits(ca, "classAssignment")) {
+    
+    if (length(ca) > 2){
+      stop("`ca` must contain 2 list elements")
+    }
+    
+    rlang::warn(
+      paste0(
+        "`ca` is a list but not a classAssignment.",
+        " classAssignment2df can work with lists but it is ",
+        " recommended to use `classAssignment` objects."),
+      .frequency = "once",
+      .frequency_id = "xiff_classAssignment2df_list"
+    )
+    
+    ca <- classAssignment(ca)
+  }
+  
+  if(!inherits(ca, "classAssignment")) {
+    stop("`ca` must be a `list` or `classAssignment` object.")
+  }
+  
+  labels <- getClassLabel(ca)
+  
+  stackClasses(ca, classLabel = labels)
+}

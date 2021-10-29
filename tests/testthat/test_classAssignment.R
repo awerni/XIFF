@@ -160,3 +160,24 @@ test_that(
        
   }
 )
+
+test_that(
+  desc = "class assignment - classAssignment2df",
+  code = {
+    
+    ca <- classAssignment(cl1 = 1, cl2 = 2)
+    
+    dt <- structure(list(
+      celllinename = c("1", "2"),
+      class = c("cl1", "cl2")
+    ),
+    class = "data.frame",
+    row.names = c("1", "2"))
+    
+    expect_equal(classAssignment2df(ca), dt)
+    
+    # warning once per session
+    expect_warning(dt2 <- classAssignment2df(list(c1 = 1, c2 = 2)))
+     
+  }
+)
