@@ -18,6 +18,13 @@ machineLearningTestModelTab <- function(input, output, session, classLabel, Resu
     FutureManager::fmValidate(Results())
     res <- Results()[["value"]]
     
+    validate(need(
+      !is.null(res$testSet), message = paste(
+        "Model trained without a test set.",
+        "Please re-train the model with a test set or use `apply model` tab",
+        "to test the model."
+    )))
+    
     testSet <- mlModelSet2ClassSelectionList(res, res$testSet)
     validate(need(testSet, "test set not provided"))
     validateXiffMachineLearningResult(res)
