@@ -1,6 +1,7 @@
 #' @import shiny
 #' @import dplyr
 #' @import ggplot2
+#' @importFrom grDevices pdfFonts postscriptFonts
 .onLoad <- function(libname, pkgname){
   options(xiff.column = "celllinename")
   options(xiff.schema = "cellline")
@@ -29,15 +30,15 @@
     )
   }
   
-  if(!"Roboto" %in% names(pdfFonts())) {
+  if(!"Roboto" %in% names(grDevices::pdfFonts())) {
     # solve the warning regarding the missing font in pdf device.
     # It's a hack, but other solution didn't work. E.g. registering
     # the fonts using afm files (Type1Font - function). They make the
     # font usable for cairo_pdf device but not for the pdf device.
     z <- pdfFonts()[["Helvetica"]]
     z$family <- "Roboto"
-    pdfFonts(Roboto = z)
-    postscriptFonts(Roboto = z)
+    grDevices::pdfFonts(Roboto = z)
+    grDevices::postscriptFonts(Roboto = z)
   }
   
   t <- theme_get()
