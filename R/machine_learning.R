@@ -401,6 +401,11 @@ getRawDataForModel.MLXIFF <- function(features,
 #' @export
 makeMlModelPlots <- function(model, testSet, annoFocus) {
   
+  
+  msg <- paste("generateTrainingModelPlots(model)",
+               " and generateTestModelPlots(testResult)")
+  .Deprecated(msg)
+  
   test <- testModel(
     model,
     testSet = testSet,
@@ -419,13 +424,60 @@ makeMlModelPlots <- function(model, testSet, annoFocus) {
   )
   
   
-  
-  
   df2 <- getPerformanceDataFrame(test$res$table)
   list(
-    TablePlot <- generateTablePlot(df),
+    TablePlot = generateTablePlot(df),
     ApplyPerformancePlot = generateApplyPerformancePlot(df2),
     PerformancePlot = generatePerformancePlot(model),
     VariableImportancePlot = generateVarImpPlot(model)
+  )
+}
+
+#' Generate Machine Learning Models Plots on Training Set
+#'
+#' @param model machine learning model created with XIFF (MLXIFF object)
+#'
+#' @return list with plots created on based on the training set.
+#' @export
+#'
+generateTrainingModelPlots <- function(model) {
+  UseMethod("generateTrainingModelPlots")
+}
+
+#' @exportS3Method 
+generateTrainingModelPlots.default <- function(model) {
+  stop("`model` must be MLXIFF object. Check ?buildMachineLearning function.")
+}
+
+#' @exportS3Method 
+generateTrainingModelPlots.MLXIFF <- function(model) {
+  list(
+    PerformancePlot = generatePerformancePlot(model),
+    VariableImportancePlot = generateVarImpPlot(model)
+  )
+}
+
+#' Generate Machine Learning Model based on the Test Results.
+#'
+#' @param testResults MLModelTestsResults object created with testModel function.
+#'
+#' @return list with plots created on test result.
+#' @export
+#'
+generateTestModelPlots <- function(testResult) {
+  UseMethod("generateTestModelPlots")
+}
+
+generateTestModelPlots.default <- function(testResult) {
+  stop("`testResults` must be `MLModelTestsResults` object.",
+       "\nCheck `testModel(model, testSet, anno)` function.")
+}
+
+generateTestModelPlots.MLModelTestsResult <- function(testResult) {
+  
+  df2 <- getPerformanceDataFrame(testResult$res$table)
+  list(
+    TablePlot = generateTablePlot(testResult$tablePlotData),
+    ApplyPerformancePlot = generateApplyPerformancePlot(df2)
   )
 }
