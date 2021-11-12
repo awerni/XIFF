@@ -182,7 +182,11 @@ testResult <- testModel(
   defaultFit,
   testSet = testSet,
   anno = annoFocus)
-generateTestModelPlots(testResult)
+
+getPerformanceDataFrame(testResult)
+generateTablePlot(testResult)
+generateApplyPerformancePlot(testResult)
+generateTestModelPlots(testResult) # both plots in one go
 ```
 
 ## Glmnet
