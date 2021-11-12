@@ -100,8 +100,43 @@ getPredictionSummary <- function(items,
   )
 }
 
+#' Get Performance Data Frame
+#'
+#' @param result MLModelTestsResult object or 
+#' confusion matrix (table object) or 
+#'
+#' @return table with columns: metric, n1, n2, value, labelPos, label
 #' @export
-getPerformanceDataFrame <- function(t){
+#'
+#' @examples
+#' 
+#' resTable <- structure(
+#'   c(19L, 9L, 2L, 66L),
+#'   .Dim = c(2L, 2L),
+#'   .Dimnames = list(
+#'     Prediction = c("positive", "negative"),
+#'     Reference = c("positive",
+#'                   "negative")
+#'   ),
+#'   class = "table"
+#' )
+#' getPerformanceDataFrame(resTable)
+#' 
+getPerformanceDataFrame <- function(result) {
+  UseMethod("getPerformanceDataFrame") 
+}
+
+#' @export
+#' @exportS3Method 
+getPerformanceDataFrame.MLModelTestsResult <- function(result) {
+  getPerformanceDataFrame(result$res$table)
+}
+
+#' @export
+#' @exportS3Method 
+getPerformanceDataFrame.table <- function(result) {
+  
+  t <- result
   TP <- t[1,1] # True Positive
   FP <- t[1,2] # False Positive
   FN <- t[2,1] # False Negative

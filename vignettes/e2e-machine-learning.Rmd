@@ -42,7 +42,7 @@ cs <- list(class1 = sensitive, class2 = resistant)
 
 ```{r}
 # Hallmark gene set
-geneSet <- CLIFF::getGSEAdata("human", "hallmark")[["HALLMARK_P53_PATHWAY"]]
+geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
 
 # Gene Annotation
 geneAnno <- CLIFF::getGeneAnno()[["human"]]
@@ -92,7 +92,7 @@ glmnetFit <- XIFF::buildMachineLearning(
 
 ### Prediction just uses `S3 predict` method from `caret`.
 
-```{r}
+```{r, R.options=list(max.print=20)}
 predict(defaultFit)
 predict(glmnetFit)
 ```
@@ -172,8 +172,6 @@ generateErrorPlot(defaultFit)
 
 ```{r}
 annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(testSet))
-
-
 ```
 
 

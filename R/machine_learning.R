@@ -468,16 +468,20 @@ generateTestModelPlots <- function(testResult) {
   UseMethod("generateTestModelPlots")
 }
 
+#' @export
+#' @exportS3Method 
 generateTestModelPlots.default <- function(testResult) {
   stop("`testResults` must be `MLModelTestsResults` object.",
        "\nCheck `testModel(model, testSet, anno)` function.")
 }
 
+#' @export
+#' @exportS3Method 
 generateTestModelPlots.MLModelTestsResult <- function(testResult) {
   
   df2 <- getPerformanceDataFrame(testResult$res$table)
   list(
-    TablePlot = generateTablePlot(testResult$tablePlotData),
-    ApplyPerformancePlot = generateApplyPerformancePlot(df2)
+    TablePlot = generateTablePlot(testResult),
+    ApplyPerformancePlot = generateApplyPerformancePlot(testResult)
   )
 }

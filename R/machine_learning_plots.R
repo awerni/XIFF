@@ -150,8 +150,43 @@ generateErrorPlot <- function(x, cl = list(class1_name = "sensitive", class2_nam
     )
 }
 
+#' Generate Apply Performance Plot
+#'
+#' @param df MLModelTestsResult object or 
+#' the result of \code{getPerformanceDataFrame}
+#'
+#' @return ggplot object
 #' @export
-generateApplyPerformancePlot <- function(df){
+#'
+#' @examples
+#' 
+#' confMatrix <- structure(
+#'   c(19L, 9L, 2L, 66L),
+#'   .Dim = c(2L, 2L),
+#'   .Dimnames = list(
+#'     Prediction = c("positive", "negative"),
+#'     Reference = c("positive",
+#'                   "negative")
+#'   ),
+#'   class = "table"
+#' )
+#' df <- getPerformanceDataFrame(confMatrix)
+#' generateApplyPerformancePlot(df)
+#' 
+generateApplyPerformancePlot <- function(df) {
+  UseMethod("generateApplyPerformancePlot")
+}
+
+#' @export
+#' @exportS3Method 
+generateApplyPerformancePlot.MLModelTestsResult <- function(df) {
+  df2 <- getPerformanceDataFrame(df$res$table)
+  generateApplyPerformancePlot(df2)
+}
+
+#' @export
+#' @exportS3Method 
+generateApplyPerformancePlot.data.frame <- function(df){
   ggplot(
     data = df,
     mapping = aes(x = metric, y = value, fill = metric)
@@ -170,8 +205,48 @@ generateApplyPerformancePlot <- function(df){
     )
 }
 
+#' Generate Visualization of the confusion matrix.
+#'
+#' @param df MLModelTestsResult or data.frame with columns predicted and reference columns
+#'
+#' @return ggplot object
 #' @export
-generateTablePlot <- function(df){
+#'
+#' @examples
+#' 
+#' tbl <- structure(
+#'   list(
+#'     predicted = structure(
+#'       c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L),
+#'       .Label = c("resistant\n(negative)", "sensitive\n(positive)"),
+#'       class = "factor"
+#'     ),
+#'     reference = structure(
+#'       c(1L, 2L, 2L, 2L,
+#'         2L, 2L, 2L, 1L),
+#'       .Label = c("sensitive\n(positive)", "resistant\n(negative)"),
+#'       class = "factor"
+#'     )
+#'   ),
+#'   row.names = c(NA,-8L),
+#'   class = c("tbl_df",
+#'             "tbl", "data.frame")
+#' )
+#' generateTablePlot(tbl)
+#' 
+generateTablePlot <- function(df) {
+  UseMethod("generateTablePlot")
+}
+
+#' @export
+#' @exportS3Method 
+generateTablePlot.MLModelTestsResult <- function(df) {
+  generateTablePlot(testResult$tablePlotData)
+}
+
+#' @export
+#' @exportS3Method 
+generateTablePlot.data.frame <- function(df){
   ggplot(
     data = df,
     mapping = aes(y = predicted, fill = predicted)
