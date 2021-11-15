@@ -301,7 +301,7 @@ makeModel <- function(i, allSimulations, OUTPUT_PATH) {
     ))
     
     performanceData <- try(
-      getPerformanceDataFrame(test$res$table)
+      generateTestPerformanceData(test$res$table)
     )
     
     

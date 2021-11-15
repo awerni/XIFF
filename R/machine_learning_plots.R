@@ -153,7 +153,7 @@ generateErrorPlot <- function(x, cl = list(class1_name = "sensitive", class2_nam
 #' Generate Apply Performance Plot
 #'
 #' @param df MLModelTestsResult object or 
-#' the result of \code{getPerformanceDataFrame}
+#' the result of \code{generateTestPerformanceData}
 #'
 #' @return ggplot object
 #' @export
@@ -170,23 +170,23 @@ generateErrorPlot <- function(x, cl = list(class1_name = "sensitive", class2_nam
 #'   ),
 #'   class = "table"
 #' )
-#' df <- getPerformanceDataFrame(confMatrix)
-#' generateApplyPerformancePlot(df)
+#' df <- generateTestPerformanceData(confMatrix)
+#' generateTestPerformancePlot(df)
 #' 
-generateApplyPerformancePlot <- function(df) {
-  UseMethod("generateApplyPerformancePlot")
+generateTestPerformancePlot <- function(df) {
+  UseMethod("generateTestPerformancePlot")
 }
 
 #' @export
 #' @exportS3Method 
-generateApplyPerformancePlot.MLModelTestsResult <- function(df) {
-  df2 <- getPerformanceDataFrame(df$res$table)
-  generateApplyPerformancePlot(df2)
+generateTestPerformancePlot.MLModelTestsResult <- function(df) {
+  df2 <- generateTestPerformanceData(df$res$table)
+  generateTestPerformancePlot(df2)
 }
 
 #' @export
 #' @exportS3Method 
-generateApplyPerformancePlot.data.frame <- function(df){
+generateTestPerformancePlot.data.frame <- function(df){
   ggplot(
     data = df,
     mapping = aes(x = metric, y = value, fill = metric)

@@ -424,10 +424,10 @@ makeMlModelPlots <- function(model, testSet, annoFocus) {
   )
   
   
-  df2 <- getPerformanceDataFrame(test$res$table)
+  df2 <- generateTestPerformanceData(test$res$table)
   list(
     TablePlot = generateTablePlot(df),
-    ApplyPerformancePlot = generateApplyPerformancePlot(df2),
+    ApplyPerformancePlot = generateTestPerformancePlot(df2),
     PerformancePlot = generatePerformancePlot(model),
     VariableImportancePlot = generateVarImpPlot(model)
   )
@@ -479,9 +479,8 @@ generateTestModelPlots.default <- function(testResult) {
 #' @exportS3Method 
 generateTestModelPlots.MLModelTestsResult <- function(testResult) {
   
-  df2 <- getPerformanceDataFrame(testResult$res$table)
   list(
     TablePlot = generateTablePlot(testResult),
-    ApplyPerformancePlot = generateApplyPerformancePlot(testResult)
+    ApplyPerformancePlot = generateTestPerformancePlot(testResult)
   )
 }

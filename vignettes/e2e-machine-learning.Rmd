@@ -183,9 +183,9 @@ testResult <- testModel(
   testSet = testSet,
   anno = annoFocus)
 
-getPerformanceDataFrame(testResult)
+generateTestPerformanceData(testResult)
 generateTablePlot(testResult)
-generateApplyPerformancePlot(testResult)
+generateTestPerformancePlot(testResult)
 generateTestModelPlots(testResult) # both plots in one go
 ```
 
