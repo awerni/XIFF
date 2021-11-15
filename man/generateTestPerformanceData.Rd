@@ -18,16 +18,14 @@ Get Performance Data Frame
 }
 \examples{
 
-resTable <- structure(
+confMatrix <- as.table(matrix(
   c(19L, 9L, 2L, 66L),
-  .Dim = c(2L, 2L),
-  .Dimnames = list(
+  nrow = 2,
+  dimnames = list(
     Prediction = c("positive", "negative"),
-    Reference = c("positive",
-                  "negative")
-  ),
-  class = "table"
-)
-generateTestPerformanceData(resTable)
+    Reference =  c("positive", "negative")
+  )
+))
+generateTestPerformanceData(confMatrix)
 
 }

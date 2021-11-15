@@ -160,16 +160,14 @@ generateErrorPlot <- function(x, cl = list(class1_name = "sensitive", class2_nam
 #'
 #' @examples
 #' 
-#' confMatrix <- structure(
+#' confMatrix <- as.table(matrix(
 #'   c(19L, 9L, 2L, 66L),
-#'   .Dim = c(2L, 2L),
-#'   .Dimnames = list(
+#'   nrow = 2,
+#'   dimnames = list(
 #'     Prediction = c("positive", "negative"),
-#'     Reference = c("positive",
-#'                   "negative")
-#'   ),
-#'   class = "table"
-#' )
+#'     Reference =  c("positive", "negative")
+#'   )
+#' ))
 #' df <- generateTestPerformanceData(confMatrix)
 #' generateTestPerformancePlot(df)
 #' 
@@ -214,24 +212,13 @@ generateTestPerformancePlot.data.frame <- function(df){
 #'
 #' @examples
 #' 
-#' tbl <- structure(
-#'   list(
-#'     predicted = structure(
-#'       c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L),
-#'       .Label = c("resistant\n(negative)", "sensitive\n(positive)"),
-#'       class = "factor"
-#'     ),
-#'     reference = structure(
-#'       c(1L, 2L, 2L, 2L,
-#'         2L, 2L, 2L, 1L),
-#'       .Label = c("sensitive\n(positive)", "resistant\n(negative)"),
-#'       class = "factor"
-#'     )
-#'   ),
-#'   row.names = c(NA,-8L),
-#'   class = c("tbl_df",
-#'             "tbl", "data.frame")
+#' lvls <- factor(
+#'   c("resistant\n(negative)", "sensitive\n(positive)"),
+#'   ordered = TRUE
 #' )
+#' 
+#' tbl <- tibble(predicted = lvls[c(1,1,1,2,2)], reference = lvls[c(2,1,1,1,2)])
+#' 
 #' generateTablePlot(tbl)
 #' 
 generateTablePlot <- function(df) {

@@ -18,16 +18,14 @@ Generate Apply Performance Plot
 }
 \examples{
 
-confMatrix <- structure(
+confMatrix <- as.table(matrix(
   c(19L, 9L, 2L, 66L),
-  .Dim = c(2L, 2L),
-  .Dimnames = list(
+  nrow = 2,
+  dimnames = list(
     Prediction = c("positive", "negative"),
-    Reference = c("positive",
-                  "negative")
-  ),
-  class = "table"
-)
+    Reference =  c("positive", "negative")
+  )
+))
 df <- generateTestPerformanceData(confMatrix)
 generateTestPerformancePlot(df)
 
