@@ -120,21 +120,21 @@ getPredictionSummary <- function(items,
 #'   ),
 #'   class = "table"
 #' )
-#' getTestPerformanceData(resTable)
+#' generateTestPerformanceData(resTable)
 #' 
-getTestPerformanceData <- function(result) {
-  UseMethod("getTestPerformanceData") 
+generateTestPerformanceData <- function(result) {
+  UseMethod("generateTestPerformanceData") 
 }
 
 #' @export
 #' @exportS3Method 
-getTestPerformanceData.MLModelTestsResult <- function(result) {
-  getTestPerformanceData(result$res$table)
+generateTestPerformanceData.MLModelTestsResult <- function(result) {
+  generateTestPerformanceData(result$res$table)
 }
 
 #' @export
 #' @exportS3Method 
-getTestPerformanceData.table <- function(result) {
+generateTestPerformanceData.table <- function(result) {
   
   t <- result
   TP <- t[1,1] # True Positive
@@ -284,7 +284,7 @@ print.MLModelTestsResult <- function(x, ...) {
   print(x[c("res", "data")])
   
   cat("\nTables Methods:")
-  cat("\n  getTestPerformanceData(x)")
+  cat("\n  generateTestPerformanceData(x)")
   
   cat("\n\nPlots Methods:")
   cat("\n  generateTablePlot(x)")

@@ -7,7 +7,7 @@
 generateTestModelPlots(testResult)
 }
 \arguments{
-\item{testResults}{MLModelTestsResults object created with testModel function.}
+\item{testResults}{MLModelTestsResult object created with testModel function.}
 }
 \value{
 list with plots created on test result.

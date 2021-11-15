@@ -459,7 +459,7 @@ generateTrainingModelPlots.MLXIFF <- function(model) {
 
 #' Generate Machine Learning Model based on the Test Results.
 #'
-#' @param testResults MLModelTestsResults object created with testModel function.
+#' @param testResults MLModelTestsResult object created with testModel function.
 #'
 #' @return list with plots created on test result.
 #' @export
@@ -471,7 +471,7 @@ generateTestModelPlots <- function(testResult) {
 #' @export
 #' @exportS3Method 
 generateTestModelPlots.default <- function(testResult) {
-  stop("`testResults` must be `MLModelTestsResults` object.",
+  stop("`testResults` must be `MLModelTestsResult` object.",
        "\nCheck `testModel(model, testSet, anno)` function.")
 }
 
