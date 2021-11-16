@@ -205,6 +205,7 @@ generateWaterfallPlot <-
 #' dt[c(2,3,11:16),"value"] <- NA
 #' 
 #' generateDataCoveragePlot(dt, "value", ca)
+#' generateDataCoveragePlot(dt, "value", ca, addCountLabels = FALSE)
 #' 
 generateDataCoveragePlot <- function(data, col, ca, addCountLabels = TRUE) {
   colname <- getOption("xiff.column")
