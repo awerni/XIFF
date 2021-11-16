@@ -42,7 +42,7 @@ cs <- list(class1 = sensitive, class2 = resistant)
 
 ```{r}
 # Hallmark gene set
-geneSet <- CLIFF::getGSEAdata("human", "hallmark")[["HALLMARK_P53_PATHWAY"]]
+geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
 
 # Gene Annotation
 geneAnno <- CLIFF::getGeneAnno()[["human"]]
@@ -92,7 +92,7 @@ glmnetFit <- XIFF::buildMachineLearning(
 
 ### Prediction just uses `S3 predict` method from `caret`.
 
-```{r}
+```{r, R.options=list(max.print=20)}
 predict(defaultFit)
 predict(glmnetFit)
 ```
@@ -154,6 +154,13 @@ generateVarImpPlot(defaultFit)
 generateVarImpPlot(glmnetFit)
 ```
 
+## All in One function
+
+```{r}
+generateTrainingModelPlots(defaultFit)
+generateTrainingModelPlots(glmnetFit)
+```
+
 ## Error plot (random forest only)
 
 ```{r}
@@ -161,65 +168,35 @@ generateVarImpPlot(glmnetFit)
 generateErrorPlot(defaultFit)
 ```
 
-
+# Performance Result on Test Data
 
 ```{r}
-testData <- getDataForModel(assignment = testSet, features = defaultFit)
 annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(testSet))
-
-
-predictionSummary <- getPredictionSummary(
-  items = testData$celllinename,
-  preds = predict(defaultFit, newdata = testData),
-  refs = testData$class,
-  positive_model = "sensitive",
-  positive_cs = "sensitive",
-  classes = c("positive", "negative"),
-  classes_model = c("sensitive", "resistant"),
-  classes_cs = c("sensitive", "resistant"),
-  annoFocus = annoFocus
-)
-
-predictionSummary$res
-predictionSummary$data
 ```
 
 
+## Random Forest
+
 ```{r}
-df <- prepareTablePlotData(
-  df = predictionSummary$data,
-  positive_preds = "sensitive",
-  positive_refs = "sensitive",
-  labels_preds = c("sensitive", "resistant"),
-  labels_refs = c("sensitive", "resistant"),
-  labels = c("positive", "negative")
-)
-generateTablePlot(df)
-
-df2 <- getPerformanceDataFrame(predictionSummary$res$table)
-generateApplyPerformancePlot(df2)
-
-
-gatherPredictionResults(predictions = list(predictionSummary))
-
-
-test <- testModel(
+testResult <- testModel(
   defaultFit,
   testSet = testSet,
   anno = annoFocus)
+
+generateTestPerformanceData(testResult)
+generateTablePlot(testResult)
+generateTestPerformancePlot(testResult)
+generateTestModelPlots(testResult) # both plots in one go
 ```
 
-
-### Random Forest
-
-```{r}
-makeMlModelPlots(defaultFit, testSet, annoFocus)
-```
-
-### Glmnet
+## Glmnet
 
 ```{r}
-makeMlModelPlots(glmnetFit, testSet, annoFocus)
+testResultGlmnet <- testModel(
+  glmnetFit,
+  testSet = testSet,
+  anno = annoFocus)
+generateTestModelPlots(testResultGlmnet)
 ```
 
 # More examples.
@@ -234,7 +211,13 @@ svmFit <- XIFF::buildMachineLearning(
   method = "svmLinear2"
 )
 
-makeMlModelPlots(svmFit, testSet, annoFocus)
+generateTrainingModelPlots(svmFit)
+testResultSvm <- testModel(
+  svmFit,
+  testSet = testSet,
+  anno = annoFocus)
+generateTestModelPlots(testResultSvm)
+
 ```
 
 ## CART
@@ -248,7 +231,13 @@ if(XIFF::packageInstalled("rpart")) {
     geneAnno = geneAnno,
     method = "rpart"
   )
-  makeMlModelPlots(rpartFit, testSet, annoFocus)
+  
+  generateTrainingModelPlots(rpartFit)
+  testResultRpart <- testModel(
+    rpartFit,
+    testSet = testSet,
+    anno = annoFocus)
+  generateTestModelPlots(testResultRpart)
 }
 
 ```
@@ -268,14 +257,13 @@ grepFit <- XIFF::buildMachineLearning(
   method = "GREP"
 )
 
-  
-test <- testModel(
+generateTrainingModelPlots(grepFit)
+testResultGrep <- testModel(
   grepFit,
   testSet = testSet,
-  anno = annoFocus
-)
-
-makeMlModelPlots(grepFit, testSet, annoFocus)
+  anno = annoFocus)
+generateTestModelPlots(testResultGrep)
+  
 
 ```
 
@@ -300,13 +288,11 @@ annoFocus <- CLIFF::getCellLineAnno("human") %>%
 
 valData <- getDataForModel(testSet, grepFit)
 
-test <- testModel(
+generateTrainingModelPlots(grepFit)
+testResultGrep <- testModel(
   grepFit,
   testSet = testSet,
-  anno = annoFocus
-)
-
-makeMlModelPlots(grepFit, testSet, annoFocus)
-
+  anno = annoFocus)
+generateTestModelPlots(testResultGrep)
 
 ```

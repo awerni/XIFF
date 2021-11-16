@@ -173,8 +173,8 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
   PerformancePlot <- reactive({
     res <- Results()
     req(res)
-    df <- XIFF::getPerformanceDataFrame(res$res$table)
-    XIFF::generateApplyPerformancePlot(df)
+    df <- XIFF::generateTestPerformanceData(res$res$table)
+    XIFF::generateTestPerformancePlot(df)
   })
   
   callModule(

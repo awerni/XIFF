@@ -150,8 +150,41 @@ generateErrorPlot <- function(x, cl = list(class1_name = "sensitive", class2_nam
     )
 }
 
+#' Generate Apply Performance Plot
+#'
+#' @param df MLModelTestsResult object or 
+#' the result of \code{generateTestPerformanceData}
+#'
+#' @return ggplot object
 #' @export
-generateApplyPerformancePlot <- function(df){
+#'
+#' @examples
+#' 
+#' confMatrix <- as.table(matrix(
+#'   c(19L, 9L, 2L, 66L),
+#'   nrow = 2,
+#'   dimnames = list(
+#'     Prediction = c("positive", "negative"),
+#'     Reference =  c("positive", "negative")
+#'   )
+#' ))
+#' df <- generateTestPerformanceData(confMatrix)
+#' generateTestPerformancePlot(df)
+#' 
+generateTestPerformancePlot <- function(df) {
+  UseMethod("generateTestPerformancePlot")
+}
+
+#' @export
+#' @exportS3Method 
+generateTestPerformancePlot.MLModelTestsResult <- function(df) {
+  df2 <- generateTestPerformanceData(df$res$table)
+  generateTestPerformancePlot(df2)
+}
+
+#' @export
+#' @exportS3Method 
+generateTestPerformancePlot.data.frame <- function(df){
   ggplot(
     data = df,
     mapping = aes(x = metric, y = value, fill = metric)
@@ -170,8 +203,37 @@ generateApplyPerformancePlot <- function(df){
     )
 }
 
+#' Generate Visualization of the confusion matrix.
+#'
+#' @param df MLModelTestsResult or data.frame with columns predicted and reference columns
+#'
+#' @return ggplot object
 #' @export
-generateTablePlot <- function(df){
+#'
+#' @examples
+#' 
+#' lvls <- factor(
+#'   c("resistant\n(negative)", "sensitive\n(positive)"),
+#'   ordered = TRUE
+#' )
+#' 
+#' tbl <- tibble(predicted = lvls[c(1,1,1,2,2)], reference = lvls[c(2,1,1,1,2)])
+#' 
+#' generateTablePlot(tbl)
+#' 
+generateTablePlot <- function(df) {
+  UseMethod("generateTablePlot")
+}
+
+#' @export
+#' @exportS3Method 
+generateTablePlot.MLModelTestsResult <- function(df) {
+  generateTablePlot(testResult$tablePlotData)
+}
+
+#' @export
+#' @exportS3Method 
+generateTablePlot.data.frame <- function(df){
   ggplot(
     data = df,
     mapping = aes(y = predicted, fill = predicted)

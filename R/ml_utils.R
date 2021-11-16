@@ -100,8 +100,41 @@ getPredictionSummary <- function(items,
   )
 }
 
+#' Get Performance Data Frame
+#'
+#' @param result MLModelTestsResult object or 
+#' confusion matrix (table object) or 
+#'
+#' @return table with columns: metric, n1, n2, value, labelPos, label
 #' @export
-getPerformanceDataFrame <- function(t){
+#'
+#' @examples
+#' 
+#' confMatrix <- as.table(matrix(
+#'   c(19L, 9L, 2L, 66L),
+#'   nrow = 2,
+#'   dimnames = list(
+#'     Prediction = c("positive", "negative"),
+#'     Reference =  c("positive", "negative")
+#'   )
+#' ))
+#' generateTestPerformanceData(confMatrix)
+#' 
+generateTestPerformanceData <- function(result) {
+  UseMethod("generateTestPerformanceData") 
+}
+
+#' @export
+#' @exportS3Method 
+generateTestPerformanceData.MLModelTestsResult <- function(result) {
+  generateTestPerformanceData(result$res$table)
+}
+
+#' @export
+#' @exportS3Method 
+generateTestPerformanceData.table <- function(result) {
+  
+  t <- result
   TP <- t[1,1] # True Positive
   FP <- t[1,2] # False Positive
   FN <- t[2,1] # False Negative
@@ -159,8 +192,21 @@ prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds
     )
 }
 
+
+#' Test model on Test Data
+#'
+#' @param model machine learning model created with XIFF
+#' @param testSet test set (classAssignment object with)
+#' @param anno items annotation data frame.
+#' @param itemColumn for advanced users only. 
+#' Name of the column which contains information about items.
+#' @param classColumn for advanced users only. 
+#' Name of the column which contains information about classes.
+#'
+#' @return MLModelTestsResults object.
+#' 
 #' @export
-testModel <- function(m,
+testModel <- function(model,
                       testSet,
                       anno,
                       itemColumn = getOption("xiff.column"),
@@ -169,21 +215,17 @@ testModel <- function(m,
   
   itemColumnSymbol <- rlang::sym(itemColumn)
   
-  
-  
-  
-  
   if(is(testSet, "classAssignment")) {
     testSet <- stackClasses(testSet, getClassLabel(testSet))
   }
   
   df <- getDataForModel(
     assignment = testSet,
-    features = m
+    features = model
   )
   
   if(is.null(classColumn)) {
-    classColumn <- m$classColumn
+    classColumn <- model$classColumn
     if(!classColumn %in% colnames(df)) {
       classColumn <- "class"
     }
@@ -193,11 +235,11 @@ testModel <- function(m,
   refs <- df[[classColumn]]
   items <- df[[itemColumn]]
   df <- df %>% select(-!!classColumnSymbol, -!!itemColumnSymbol)
-  preds <- predict(m, newdata = df)
+  preds <- predict(model, newdata = df)
   
-  cl <- classLabel2levels(m$classLabel)
+  cl <- classLabel2levels(model$classLabel)
   
-  getPredictionSummary(
+  result <- getPredictionSummary(
     items = items,
     preds = preds,
     refs = refs,
@@ -208,6 +250,46 @@ testModel <- function(m,
     classes_cs = cl,
     annoFocus = anno
   )
+  
+  tablePlotData <- prepareTablePlotData(
+    df = result$data,
+    positive_preds = cl[1],
+    positive_refs = cl[1],
+    labels_preds = cl,
+    labels_refs = cl,
+    labels = c("positive", "negative")
+  )
+  
+  result$tablePlotData <- tablePlotData
+  
+  result$classLabel <- cl
+  class(result) <- c("MLModelTestsResult", class(result))
+  
+  result
+}
+
+#' Print method for MLModelTestsResults
+#'
+#' @param x MLModelTestsResults object
+#' @param ... discarded.
+#'
+#' @return invisible x
+#' @export
+#'
+print.MLModelTestsResult <- function(x, ...) {
+  
+  cat("Machine Learning Test Result:\n\n")
+  print(x[c("res", "data")])
+  
+  cat("\nTables Methods:")
+  cat("\n  generateTestPerformanceData(x)")
+  
+  cat("\n\nPlots Methods:")
+  cat("\n  generateTablePlot(x)")
+  cat("\n  generateTestPerformancePlot(x)")
+  cat("\n  generateTestModelPlots(x)")
+  
+  invisible(x)
 }
 
 #' gatherPredictionResults
