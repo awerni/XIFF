@@ -31,4 +31,11 @@ dt[c(2,3,11:16),"value"] <- NA
 generateDataCoveragePlot(dt, "value", ca)
 generateDataCoveragePlot(dt, "value", ca, addCountLabels = FALSE)
 
+# example 2 - bigger numbers
+ca <- classAssignment(a = c(1:507), b = c(508:700))
+dt <- tibble(celllinename = as.character(1:700), value = rep("data", 700))
+dt[1:505,"value"] <- NA
+dt[508:550,"value"] <- NA
+generateDataCoveragePlot(dt, "value", ca)
+
 }

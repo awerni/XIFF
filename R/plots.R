@@ -207,6 +207,13 @@ generateWaterfallPlot <-
 #' generateDataCoveragePlot(dt, "value", ca)
 #' generateDataCoveragePlot(dt, "value", ca, addCountLabels = FALSE)
 #' 
+#' # example 2 - bigger numbers
+#' ca <- classAssignment(a = c(1:507), b = c(508:700))
+#' dt <- tibble(celllinename = as.character(1:700), value = rep("data", 700))
+#' dt[1:505,"value"] <- NA
+#' dt[508:550,"value"] <- NA
+#' generateDataCoveragePlot(dt, "value", ca)
+#' 
 generateDataCoveragePlot <- function(data, col, ca, addCountLabels = TRUE) {
   colname <- getOption("xiff.column")
 
@@ -217,8 +224,8 @@ generateDataCoveragePlot <- function(data, col, ca, addCountLabels = TRUE) {
     summarize(
       missing = sum(is.na(x)),
       available = dplyr::n() - missing,
-      label = glue::glue("{available}/{available + missing}\n",
-                         "({round(100*available/(available + missing), 2)}% available)"),
+      label = glue::glue("{available}/{available + missing} ",
+                         "({signif(100*available/(available + missing), 2)}%)"),
       maxCount = dplyr::n()
     ) %>%
     tidyr::pivot_longer(missing:available, names_to = "type", values_to = "n") %>%
@@ -251,8 +258,8 @@ generateDataCoveragePlot <- function(data, col, ca, addCountLabels = TRUE) {
     
   if(addCountLabels) {
     p <- p + 
-      geom_text(position = "stack", vjust = -0.3, size = 3.5) +
-      expand_limits(y = ceiling(max(df$maxCount)*1.1))
+      geom_text(position = "stack", vjust = -0.5, size = 3.5) +
+      expand_limits(y = ceiling(max(df$maxCount)*1.05))
   }
     
   p
