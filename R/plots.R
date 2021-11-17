@@ -185,8 +185,36 @@ generateWaterfallPlot <-
   }
 }
 
+#' Generate Data Coverage Plot
+#' 
+#' @param data data.frame with data.
+#' @param col column from \code{data} to be used in creating the plot
+#' @param ca classAssignment object
+#' @param addCountLabels if TRUE (default),
+#' add labels with available observations
+#'
 #' @export
-generateDataCoveragePlot <- function(data, col, ca) {
+#' 
+#' @examples
+#' 
+#' library(dplyr)
+#' library(tibble) 
+#' ca <- classAssignment(a = c(1:10), b = c(11:25))
+#' 
+#' dt <- tibble(celllinename = as.character(1:25), value = rep("data", 25))
+#' dt[c(2,3,11:16),"value"] <- NA
+#' 
+#' generateDataCoveragePlot(dt, "value", ca)
+#' generateDataCoveragePlot(dt, "value", ca, addCountLabels = FALSE)
+#' 
+#' # example 2 - bigger numbers
+#' ca <- classAssignment(a = c(1:507), b = c(508:700))
+#' dt <- tibble(celllinename = as.character(1:700), value = rep("data", 700))
+#' dt[1:505,"value"] <- NA
+#' dt[508:550,"value"] <- NA
+#' generateDataCoveragePlot(dt, "value", ca)
+#' 
+generateDataCoveragePlot <- function(data, col, ca, addCountLabels = TRUE) {
   colname <- getOption("xiff.column")
 
   df <- getAssignmentDf(ca) %>%
@@ -195,17 +223,23 @@ generateDataCoveragePlot <- function(data, col, ca) {
     group_by(class) %>%
     summarize(
       missing = sum(is.na(x)),
-      available = dplyr::n() - missing
+      available = dplyr::n() - missing,
+      label = glue::glue("{available}/{available + missing} ",
+                         "({signif(100*available/(available + missing), 2)}%)"),
+      maxCount = dplyr::n()
     ) %>%
     tidyr::pivot_longer(missing:available, names_to = "type", values_to = "n") %>%
     mutate(type = factor(type, levels = c("missing", "available")))
 
-  ggplot(
+  df[df$type == "available","label"] <- ""
+  
+  p <- ggplot(
     data = df,
     mapping = aes(
       x = class,
       y = n,
-      fill = type
+      fill = type,
+      label = label
     )
   ) +
     geom_bar(
@@ -220,7 +254,15 @@ generateDataCoveragePlot <- function(data, col, ca) {
     commonPlotTheme("right") +
     ggtitle(paste("\n", "Data coverage")) +
     xlab("") +
-    ylab(paste0("Number of ", getOption("xiff.label"), "s"))
+    ylab(paste0("Number of ", getOption("xiff.label"), "s")) 
+    
+  if(addCountLabels) {
+    p <- p + 
+      geom_text(position = "stack", vjust = -0.5, size = 3.5) +
+      expand_limits(y = ceiling(max(df$maxCount)*1.05))
+  }
+    
+  p
 }
 
 #' @export
