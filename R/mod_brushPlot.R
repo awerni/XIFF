@@ -174,7 +174,13 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
       lapply(x, function(xx) if(is.logical(xx)) as.character(xx) else xx)
     })
     
-    ti <- brushedPoints(d$data, pb, allRows = FALSE) %>%
+    ti <- brushedPoints(
+      df = d$data, 
+      brush = pb, 
+      xvar = d$xVar,  # there is some general shiny issue for 2d selection; 
+      yvar = d$yVar,  # by default it tries to get .data$xVar instead of xVar
+      allRows = FALSE # and it breaks when .data$xVar is not found in names(df)...
+    ) %>%
       .[[colname]] %>%
       as.character() %>%
       sort()
