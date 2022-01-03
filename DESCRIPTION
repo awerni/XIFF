@@ -2,8 +2,12 @@ Package: XIFF
 Type: Package
 Title: Common Modules And Functions For xIFF Apps 
 Version: 0.1.29
-Author: Michal Jakubczak, Zygmunt Zawadzki
-Maintainer: Michal Jakubczak <michal.jakubczak@ardigen.com>
+Authors@R: c(
+    person("Andreas", "Wernitznig", email = "awernitz@broadinstitute.org", role = c("aut", "rev"),
+           comment = c(ORCID = "0000-0003-1883-1470")),
+    person("Michal", "Jakubczak", email = "michal.jakubczak@ardigen.com", role = c("aut", "cre", "ctr")),
+    person("Zygmunt", "Zawadzki", email = "zygmunt.zawadzki@ardigen.com", role = c("aut", "ctr"))
+  )
 Description: Common modules and functions for xIFF apps
 License: What license is it under?
 Encoding: UTF-8
