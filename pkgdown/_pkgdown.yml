@@ -1,0 +1,42 @@
+url: https://cellline.info
+
+authors:
+  Andreas Wernitznig:
+    href: http://wernitznig.com
+  Michal Jakubczak:
+  Zygmunt Zawadzki:
+    
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    pkgdown-nav-height: 70px
+    code-font-size: 14px
+    
+code:
+  width: 120
+
+development:
+  mode: auto
+
+reference:
+- title: Database functions 
+  contents:
+  - getPostgresql
+  - setPostgresql
+
+- title: Dimension reduction functions
+  contents:
+  - calcPCA_expression
+  - calcTSNE
+  - calcUMAP
+
+- title: Machine Learning 
+  contents:
+  - buildMachineLearning
+  - starts_with("selectBestFeatures")
+
+- title: Shiny Functions
+  desc: Functions used by the shiny application. Not useful for API usage.
+  contents:
+  - matches(".*UI.*")
