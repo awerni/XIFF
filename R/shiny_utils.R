@@ -255,3 +255,35 @@ registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
   
   resultClassLabel
 }
+
+
+#' Column Tab Panel
+#'
+#' @param title 
+#' @param value 
+#' @param inputMenu 
+#' @param outputArea 
+#'
+#' @export
+columnTabPanel <- function(title, value, inputMenu, outputArea) {
+  
+  if(is.null(inputMenu)) {
+    tabPanel(
+      title = title,
+      value = value,
+      fluidRow(
+        column_12(outputArea)
+      )
+    )
+  } else {
+    tabPanel(
+      title = title,
+      value = value,
+      fluidRow(
+        column_2(inputMenu),
+        column_10(outputArea)
+      )
+    )
+  }
+}
+
