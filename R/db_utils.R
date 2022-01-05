@@ -57,6 +57,29 @@ getPostgresqlConnection <- function() {
   return(con)
 }
 
+#' @export
+getCloudSQLToken <- function() {
+  now <- Sys.time()
+  create_new <- FALSE
+  cloudSQLToken <- getOption("cloudSQLToken")
+
+  if (is.null(cloudSQLToken)) {
+    create_new <- TRUE
+  } else {
+    if (difftime(now, cloudSQLToken$timestamp, units = "mins") > 59) {
+      create_new <- TRUE
+    }
+  }
+  if (create_new) {
+    cloudSQLToken <- list(
+      token = system2("gcloud", args = "auth print-access-token", stdout = TRUE),
+      timestamp = now
+    )
+    options("cloudSQLToken" = cloudSQLToken)
+  }
+  return(cloudSQLToken)
+}
+
 #' Get data from Postgres
 #' 
 #' Function that queries the DB
