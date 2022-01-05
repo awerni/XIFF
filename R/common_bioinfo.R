@@ -719,7 +719,7 @@ shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection, minCo
   if (is.null(anno) || nrow(anno) == 0) return()
 
   cs <- reactiveValuesToList(classSelection)
-  balancedTT <- getBalancedTumorTypes(cs, anno, minCount)
+  balancedTT <- getBalancedTumortypes(cs, anno, minCount)
 
   colname <- getOption("xiff.column")
   colname <- rlang::sym(colname)
@@ -786,21 +786,21 @@ dropUnbalancedTumortypes <- function(cs, anno, minCount = 1) {
 #' 
 #' cs <- classAssignment(cl1 = c("a", "b", "c"), cl2 = c("d", "e", "f", "g"))
 #' 
-#' getBalancedTumorTypes(cs, anno) # "x" and "y" are available in both classes
+#' getBalancedTumortypes(cs, anno) # "x" and "y" are available in both classes
 #' 
 #' # 'g' has unbalanced tumortype
 #' dropUnbalancedTumortypes(cs, anno)
 #' dropUnbalancedTumortypes(cs, anno)$class2
 #' 
 #' # only "x" appears at least 2 times in each class
-#' getBalancedTumorTypes(cs, anno, minCount = 2) 
+#' getBalancedTumortypes(cs, anno, minCount = 2) 
 #' 
 #' cs2 <- dropUnbalancedTumortypes(cs, anno, 2)
 #' cs2$class1
 #' cs2$class2
 #' 
 #' # empty results
-#' getBalancedTumorTypes(cs, anno, 3)
+#' getBalancedTumortypes(cs, anno, 3)
 #' dropUnbalancedTumortypes(cs, anno, 3)
 #' 
 #' # getBalancedVariableValues and dropUnbalancedVariableValues
@@ -813,13 +813,20 @@ dropUnbalancedTumortypes <- function(cs, anno, minCount = 1) {
 #' dropUnbalancedVariableValues(cs, anno, "tumortype", 0)
 #' 
 getValidTumorTypes <- function(cs, anno, minCount = 1) {
-  .Deprecated("getBalancedTumorTypes")
-  getBalancedTumorTypes(cs, anno, minCount)
+  .Deprecated("getBalancedTumortypes")
+  getBalancedTumortypes(cs, anno, minCount)
 }
 
 #' @rdname getBalancedVariableValues
 #' @export
 getBalancedTumorTypes <- function(cs, anno, minCount = 1) {
+  .Deprecated("getBalancedTumortypes")
+  getBalancedTumortypes(cs, anno, minCount)
+}
+
+#' @rdname getBalancedVariableValues
+#' @export
+getBalancedTumortypes <- function(cs, anno, minCount = 1) {
   getBalancedVariableValues(cs, anno, "tumortype", minCount)
 }
 
