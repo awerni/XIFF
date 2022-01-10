@@ -246,15 +246,29 @@ getExpressionDimRed <- function(data,
   resultTable
 }
 
-#' getExpressionDimRedPlot
+
+#' @export
+#' @rdname generateExpressionDimRedPlot
+getExpressionDimRedPlot<- function(dimRedResult,
+                                   colorCol = "class",
+                                   labelCol = NULL,
+                                   fontSize = 10) {
+  
+  .Deprecated("generateExpressionDimRedPlot")
+  generateExpressionDimRedPlot(dimRedResult, colorCol, labelCol, fontSize)
+  
+}
+
+#' generateExpressionDimRedPlot
 #'
 #' @param dimRedResult result of \code{getExpressionDimRed}
 #' @param colorCol column name for coloring.
 #' @param labelCol column name for labels.
 #' @param fontSize font size for labels
-#'
+#' 
+#' @rdname generateExpressionDimRedPlot
 #' @export
-getExpressionDimRedPlot <- function(dimRedResult,
+generateExpressionDimRedPlot <- function(dimRedResult,
                                     colorCol = "class",
                                     labelCol = NULL,
                                     fontSize = 10) {
