@@ -1,4 +1,4 @@
-#' Title
+#' machineLearningTabUI
 #'
 #' @param id 
 #'
@@ -28,13 +28,36 @@ machineLearningTabUI_main <- function(id){
   )
 }
 
-#' Title
-#'
-#' @param id 
-#'
 #' @rdname machineLearningTab
 #' @export
-#'
+machineLearningTabUI <- function(id) {
+  ns <- NS(id)
+  
+  tabsetPanel(
+    id = ns("tabset"),
+    columnTabPanel(
+      title = "create model",
+      value = "create",
+      machineLearningCreateModelTabUI_sidebar(ns("create")),
+      machineLearningCreateModelTabUI_main(ns("create"))
+    ),
+    columnTabPanel(
+      title = "test model",
+      value = "test",
+      machineLearningTestModelTabUI_sidebar(ns("test")),
+      machineLearningTestModelTabUI_main(ns("test"))
+    ),
+    columnTabPanel(
+      title = "apply model",
+      value = "apply",
+      machineLearningApplyModelTabUI_sidebar(ns("apply")),
+      machineLearningApplyModelTabUI_main(ns("apply"))
+    )
+  )
+}
+
+#' @rdname machineLearningTab
+#' @export
 machineLearningTabUI_sidebar <- function(id){
   ns <- NS(id)
   
@@ -59,8 +82,6 @@ machineLearningTabUI_sidebar <- function(id){
   )
 }
 
-#' Title
-#'
 #' @param input 
 #' @param output 
 #' @param session 
