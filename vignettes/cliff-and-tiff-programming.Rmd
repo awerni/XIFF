@@ -6,6 +6,10 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+## Overview
+CLIFF and TIFF are two shiny applications, R libraries and APIs for
+cancer cell line and tissue data analysis, respectively, which are
+tightly connected to XIFF.
 
 *Note: this vignette requires `TIFF` and `CLIFF` to be installed.*
 
@@ -20,6 +24,8 @@ knitr::opts_chunk$set(
   eval = isTiffInstalled && isCliffInstalled
 )
 ```
+
+## Setup
 
 ```{r setup}
 library(XIFF)
@@ -37,7 +43,7 @@ geneAnno <- TIFF::getGeneAnno("human")
 ## read options
 ## they are the options from TIFF
 ## TIFF overwritten XIFF defaults
-getXIFFOptions() 
+getXIFFOptions()
 
 # Call function from CLIFF
 genAnnoCLIFF <- CLIFF::getGeneAnno()
@@ -49,7 +55,12 @@ genAnnoCLIFF <- CLIFF::getGeneAnno()
 getXIFFOptions()
 
 ```
-The behaviour as presented above might pose serious risks to the validity of the scripts that contains both `TIFF` and `CLIFF` code. What's even more, when loading both `CLIFF` and `TIFF` there are multiple function name clashes:
+## Issues
+
+The behaviour as presented above might pose serious risks to the validity
+of the scripts that contains both `TIFF` and `CLIFF` code. This issue is even more
+serious, when loading both `CLIFF` and `TIFF` there are multiple function
+name clashes:
 
 ```r
 Attaching package: ‘TIFF’
@@ -61,11 +72,12 @@ The following objects are masked from ‘package:CLIFF’:
     generateCopynumberWaterfallPlot, generateExpressionHeatmap, generateExpressionPlot,
 ```
 
+## Solutions
 To solve the namespace and options issue two approaches are provided:
 
 ### Based on the `withr` package
 
-The package specific code is evaluated in 
+The package specific code is evaluated in
 special function that takes care about setting the proper options and namespace.
 
 ```{r, message=FALSE, warning=FALSE}
@@ -108,4 +120,3 @@ print(getOption("xiff.column"))
 print(environment(TIFF::getInformation))
 
 ```
-
