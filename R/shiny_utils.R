@@ -170,7 +170,7 @@ getEnsgRowCallback <- function(species, idx = 1){
 setDbOptions <- function(settings = NULL){
 
   if (is.null(settings)) {
-    useGCloudAuth <- Sys.getenv("dbusegcloudauth", unset = FALSE)
+    useGCloudAuth <- as.logical(Sys.getenv("dbusegcloudauth", unset = FALSE))
     if (!is.logical(useGCloudAuth)){
       stop("dbusegcloudauth env variable should be a logical")
     }

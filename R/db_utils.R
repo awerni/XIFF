@@ -39,7 +39,7 @@ getCurrentGCloudUser <- function(){
   runGCloudCommand(c("config", "list", "account", "--format", "'value(core.account)'"))
 }
 
-refreshGCloudAccessToken <- function(){
+createGCloudAccessToken <- function(){
   timestamp <- Sys.time()
   currentUser <- getCurrentGCloudUser()
   token <- runGCloudCommand(c("auth", "print-access-token"))
@@ -68,7 +68,7 @@ getGCloudAccessToken <- function(){
   }
 
   if (shouldRefresh){
-    token <- refreshGCloudAccessToken()
+    token <- createGCloudAccessToken()
     options("xiff.gToken" = token)
   }
 
