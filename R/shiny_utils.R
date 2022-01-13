@@ -287,3 +287,46 @@ columnTabPanel <- function(title, value, inputMenu, outputArea) {
   }
 }
 
+
+#' Tabsets for shiny application
+#'
+#' @param id 
+#' @param docuLink 
+#' @param aboutTabUIFunc 
+#'
+#' @export
+#' @rdname appTabsets
+#' 
+appUI_main_about <- function(id, docuLink, aboutTabUIFunc) {
+  ns <- NS(id)
+  tabPanel(title = "About", aboutTabUIFunc(ns("about"), docuLink))
+}
+
+#' @export
+#' @rdname appTabsets
+appUI_title_right <- function(id, docuLink) {
+  ns <- NS(id)
+  bslib::nav_item(a(
+    id = ns("help_link"),
+    href = docuLink,
+    target = "_blank",
+    "help"
+  ))
+}
+
+#' @export
+#' @rdname appTabsets
+appUI_title <- function(id, dbName, title, packageName, logoPath) {
+  ns <- NS(id)
+  div(
+    img(
+      src = logoPath,
+      title = title,
+      height = "60px"
+    ),
+    span(paste(
+      sprintf("%s Version", packageName), as.character(packageVersion(packageName))),
+      span(dbName)
+    )
+  )
+}

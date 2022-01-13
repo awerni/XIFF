@@ -30,6 +30,16 @@ machineLearningTabUI_main <- function(id){
 
 #' @rdname machineLearningTab
 #' @export
+appUI_main_machine_learning <- function(id) {
+  ns <- NS(id)
+  tabPanel(
+    title = "Machine Learning",
+    machineLearningTabUI(ns("ml"))
+  )
+}
+
+#' @rdname machineLearningTab
+#' @export
 machineLearningTabUI <- function(id) {
   ns <- NS(id)
   
