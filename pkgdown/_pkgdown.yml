@@ -11,7 +11,8 @@ template:
   bootswatch: flatly
   bslib:
     pkgdown-nav-height: 70px
-    code-font-size: 14px
+    font-size-base: 0.875rem # default 1em the relative size of  navbar elements, h1, h2, etc
+    small-font-size: 0.875rem # default .875em, used for code size
     
 code:
   width: 120
