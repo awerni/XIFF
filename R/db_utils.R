@@ -1,4 +1,3 @@
-
 #' @export
 rt
 isDbOnline <- function(timeout = 5){
