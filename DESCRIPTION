@@ -52,7 +52,8 @@ Imports:
       systemfonts,
       glmnet,
       apcluster,
-      caret
+      caret,
+      bslib (>= 0.3.1)
 RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 2.1.0),

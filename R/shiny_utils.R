@@ -304,29 +304,34 @@ appUI_main_about <- function(id, docuLink, aboutTabUIFunc) {
 
 #' @export
 #' @rdname appTabsets
-appUI_title_right <- function(id, docuLink) {
+appUI_title_right <- function(id, docuLink, packageName, dbName) {
   ns <- NS(id)
-  bslib::nav_item(a(
-    id = ns("help_link"),
-    href = docuLink,
-    target = "_blank",
-    "help"
-  ))
+  list(
+    bslib::nav_item(
+      paste(
+        sprintf("%s Version", packageName),
+        as.character(packageVersion(packageName))
+      )
+    ),
+    bslib::nav_item(dbName),
+    bslib::nav_item(
+      a(
+        id = ns("help_link"),
+        href = docuLink,
+        target = "_blank",
+        "help"
+      )
+    )
+  )
 }
 
 #' @export
 #' @rdname appTabsets
-appUI_title <- function(id, dbName, title, packageName, logoPath) {
-  ns <- NS(id)
-  div(
-    img(
-      src = logoPath,
-      title = title,
-      height = "60px"
-    ),
-    span(paste(
-      sprintf("%s Version", packageName), as.character(packageVersion(packageName))),
-      span(dbName)
-    )
+appUI_title <- function(id, title, logoPath) {
+  img(
+    src = logoPath,
+    title = title,
+    height = "40px",
+    margin = "10px"
   )
 }

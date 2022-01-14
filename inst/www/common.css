@@ -1,3 +1,29 @@
+.navbar-brand {
+  padding: 10px;
+}
+
+.navbar {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-bottom: 0px !important;
+  padding-bottom: 0px;
+  height: 60px;
+  background: white !important;
+  border-bottom: 2px solid LightGray;
+}
+
+.navbar.navbar-inverse {
+  background: white !important;
+}
+
+.nav > li > :not(.active) {
+  color: #18bc9c !important;
+}
+
+.bslib-nav-item.nav-item.form-inline {
+  padding-right: 10px;
+}
+
 body:not(.modal-open) {
   overflow-y: scroll;
 }
