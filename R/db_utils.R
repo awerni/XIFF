@@ -17,16 +17,9 @@ getDBConnectionData <- function(){
   if (is.null(myDB)) myDB <- db
   DBhost <- getOption("dbhost")
   DBport <- getOption("dbport")
+
   user <- getOption("dbuser")
-  
-  use_iam <- getOption("useGoogleIAM")
-  if (is.null(use_iam)) use_iam <- FALSE
-  
-  if (use_iam) {
-    password <- getCloudSQLToken(user)$token
-  } else {
-    password <- getOption("dbpass")
-  }
+  password <- getOption("dbpass")
 
   compare <- function(x, y) (x == y | y == "*")
 
@@ -65,7 +58,7 @@ getPostgresqlConnection <- function() {
 }
 
 #' @export
-getCloudSQLToken <- function(email) {
+getCloudSQLToken <- function() {
   now <- Sys.time()
   create_new <- FALSE
   cloudSQLToken <- getOption("cloudSQLToken")
@@ -73,16 +66,13 @@ getCloudSQLToken <- function(email) {
   if (is.null(cloudSQLToken)) {
     create_new <- TRUE
   } else {
-    if (cloudSQLToken$email != email) {
-      create_new <- TRUE
-    } else if (difftime(now, cloudSQLToken$timestamp, units = "mins") > 59) {
+    if (difftime(now, cloudSQLToken$timestamp, units = "mins") > 59) {
       create_new <- TRUE
     }
   }
   if (create_new) {
     cloudSQLToken <- list(
-      email = email,
-      token = system2("gcloud", args = paste("auth print-access-token", email), stdout = TRUE),
+      token = system2("gcloud", args = "auth print-access-token", stdout = TRUE),
       timestamp = now
     )
     options("cloudSQLToken" = cloudSQLToken)
@@ -91,9 +81,9 @@ getCloudSQLToken <- function(email) {
 }
 
 #' Get data from Postgres
-#'
+#' 
 #' Function that queries the DB
-#'
+#' 
 #' @param sql character string, the SQL query
 #' @return data.frame
 #' @export
@@ -109,9 +99,9 @@ getPostgresql <- function(sql) {
 }
 
 #' Run set query in Postgres
-#'
+#' 
 #' Function that queries the DB
-#'
+#' 
 #' @param sql character string, the SQL query
 #' @return TRUE if success
 #' @export
@@ -125,13 +115,13 @@ setPostgresql <- function(sql){
 runDbQuery <- function(sql){
   con <- getPostgresqlConnection()
   if (class(con) == "try-error") stop("no connection to database")
-
+  
   rs <- try(RPostgres::dbSendQuery(con, sql))
   if (class(rs) == "try-error") {
     RPostgres::dbDisconnect(con)
     stop("can not exectute sql command")
   }
-
+  
   list(rs = rs, con = con)
 }
 
@@ -144,7 +134,7 @@ getSQL_filter <- function(filter_col, filter_options) {
   #sql <- paste0(filter_col, " IN (", paste(filter_options, collapse = ","), ")")
   #}
   #return(sql)
-
+  
   if (length(filter_options) > 0){
     paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")
   }
@@ -153,7 +143,7 @@ getSQL_filter <- function(filter_col, filter_options) {
 #' @export
 prepareConditionSql <- function(...){
   dots <- list(...)
-
+  
   items <- napply(
     X = dots,
     FUN = function(x, name){
@@ -177,7 +167,7 @@ prepareConditionSql <- function(...){
       }
     }
   )
-
+  
   items <- dropNulls(items)
   if (length(items) > 0){
     paste(items, collapse = " AND ")
@@ -185,10 +175,10 @@ prepareConditionSql <- function(...){
 }
 
 #' Stash data and use them in apps
-#'
+#' 
 #' For expert usage only. You have to have writing permissions to the DB.
 #' Returned hash may be used in the Restore selection input mode.
-#'
+#' 
 #' @param df data.frame data to store
 #' @return character string, the dataset hash
 #' @export
@@ -203,15 +193,15 @@ prepareConditionSql <- function(...){
 #' }
 stashData <- function(df){
   stopifnot(is.data.frame(df))
-
+  
   myHash <- substr(digest::digest(Sys.time()), 1, 6)
   payload <- jsonlite::toJSON(df)
-
+  
   sql <- paste0(
     "INSERT INTO datastack (datastackid, playload, created) VALUES ('",
     myHash, "','", payload, "', now());"
   )
-
+  
   invisible(setPostgresql(sql))
   myHash
 }
@@ -220,7 +210,7 @@ stashData <- function(df){
 getStashedData <- function(hash){
   sql <- paste0("SELECT playload FROM datastack WHERE datastackid = '", hash, "'")
   res <- getPostgresql(sql)
-
+  
   if (nrow(res) > 0){
     jsonlite::fromJSON(res$playload)
   }
@@ -234,24 +224,24 @@ getStashedData <- function(hash){
 #'
 #' @return vector of gene symbols. If there's no ensg in the database the NA is
 #' returned for that gene.
-#'
+#' 
 #' @export
 #'
 #' @examples
-#'
+#' 
 #' \dontrun{
-#'
+#' 
 #' getGeneSymbol(c("ENSG00000133703", "xx", "ENSG00000268173", "ENSG00000133703"))
-#'
+#' 
 #' }
-#'
+#' 
 getGeneSymbol <- function(ensgs, species = "human"){
   sql <- paste0(
     "SELECT ensg, coalesce(symbol, ensg) as symbol FROM gene ",
     "WHERE ", prepareConditionSql(ensg = ensgs, species = species)
   )
   res <- getPostgresql(sql)
-
+  
   res <- (res %>% tibble::column_to_rownames("ensg"))[ensgs,,drop = FALSE]
   res$symbol
 }
