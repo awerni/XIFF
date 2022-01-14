@@ -1,5 +1,4 @@
 #' @export
-rt
 isDbOnline <- function(timeout = 5){
   info <- getDBConnectionData()
   RPostgres::dbCanConnect(
