@@ -24,17 +24,26 @@ reference:
   contents:
   - getPostgresql
   - setPostgresql
+  - stashData
 
 - title: Dimension reduction functions
   contents:
   - calcPCA_expression
   - calcTSNE
   - calcUMAP
+  - starts_with("getExpressionDimRed")
 
 - title: Machine Learning 
   contents:
-  - buildMachineLearning
+  - contains("Machine")
+  - contains("Model")
+  - contains("model")
+  - contains("ml")
   - starts_with("selectBestFeatures")
+
+- title: Plotting
+  contents:
+  - starts_with("generate")
 
 - title: Shiny Functions
   desc: Functions used by the shiny application. Not useful for API usage.
