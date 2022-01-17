@@ -309,7 +309,7 @@ appUI_title_right <- function(id, docuLink, packageName, dbName) {
   list(
     bslib::nav_item(
       paste(
-        sprintf("%s Version", packageName),
+        "Version",
         as.character(packageVersion(packageName))
       )
     ),

@@ -174,3 +174,24 @@ body:not(.modal-open) {
 .red-help-block {
   color: red;
 }
+
+.shiny-input-radiogroup > .control-label {
+  margin-bottom: 1rem;
+}
+
+.radio {
+  margin-top: 0px;
+}
+
+.input-method-selector > .shiny-input-container {
+  margin-top:10px;
+}
+
+.input-method-selector .selectize-input {
+  border: 2px solid #18bc9c;
+}
+
+.input-method-selector .control-label {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
