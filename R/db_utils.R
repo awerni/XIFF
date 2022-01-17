@@ -13,6 +13,14 @@ isDbOnline <- function(timeout = 5){
 }
 
 # GCloud auth -----------------------------------------------------------------
+#' Run GCloud command
+#'
+#' Runs gcloud command with additional args using system2()
+#'
+#' @param args character vector of the command arguments, see system2 docs for
+#' details
+#'
+#' @return the command output
 runGCloudCommand <- function(args){
   res <- tryCatch(
     expr = suppressWarnings(system2(
@@ -22,7 +30,10 @@ runGCloudCommand <- function(args){
       stderr = TRUE
     )),
     error = function(e){
-      stop("Error occured when trying to run gcloud. Did you install and configure gcloud CLI?")
+      stop(
+        "Error occured when trying to run gcloud. ",
+        "Did you install and configure gcloud CLI?"
+      )
     }
   )
 
@@ -35,10 +46,20 @@ runGCloudCommand <- function(args){
   res
 }
 
+#' Get current GCloud user
+#'
+#' Returns a currently logged-in GCloud user
+#'
+#' @return the current user email
 getCurrentGCloudUser <- function(){
   runGCloudCommand(c("config", "list", "account", "--format", "'value(core.account)'"))
 }
 
+#' Create GCloud access token
+#'
+#' Retrieves a GCloud access token for the currently logged-in user
+#'
+#' @return list with fields: user, token, timestamp
 createGCloudAccessToken <- function(){
   timestamp <- Sys.time()
   currentUser <- getCurrentGCloudUser()
@@ -51,6 +72,13 @@ createGCloudAccessToken <- function(){
   )
 }
 
+#' Get GCloud access token
+#'
+#' Returns an active GCloud access token. If the token does not exist or is
+#' outdated (was created more than 59min ago), a new one is created and stored
+#' in xiff.gToken option.
+#'
+#' @return list with fields: user, token, timestamp
 getGCloudAccessToken <- function(){
   token <- getOption("xiff.gToken")
   currentTime <- Sys.time()
@@ -60,7 +88,11 @@ getGCloudAccessToken <- function(){
   if (is.null(token)){
     shouldRefresh <- TRUE
   } else {
-    timestampDiff <- as.numeric(difftime(currentTime, token$timestamp, units = "s"))
+    timestampDiff <- as.numeric(difftime(
+      time1 = currentTime,
+      time2 = token$timestamp,
+      units = "s"
+    ))
 
     if (timestampDiff > 59){
       shouldRefresh <- TRUE

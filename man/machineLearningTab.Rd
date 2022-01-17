@@ -2,11 +2,14 @@
 % Please edit documentation in R/mod_tab_machineLearning.R
 \name{machineLearningTabUI_main}
 \alias{machineLearningTabUI_main}
+\alias{machineLearningTabUI}
 \alias{machineLearningTabUI_sidebar}
 \alias{machineLearningTab}
-\title{Title}
+\title{machineLearningTabUI}
 \usage{
 machineLearningTabUI_main(id)
+
+machineLearningTabUI(id)
 
 machineLearningTabUI_sidebar(id)
 
@@ -47,9 +50,5 @@ machineLearningTab(
 \item{Species}{}
 }
 \description{
-Title
-
-Title
-
-Title
+machineLearningTabUI
 }
