@@ -79,7 +79,22 @@ registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, i
   )
 }
 
+#' Add help text to selectInput shiny object
+#' 
+#' @param param selectInput shiny object
+#' @param helpText 
+#'
 #' @export
+#' 
+#' @examples 
+#' 
+#' select <- shiny::selectInput("x", "Input", 1:2)
+#' select2 <- inputWithHelp(select, "Help!")
+#' 
+#' if(interactive()) {
+#'   shinyApp(fluidPage(select2), function(input, output, session) {})
+#' }
+#' 
 inputWithHelp <- function(param, helpText = "help me Obi-Wan Kenobi"){
   helpIcon <- icon("question-circle")
   helpIcon$attribs[["data-toggle"]] <- "tooltip"
@@ -92,46 +107,73 @@ inputWithHelp <- function(param, helpText = "help me Obi-Wan Kenobi"){
   param
 }
 
+
+#' Convenience Shiny Column Functions
+#' 
+#' @param ... shiny ui elements
+#'
+#' @rdname column_x
 #' @export
+#' 
 column_1 <- function(...) column(width = 1, ...)
 
+#' @rdname column_x
 #' @export
 column_2 <- function(...) column(width = 2, ...)
 
+#' @rdname column_x
 #' @export
 column_3 <- function(...) column(width = 3, ...)
 
+#' @rdname column_x
 #' @export
 column_4 <- function(...) column(width = 4, ...)
 
+#' @rdname column_x
 #' @export
 column_5 <- function(...) column(width = 5, ...)
 
+#' @rdname column_x
 #' @export
 column_6 <- function(...) column(width = 6, ...)
 
+#' @rdname column_x
 #' @export
 column_7 <- function(...) column(width = 7, ...)
 
+#' @rdname column_x
 #' @export
 column_8 <- function(...) column(width = 8, ...)
 
+#' @rdname column_x
 #' @export
 column_9 <- function(...) column(width = 9, ...)
 
+#' @rdname column_x
 #' @export
 column_10 <- function(...) column(width = 10, ...)
 
+#' @rdname column_x
 #' @export
 column_11 <- function(...) column(width = 11, ...)
 
+#' @rdname column_x
 #' @export
 column_12 <- function(...) column(width = 12, ...)
 
+#' @rdname column_x
 #' @export
 fluidRow_12 <- function(...) fluidRow(column_12(...))
 
+
+#' DT Container with smaller font
+#'
+#' @param id shiny id
+#'
+#' @return
 #' @export
+#'
+#' @examples
 containerDT <- function(id){
   div(
     style = "font-size:80%",
@@ -205,7 +247,13 @@ setDbOptions <- function(settings = NULL){
   options("dbpass" = settings[["db"]][["password"]])
 }
 
+#' Check Database Connection
+#'
+#' @param timeout timout for database connection
+#'
+#' @return logical, TRUE if database connection works, or FALSE otherwise 
 #' @export
+#'
 initialDbCheck <- function(timeout = 5){
   dbStatus <- isDbOnline(timeout)
   if (!dbStatus){
@@ -233,7 +281,19 @@ validateArgs <- function(args){
   }
 }
 
+#' Freeze Class Labels
+#'
+#' @param output shiny output object
+#' @param classLabel reactive containing class labels
+#' @param Results reactive containing the result of FutureManager
+#' @param fm FutureManager object
+#' @param id shiny id
+#'
+#' @details Used for keeping the old class labels values if Results object
+#' is invalidated.
+#'
 #' @export
+#'
 registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
   resultClassLabel <- reactiveValues(class1_name = NULL, class2_name = NULL)
   
