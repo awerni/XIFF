@@ -72,6 +72,7 @@ getPanelPositions <- function(p, fVar, res = 72){
   )
 }
 
+#' @importFrom rlang `!!!`
 #' @export
 brushPlot <- function(input, output, session, plotExpr, checkExpr,
                       textCallback = defaultTextCallback,
@@ -139,24 +140,47 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
     if (is.null(pd) || pd$xVar == "NULL" || pd$yVar == "NULL"){
       return()
     }
-
-    shinyWidgets::dropdownButton(
-      inputId = ns("brush_options"),
-      content = getOptionsContent(
-        ns = ns,
-        facetInfo = pd$facetInfo,
-        defaultCutoff_x = defaultCutoff_x,
-        defaultCutoff_y = defaultCutoff_y,
-        availableChoices = availableChoices
-      ),
-      circle = FALSE,
-      status = "default",
-      icon = icon("gear"),
-      label = NULL,
-      width = "222px",
-      inline = TRUE,
-      size = "sm"
-    )
+    
+    bsVersion <- ifelse(isTRUE(getOption("shiny.testmode")), 4, 5)
+    
+    if(bsVersion == 4) {
+      shinyWidgets::dropdownButton(
+        inputId = ns("brush_options"),
+        content = getOptionsContent(
+          ns = ns,
+          facetInfo = pd$facetInfo,
+          defaultCutoff_x = defaultCutoff_x,
+          defaultCutoff_y = defaultCutoff_y,
+          availableChoices = availableChoices
+        ),
+        circle = FALSE,
+        status = "default",
+        icon = icon("gear"),
+        label = NULL,
+        width = "222px",
+        inline = TRUE,
+        size = "sm"
+      )
+    } else {
+      shinyWidgets::dropdown(
+        inputId = ns("brush_options"),
+        !!!getOptionsContent(
+          ns = ns,
+          facetInfo = pd$facetInfo,
+          defaultCutoff_x = defaultCutoff_x,
+          defaultCutoff_y = defaultCutoff_y,
+          availableChoices = availableChoices
+        ),
+        circle = FALSE,
+        status = "default",
+        icon = icon("gear"),
+        label = NULL,
+        width = "222px",
+        inline = TRUE,
+        size = "sm"
+      )
+    }
+    
   })
 
   Selected_items <- reactive({

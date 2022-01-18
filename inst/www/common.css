@@ -65,6 +65,16 @@ body:not(.modal-open) {
   top: 0;
   margin: 0 0 0 2px;
 }
+
+.sw-dropdown-content {
+  padding-bottom: 5px;
+}
+
+.sw-dropdown {
+  float: right;
+  margin-right: 15px;
+}
+
 .brush-info .btn-dropdown-input {
   float: right;
   margin-right: 15px;
