@@ -387,49 +387,117 @@ addTumortypes <- function(data, anno){
   data %>% left_join(tt, by = strColname)
 }
 
+
+#' Convert the input of Text Area into Vector
+#'
+#' @param content content of textArea
+#'
+#' @return character vector, or NULL if content is empty
 #' @export
+#'
+#' @examples
+#' 
+#' textAreaContentToVector("")
+#' textAreaContentToVector("A\nB\nC")
+#' 
 textAreaContentToVector <- function(content){
   ret <- if (stringr::str_length(content) > 0) as.vector(sapply(strsplit(content,'\n'), stringr::str_trim)) else c()
   if (any(ret == "")) ret <- ret[ret != ""]
   return(ret)
 }
 
+
+#' Check if both classes in classAssigment object are not empty
+#'
+#' @param cs classAssigment object
+#'
+#' @return TRUE if class1 and class2 are not empty, FALSE otherwise
 #' @export
+#'
+#' TODO: check the intent
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' checkClassSelection(ca)
+#' ca$class2 <- c()
+#' checkClassSelection(ca)
+#' 
 checkClassSelection <- function(cs) {
   (length(cs$class1) > 0 && length(cs$class1)) > 0
 }
 
+
+#' Number of common entries in two vectors
+#'
+#' @param x first vector
+#' @param y second vector
+#'
+#' @return interger denoting the number of common items in both vectors
 #' @export
+#'
+#' @examples
+#' 
+#' n_common(1:4,2:5)
+#' n_common(1:4,5:10)
+#' 
 n_common <- function(x, y){
   length(intersect(x, y))
 }
 
+
+#' Get Hallmark Gene Set Choices
+#'
+#' @param geneSets vector with HALLMARK genes setes names
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#' 
+#'    dt <- CLIFF::differentialHallmarkSets(CLIFF::exampleClassAssigment()) %>%
+#'      head %>% select(gene_set)
+#'    names(getHallmarkGeneSetChoices(dt$gene_set))
+#' 
+#' }
+#' 
 getHallmarkGeneSetChoices <- function(geneSets){
   if (length(geneSets) > 0){
     structure(geneSets, names = gsub("^HALLMARK_", "", geneSets))
   }
 }
 
+
+#' Get HTML tags with links
+#'
+#' @param location 
+#' @param species 
+#'
+#' @return
 #' @export
+#' @rdname get-links-a-tags
+#'
 getEnsemblLocationLink <- function(location, species = "human"){
   species <- getEnsemblSpecies(species)
   glue::glue('<a href="https://www.ensembl.org/{species}/Location/View?db=core;r={location}" target="_blank">{location}</a>')
 }
 
 #' @export
+#' @rdname get-links-a-tags
 getEnsemblGeneLink <- function(gene, species = "human"){
   species <- getEnsemblSpecies(species)
   glue::glue('<a href="https://www.ensembl.org/{species}/Gene/Summary?db=core;g={gene}" target="_blank">{gene}</a>')
 }
 
 #' @export
+#' @rdname get-links-a-tags
 getEnsemblTranscriptLink <- function(transcript, species){
   species <- getEnsemblSpecies(species)
   glue::glue('<a href="https://www.ensembl.org/{species}/Transcript/Summary?db=core;t={transcript}" target="_blank">{transcript}</a>')
 }
 
-#' @export
 getEnsemblSpecies <- function(species){
   species <- switch(
     EXPR = species,
@@ -441,17 +509,44 @@ getEnsemblSpecies <- function(species){
 }
 
 #' @export
+#' @rdname get-links-a-tags
 getGeneSetLink <- function(geneset, msigDBLink, rawGeneset = NULL){
   if(is.null(rawGeneset)) rawGeneset <- geneset
   paste0('<a href="', msigDBLink, rawGeneset, '" target="_blank">', geneset, '</a>')
 }
 
+
+#' Check if Package is Available
+#'
+#' @param name package name
+#'
+#' @return logical, \code{TRUE} if package is available
 #' @export
+#'
+#' @examples
+#' 
+#' packageInstalled("XIFF")
+#' packageInstalled("XIFFFF")
+#' 
 packageInstalled <- function(name){
   is.character(name) && name %in% rownames(installed.packages())
 }
 
+
+#' mapply with vector names as argument
+#'
+#' @param X named vector 
+#' @param FUN function with at least two parameters
+#' @param ... other arguments passed to mapply
+#'
+#' @return vector resulted from mapply
 #' @export
+#'
+#' @examples
+#' 
+#' x <- setNames(1:3, c("A", "B", "C"))
+#' napply(x, function(x, name) paste(name, x^2, sep = ": "))
+#' 
 napply <- function(X, FUN, ...){
   if (length(X) == 0) return(list())
   
@@ -467,6 +562,15 @@ napply <- function(X, FUN, ...){
   )
 }
 
+#' Example Class Assignment to be used in Examples
+#'
+#' @return classAssignment object
+#' @export
+#'
+#' @examples
+#' 
+#' exampleClassAssigment()
+#' 
 exampleClassAssigment <- function() {
   structure(
     list(
@@ -478,6 +582,15 @@ exampleClassAssigment <- function() {
   )
 }
 
+#' Example Data Frame to be used in Examples
+#'
+#' @return data.frame object
+#' @export
+#'
+#' @examples
+#' 
+#' exampleDataFrame()
+#' 
 exampleDataFrame <- function() {
   structure(
     list(

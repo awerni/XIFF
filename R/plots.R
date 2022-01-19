@@ -1,7 +1,24 @@
 #' @export
 plotColors <- c("#d73027", "#4575b4", "#fc8d59", "#91bfdb", "#A8840D", "#24BF43", "#000000")
 
+
+#' XIFF ggplot2 theme
+#'
+#' @param legend.position where the legend need to be located
+#' @param textSize base text size
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' df <- data.frame(
+#'   gp = factor(rep(letters[1:3], each = 10)),
+#'   y = rnorm(30)
+#' )
+#' ggplot(df, aes(gp, y)) + geom_point() + commonPlotTheme()
+#' 
+#' 
 commonPlotTheme <- function(legend.position = "right", textSize = 16){
   theme(
     text = element_text(
@@ -16,14 +33,14 @@ commonPlotTheme <- function(legend.position = "right", textSize = 16){
 
 #' Basic Plots
 #'
-#' @param data 
-#' @param plotType 
-#' @param dataCol 
-#' @param title 
-#' @param ca 
-#' @param rocPlotFun 
-#' @param diffPlotFun 
-#' @param ... 
+#' @param data data.frame
+#' @param plotType type of the plot (all, point, roc, violin, box, coverage)
+#' @param dataCol which column 
+#' @param title ggplot2 title
+#' @param ca classAssigment object
+#' @param rocPlotFun function used to create ROC plots
+#' @param diffPlotFun function used to make diffPlotFun
+#' @param ... other arguments passed to the plotting function
 #'
 #' @return
 #' @export
@@ -307,7 +324,7 @@ generateDataCoveragePlot <- function(data, col, ca, addCountLabels = TRUE) {
   p
 }
 
-#' @export
+
 generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, fontSize = 10, p = FALSE) {
   ret <- list(status = "ok")
 

@@ -183,7 +183,23 @@ stashData <- function(df){
   myHash
 }
 
+
+#' Get Stashed Data from database
+#'
+#' @param hash 6-character long hash of stashed data
+#'
+#' @return data.frame with stashed data or NULL if there's no data for given 
+#' hash
+#' 
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'   CLIFF::setDbOptions()
+#'   head(getStashedData("000000"))
+#' }
+#' 
 getStashedData <- function(hash){
   sql <- paste0("SELECT playload FROM datastack WHERE datastackid = '", hash, "'")
   res <- getPostgresql(sql)
