@@ -251,7 +251,22 @@ dropNulls <- function(x){
   x[!vapply(x, is.null, FUN.VALUE = logical(1))]
 }
 
+
+#' Stack Class Assignment object
+#'
+#' @param sampleClasses classAssignment object
+#' @param classLabel 
+#' @param return_factor 
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' stackClasses(ca) %>% str
+#' stackClasses(ca, return_factor = TRUE) %>% str
+#' 
 stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE) {
   colname <- getOption("xiff.column")
 
@@ -449,5 +464,36 @@ napply <- function(X, FUN, ...){
     FUN = FUN,
     X, n,
     ...
+  )
+}
+
+exampleClassAssigment <- function() {
+  structure(
+    list(
+      class1 = c("fb1b6", "2abec", "0ed25", "972d2", "45f5d"),
+      class2 = c("102a0", "65d7c", "0a389", "f7f21", "8ad8a", "e1942")
+    ),
+    labels = list(class1 = "class1", class2 = "class2"),
+    class = c("classAssignment", "list")
+  )
+}
+
+exampleDataFrame <- function() {
+  structure(
+    list(
+      celllinename = c(
+        "fb1b6", "2abec", "0ed25", "972d2",
+        "45f5d", "102a0", "65d7c", "0a389",
+        "f7f21", "8ad8a", "e1942"
+      ),
+      tpm = c(
+        11.62, 27.44, 9.92, 11.02,
+        39.69, 13.08, 12.06, 13.72,
+        9.31, 18.75, 9.97
+      )
+    ),
+    row.names = c(NA, 11L),
+    class = c("ClassAssigmentInAttribute",
+              "data.frame")
   )
 }

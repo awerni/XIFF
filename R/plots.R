@@ -13,7 +13,29 @@ commonPlotTheme <- function(legend.position = "right", textSize = 16){
   )
 }
 
+
+#' Basic Plots
+#'
+#' @param data 
+#' @param plotType 
+#' @param dataCol 
+#' @param title 
+#' @param ca 
+#' @param rocPlotFun 
+#' @param diffPlotFun 
+#' @param ... 
+#'
+#' @return
 #' @export
+#'
+#' @rdname xiff-basic-plot-types
+#' @examples
+#' 
+#' df <- exampleDataFrame()
+#' ca <- exampleClassAssigment()
+#' generatePlotByType(df, "point", "tpm", "Plot", ca = ca)
+#' generatePlotByType(df, "roc", "tpm", "Plot", ca = ca)
+#' 
 generatePlotByType <- function(data, plotType, dataCol, title = NULL, ca = NULL, 
                                rocPlotFun = generateROCPlot, 
                                diffPlotFun = generateDiffPlot, ...) {
@@ -81,6 +103,7 @@ generatePlotByType <- function(data, plotType, dataCol, title = NULL, ca = NULL,
   )
 }
 
+#' @rdname xiff-basic-plot-types
 #' @export
 generateROCPlot <- function(data, ca, dataCol, title = "ROC plot") {
   if (is.null(data) || is.null(ca) || is.null(dataCol)) return()
@@ -106,6 +129,7 @@ generateROCPlot <- function(data, ca, dataCol, title = "ROC plot") {
   p + annotate("text", x = .75, y = .25, label = paste("AUC =", signif(auc, 3)))
 }
 
+#' @rdname xiff-basic-plot-types
 #' @export
 generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
                              xlabel = "", ylabel = "", trans = "identity", ...) {
@@ -139,7 +163,25 @@ generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
     ylab(ylabel)
 }
 
+
+#' Generate Waterfall Plot
+#'
+#' @param data 
+#' @param dataCol 
+#' @param xlabel 
+#' @param ylabel 
+#' @param trans 
+#' @param limits 
+#' @param fill 
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' df <- exampleDataFrame() %>% reorderByScore(valueCol = "tpm")
+#' generateWaterfallPlot(df, "tpm", fill = "tpm")
+#' 
 generateWaterfallPlot <-
   function(data,
            dataCol,

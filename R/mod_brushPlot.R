@@ -1,4 +1,30 @@
+#' Brush Plot Module
+#'
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param plotExpr 
+#' @param checkExpr 
+#' @param textCallback 
+#' @param defaultCutoff_x 
+#' @param step_x 
+#' @param dx 
+#' @param sorted_x 
+#' @param defaultCutoff_y 
+#' @param step_y 
+#' @param dy 
+#' @param sorted_y 
+#' @param availableChoices 
+#' @param test 
+#' @param ... 
+#'
+#' @return
+#' 
 #' @export
+#' @rdname brushPlot-module
+#'
+#' @importFrom rlang `!!!`
+#'
 brushPlotUI <- function(id, ..., direction = "x", height = "600px"){
   ns <- NS(id)
 
@@ -72,8 +98,9 @@ getPanelPositions <- function(p, fVar, res = 72){
   )
 }
 
-#' @importFrom rlang `!!!`
+
 #' @export
+#' @rdname brushPlot-module
 brushPlot <- function(input, output, session, plotExpr, checkExpr,
                       textCallback = defaultTextCallback,
                       defaultCutoff_x = NULL, step_x = 0.1, dx = 0.5, sorted_x = "no",

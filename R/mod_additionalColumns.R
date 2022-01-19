@@ -1,4 +1,16 @@
+#' Additional Columns module
+#'
+#' @param id 
+#' @param Table 
+#' @param defaultCols 
+#' @param maxAdditionalCols 
+#' @param ... 
+#'
 #' @export
+#' @rdname additionalColumns
+#'
+#' @examples
+#' 
 additionalColumnsUI_main <- function(id, style = "font-size:80%"){
   ns <- NS(id)
   div(
@@ -8,6 +20,7 @@ additionalColumnsUI_main <- function(id, style = "font-size:80%"){
 }
 
 #' @export
+#' @rdname additionalColumns
 additionalColumnsUI_sidebar <- function(id){
   ns <- NS(id)
 
@@ -18,6 +31,7 @@ additionalColumnsUI_sidebar <- function(id){
 }
 
 #' @export
+#' @rdname additionalColumns
 additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols = 5, ...){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
