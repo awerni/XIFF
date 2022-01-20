@@ -5,5 +5,5 @@
 *.Rproj
 inst/doc
 .Renviron
-/doc/
+/docs/
 /Meta/
