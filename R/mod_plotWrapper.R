@@ -1,4 +1,19 @@
+#' Plot Wrapper
+#'
+#' @param input shiny input object
+#' @param output shiny output object 
+#' @param session shiny session object
+#' @param PlotExpr expression to create the plot
+#' @param PlotType 
+#' @param filename 
+#' @param varDict 
+#' @param allowedTooltipTypes 
+#' @param tooltipCallback 
+#' @param ... 
+#'
+#' @rdname plotWrapper
 #' @export
+#'
 plotWrapperUI <- function(id, width = "100%", height = "400px", center = FALSE){
   ns <- NS(id)
   width <- htmltools::validateCssUnit(width)
@@ -20,6 +35,8 @@ plotWrapperUI <- function(id, width = "100%", height = "400px", center = FALSE){
   )
 }
 
+
+#' @rdname plotWrapper
 #' @export
 plotWrapper <- function(input, output, session, PlotExpr, PlotType = FALSE,
                         filename = "image", varDict = list(class = "Class"),

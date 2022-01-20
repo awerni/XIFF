@@ -21,7 +21,24 @@ dimRedAvailableMethods <- function() {
 }
 
 
+#' Dimension Reduction Module
+#'
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param InputData 
+#' @param AnalysisParams 
+#' @param ClusterMethod 
+#' @param PlotParams 
+#' @param classLabel 
+#' @param funTSNE 
+#' @param funPCA 
+#' @param funUMAP 
+#' @param funPHATE 
+#'
+#' @rdname dimensionReduction
 #' @export
+#'
 dimensionReductionUI <- function(id, width = "100%", height = "800px"){
   ns <- NS(id)
   plotWrapperUI(
@@ -31,6 +48,8 @@ dimensionReductionUI <- function(id, width = "100%", height = "800px"){
   )
 }
 
+
+#' @rdname dimensionReduction
 #' @export
 dimensionReduction <- function(input,
                                output,

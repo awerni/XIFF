@@ -246,20 +246,54 @@ getAssignmentDf <- function(ca, useLabels = TRUE, returnFactor = TRUE){
 
 # Others ----------------------------------------------------------------------
 #' Null default
+#' 
+#' @param x any R object
+#' @param y defalut value used if x is NULL
+#' 
 #' @name op-null-default
 #' @export
+#' @examples 
+#' 
+#' 1 %||% 2
+#' NULL %||% 2
+#' 
 `%||%` <- function(x, y){
   if (rlang::is_null(x) || length(x) == 0)
     y
   else x
 }
 
+
+#' Test if value is empty string, NA or NULL
+#'
+#' @param x any R object
+#'
+#' @return logical value
 #' @export
+#'
+#' @examples
+#' 
+#' invalid("")
+#' invalid(NULL)
+#' invalid(NA)
+#' 
 invalid <- function(x){
   is.null(x) || is.na(x) || !nzchar(x)
 }
 
+
+#' Drop NULL values from list
+#'
+#' @param x list 
+#'
+#' @return list x without NULL values
 #' @export
+#'
+#' @examples
+#' 
+#' ls <- list(1, NULL, 2)
+#' dropNulls(ls)
+#' 
 dropNulls <- function(x){
   x[!vapply(x, is.null, FUN.VALUE = logical(1))]
 }
@@ -425,10 +459,10 @@ textAreaContentToVector <- function(content){
 #' @param cs classAssigment object
 #'
 #' @return TRUE if class1 and class2 are not empty, FALSE otherwise
-#' @export
 #'
 #' TODO: check the intent
 #'
+#' @export
 #' @examples
 #' 
 #' ca <- exampleClassAssigment()

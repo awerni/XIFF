@@ -297,8 +297,6 @@ print.MLModelTestsResult <- function(x, ...) {
 #' @details TODO: is this function even needed?
 #' 
 #' @export
-#' 
-#' 
 gatherPredictionResults <- function(predictions, ...){
   predictions %>%
     purrr::map_dfr(

@@ -1,4 +1,31 @@
+#' Generate Volcano Plot
+#'
+#' @param diffExpr differential result expression table
+#' @param minuslog10pval 
+#' @param minuslog10adjpval 
+#' @param log2FC 
+#' @param FCside "both sides", "left", "right"
+#' @param classLabels 
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'    gene_anno <- CLIFF::getGeneAnno("human")
+#'    cs <- CLIFF::exampleClassAssigment()
+#'    limmaData <- CLIFF::differentialGeneExpression_LimmaVoom(cs, gene_anno)
+#'    generateVolcanoPlot(
+#'      limmaData,
+#'      minuslog10pval = 2,
+#'      minuslog10adjpval = 0,
+#'      log2FC = 2.5,
+#'      FCside = "both sides"
+#'    )
+#' }
+#' 
+#' 
 generateVolcanoPlot <- function(diffExpr, minuslog10pval, minuslog10adjpval, log2FC, 
                                 FCside = "both sides", classLabels = c("class1", "class2")) {
   diffExpr <- diffExpr %>% mutate(
@@ -52,7 +79,32 @@ generateVolcanoPlot <- function(diffExpr, minuslog10pval, minuslog10adjpval, log
   g
 }
 
+
+#' Title
+#'
+#' @param diffExResult 
+#' @param ensg_geneset 
+#' @param rankType "p.valueDir", "logFC"
+#' @param classLabels 
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'    gene_anno <- CLIFF::getGeneAnno("human")
+#'    cs <- CLIFF::exampleClassAssigment()
+#'    limmaData <- CLIFF::differentialGeneExpression_LimmaVoom(cs, gene_anno)
+#'    geneset <- CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY")
+#'    
+#'    generateGSEA_plot(
+#'      limmaData,
+#'      ensg_geneset = geneset,
+#'      rankType = "p.valueDir"
+#'    )
+#' }
+#' 
 generateGSEA_plot <- function(diffExResult, ensg_geneset, rankType, classLabels = NULL) {
   
   if(is.null(classLabels) && inherits(diffExResult, "ClassAssigmentInAttribute")) {

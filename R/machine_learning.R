@@ -239,7 +239,28 @@ xiffSupportedModels <- function() {
 }
 
 
+
+#' Get Data for Machine Learning Model
+#'
+#' @param assignment stackClass assignment of items or classAssignment object 
+#' @param features character vector of genes ensg or fitted XIFF Machine Learning model
+#' @param schema data base schema, default value should be used
+#' @param column column containing the items, default value shoud be used
+#' @param classLabel list with alternative class labels
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- CLIFF::exampleClassAssigment()
+#' geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
+#' 
+#' modelData <- getDataForModel(ca, geneSet)
+#' head(modelData)
+#' 
+#' getDataForModel(ca, geneSet, classLabel = list(class1 = "c1", class2 = "c2"))
+#' 
 getDataForModel <- function(assignment,
                             features,
                             schema = getOption("xiff.schema"),

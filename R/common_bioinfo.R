@@ -1,4 +1,16 @@
+
+#' Internal Function to be used differentialXXX family of functions
+#'
+#' @param sampleClasses classAssignment object
+#' @param dbDataFun function to fetch the data from database
+#' @param idCol name of the column with id
+#' @param scoreCol name of the column with score
+#' @param progressLabel optional label for progress bar 
+#' @param itemLabel optional label for progress bar
+#' @param p
+#'
 #' @export
+#'
 differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol, 
                                     progressLabel, itemLabel, p = FALSE){
   progress <- ProcessProgress$new(progressLabel, p)
