@@ -154,7 +154,20 @@ print.classAssignment <- function(x){
   cat(paste0("Class2 (", dict$class2, "): ", n2, " items\n"))
 }
 
+
+#' Convert classId to class labels
+#'
+#' @param x vector with class labels (class1/class2)
+#' @param ca classAssignment object
+#'
+#' @return vector containing the labels from classAssignment
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- classAssignment(sensitive = c("a", "b", "c"), resistant = NULL)
+#' classIdToLabel(c("class1", "class2", "class2", "class1", "class1"), ca)
+#' 
 classIdToLabel <- function(x, ca){
   returnFactor <- is.factor(x)
   stopifnot(
