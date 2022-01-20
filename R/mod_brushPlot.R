@@ -8,8 +8,10 @@ brushPlotUI <- function(id, ..., direction = "x", height = "600px"){
       column_12(
         fluidRow(
           class = "brush-info",
-          textOutput(ns("selectionStat"), inline = TRUE),
-          uiOutput(ns("dropdown"), inline = TRUE, class = "dropdown-container")
+          div(
+            textOutput(ns("selectionStat"), inline = TRUE),
+            uiOutput(ns("dropdown"), inline = TRUE, class = "dropdown-container")
+          )
         ),
         plotOutput(
           outputId = ns("plot"),
@@ -140,9 +142,9 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
     if (is.null(pd) || pd$xVar == "NULL" || pd$yVar == "NULL"){
       return()
     }
-    
+
     bsVersion <- ifelse(isTRUE(getOption("shiny.testmode")), 4, 5)
-    
+
     if(bsVersion == 4) {
       shinyWidgets::dropdownButton(
         inputId = ns("brush_options"),
@@ -180,7 +182,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
         size = "sm"
       )
     }
-    
+
   })
 
   Selected_items <- reactive({
@@ -189,7 +191,7 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
     if (is.null(d) || is.null(pb)) return()
 
     pb <- reverseTrans(pb, d)
-    
+
     # Fix the regression in shiny, link to the line which causes the problem:
     # shiny:::fortifyDiscreteLimits
     # https://github.com/rstudio/shiny/blame/ffef0c2eb16c2603a1954863948f1b9eef5e925b/R/image-interact.R#L270
@@ -197,11 +199,11 @@ brushPlot <- function(input, output, session, plotExpr, checkExpr,
     pb$domain$discrete_limits <- lapply(pb$domain$discrete_limits, function(x) {
       lapply(x, function(xx) if(is.logical(xx)) as.character(xx) else xx)
     })
-    
+
     ti <- brushedPoints(
-      df = d$data, 
-      brush = pb, 
-      xvar = d$xVar,  # there is some general shiny issue for 2d selection; 
+      df = d$data,
+      brush = pb,
+      xvar = d$xVar,  # there is some general shiny issue for 2d selection;
       yvar = d$yVar,  # by default it tries to get .data$xVar instead of xVar
       allRows = FALSE # and it breaks when .data$xVar is not found in names(df)...
     ) %>%

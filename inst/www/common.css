@@ -66,20 +66,14 @@ body:not(.modal-open) {
   margin: 0 0 0 2px;
 }
 
-.sw-dropdown-content {
-  padding-bottom: 5px;
+.brush-info .sw-dropdown-content {
+  padding-bottom: 20px;
 }
-
-.sw-dropdown {
+.brush-info .sw-dropdown {
   float: right;
-  margin-right: 15px;
+  margin-right: 5px;
 }
-
-.brush-info .btn-dropdown-input {
-  float: right;
-  margin-right: 15px;
-}
-.brush-info .btn-dropdown-input .caret {
+.brush-info .sw-dropdown .glyphicon {
   display: none;
 }
 
