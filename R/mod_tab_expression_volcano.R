@@ -1,9 +1,11 @@
+#' @rdname expressionVolcanoTab
 #' @export
 expressionVolcanoTabUI_main <- function(id){
   ns <- NS(id)
   fluidRow_12(plotWrapperUI(ns("volcanoplot"), height = "800px"))
 }
 
+#' @rdname expressionVolcanoTab
 #' @export
 expressionVolcanoTabUI_sidebar <- function(id){
   ns <- NS(id)
@@ -43,7 +45,18 @@ expressionVolcanoTabUI_sidebar <- function(id){
   )
 }
 
+
+#' Expression Volcano Tab
+#'
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param classLabel 
+#' @param TableData 
+#'
+#' @rdname expressionVolcanoTab
 #' @export
+#' 
 expressionVolcanoTab <- function(input, output, session, classLabel, TableData){
   rv <- reactiveValues()
   isReady <- FALSE

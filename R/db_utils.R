@@ -102,7 +102,21 @@ runDbQuery <- function(sql){
   list(rs = rs, con = con)
 }
 
+
+#' Create SQL Where filter
+#'
+#' @param filter_col name of the column
+#' @param filter_options vector of elements to be but in the 'IN' expression
+#'
+#' @return null if filter_options is empty or SQL 
+#' string with part of sql where expression.
 #' @export
+#'
+#' @examples
+#' 
+#' getSQL_filter("column", c("A", "B"))
+#' getSQL_filter("column", NULL)
+#' 
 getSQL_filter <- function(filter_col, filter_options) {
   #if (typeof(filter_options) == "character") {
   #sql <- paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")

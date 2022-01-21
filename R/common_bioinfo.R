@@ -725,7 +725,17 @@ predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
 }
 
 # Unbalanced tumortypes -------------------------------------------------------
+
+#' Shiny Drop Unbalanced Tumortypes
+#'
+#' @param AnnotationFocus item annotation
+#' @param classSelection classAssignment object
+#' @param minCount min count for getBalancedTumortypes
+#'
+#' @details module for dropping unbalanced tumortypes
+#'
 #' @export
+#'
 shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection, minCount = 1){
   anno <- AnnotationFocus()
   if (is.null(anno) || nrow(anno) == 0) return()

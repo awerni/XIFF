@@ -39,7 +39,6 @@ mlModelSet2ClassSelectionList <- function(model, set = NULL) {
   
 }
  
-#' @export
 getPredictionSummary <- function(items,
                                  preds,
                                  refs,
@@ -168,7 +167,6 @@ generateTestPerformanceData.table <- function(result) {
   )
 }
 
-#' @export
 prepareTablePlotData <- function(df, positive_preds, positive_refs, labels_preds, labels_refs, labels){
   if (positive_preds == "class2"){
     labels_preds <- rev(labels_preds)

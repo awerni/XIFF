@@ -1,4 +1,13 @@
+#' Shiny Utility Functions
+#'
+#' @param expr 
+#' @param errorId 
+#' @param session 
+#' @param callback 
+#'
+#' @rdname shiny-utility
 #' @export
+#'
 withErrorHandler <- function(expr, errorId = NULL, session = getDefaultReactiveDomain(), callback = NULL){
   tryCatch(
     expr = expr,
@@ -21,6 +30,7 @@ withErrorHandler <- function(expr, errorId = NULL, session = getDefaultReactiveD
   )
 }
 
+#' @rdname shiny-utility
 #' @export
 errorScreen <- function(reason){
   msg <- if (reason == "db"){
@@ -46,6 +56,7 @@ errorScreen <- function(reason){
   )
 }
 
+#' @rdname shiny-utility
 #' @export
 registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, initValue = NULL, debug = FALSE, ignoreInit = TRUE, ...){
   id <- inputId # prevent lazy load
@@ -181,6 +192,7 @@ containerDT <- function(id){
   )
 }
 
+#' @rdname shiny-utility
 #' @export
 styleHigherCol <- function(condition, cl){
   c1 <- paste0('<span style="color:red">', cl$class1_name, '</span>')
@@ -188,6 +200,7 @@ styleHigherCol <- function(condition, cl){
   ifelse(condition, c1, c2)
 }
 
+#' @rdname shiny-utility
 #' @export
 getEnsgRowCallback <- function(species, idx = 1){
   spFull <- getEnsemblSpecies(species)
@@ -266,6 +279,7 @@ initialDbCheck <- function(timeout = 5){
   TRUE
 }
 
+#' @rdname shiny-utility
 #' @export
 validateArgs <- function(args){
   filtered <- args[!vapply(args, is.null, FUN.VALUE=logical(1))]

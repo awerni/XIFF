@@ -1,4 +1,3 @@
-#' @export
 tooltipPlotUI <- function(id, width = "100%", height = "400px"){
   width <- htmltools::validateCssUnit(width)
   height <- htmltools::validateCssUnit(height)
@@ -11,7 +10,6 @@ tooltipPlotUI <- function(id, width = "100%", height = "400px"){
   )
 }
 
-#' @export
 tooltipPlot <- function(input, output, session, plotExpr, varDict,
                         callback = getOption("xiff.tooltipCallbackFun"), ...){
   id <- paste0("output_", session$ns("plot"))
