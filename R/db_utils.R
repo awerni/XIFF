@@ -20,7 +20,9 @@ isDbOnline <- function(timeout = 5){
 #' @param args character vector of the command arguments, see system2 docs for
 #' details
 #'
+#' @export
 #' @return the command output
+#' 
 runGCloudCommand <- function(args){
   res <- tryCatch(
     expr = suppressWarnings(system2(
@@ -51,6 +53,8 @@ runGCloudCommand <- function(args){
 #' Returns a currently logged-in GCloud user
 #'
 #' @return the current user email
+#' @export
+#' 
 getCurrentGCloudUser <- function(){
   runGCloudCommand(c("config", "list", "account", "--format", "'value(core.account)'"))
 }
@@ -60,6 +64,8 @@ getCurrentGCloudUser <- function(){
 #' Retrieves a GCloud access token for the currently logged-in user
 #'
 #' @return list with fields: user, token, timestamp
+#' @export
+#' 
 createGCloudAccessToken <- function(){
   timestamp <- Sys.time()
   currentUser <- getCurrentGCloudUser()
@@ -79,6 +85,8 @@ createGCloudAccessToken <- function(){
 #' in xiff.gToken option.
 #'
 #' @return list with fields: user, token, timestamp
+#' @export
+#' 
 getGCloudAccessToken <- function(){
   token <- getOption("xiff.gToken")
   currentTime <- Sys.time()
