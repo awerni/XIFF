@@ -342,7 +342,17 @@ stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE
   return(assignment)
 }
 
+
+#' Utility function for styling Future Manager Run Buttons
+#'
+#' @param inputId module id
+#' @param fm futureManger object
+#' @param cs class selection object
+#' @param defaultValue logical, the initial button value
+#'
 #' @export
+#' @rdname fmButtonClass
+#'
 fmButtonOneClass <- function(inputId, fm, cs, defaultValue = FALSE){
   condition <- length(cs$class1) == 0 && length(cs$class2) == 0
 
@@ -358,6 +368,7 @@ fmButtonOneClass <- function(inputId, fm, cs, defaultValue = FALSE){
 }
 
 #' @export
+#' @rdname fmButtonClass
 fmButtonBothClasses <- function(inputId, fm, cs, defaultValue = FALSE){
   condition <- length(cs$class1) == 0 || length(cs$class2) == 0
 
@@ -372,7 +383,6 @@ fmButtonBothClasses <- function(inputId, fm, cs, defaultValue = FALSE){
   )
 }
 
-#' @export
 getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2){
   focusLevels <- as.character(unique(annotationFocus[[prop1]]))
 
@@ -398,17 +408,41 @@ getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2
     select(class, prop1, prop2, percent)
 }
 
+
+#' Get XIFF label with the number of items for plots
+#'
+#' @param n number of items
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' get_label(50)
+#' 
 get_label <- function(n) {
   paste0(n, " ", getOption("xiff.label"), ifelse(n != 1, "s", ""))
 }
 
+
+#' Check if two object are different
+#'
+#' @param x first object
+#' @param y second object
+#'
+#' @return true if x and y are different
 #' @export
+#'
+#' @examples
+#' 
+#' isDifferent(1, NULL)
+#' isDifferent(1, 1)
+#' 
 isDifferent <- function(x, y){
   !isTRUE(all.equal(x, y))
 }
 
-#' @export
+#' TODO: check if it is used - probably not
 replaceClassLabels <- function(df, cl) {
   names(cl) <- gsub("_name", "", names(cl))
   myLabel <- stack(cl) %>% rename(class = values, classold = ind) %>%

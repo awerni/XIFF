@@ -113,7 +113,25 @@ reorderByScore <- function(df, orderCol = getOption("xiff.column"),
   )
 }
 
+
+#' Extract rows with the same rownames from data.frame
+#'
+#' @param m1 first data frame
+#' @param m2 second data.frame
+#' @param sortRownames should the rownames should sorted
+#' @param outNames names for the output list
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' 
+#' m1 <- data.frame(x = 1:3, y = 1:3, row.names = c("A", "B", "C"))
+#' m2 <- data.frame(x = 2:4*100, y = 2:4*10, row.names = c("B", "C", "D"))
+#' 
+#' ensureCommonRownames(m1,m2)
+#' 
 ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
   r1 <- rownames(m1)
   r2 <- rownames(m2)
@@ -135,7 +153,20 @@ ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
 }
 
 # Machine learning ------------------------------------------------------------
+
+#' Split classAssigment into training and test sets
+#'
+#' @param assignment classAssigment object or data.frame
+#' @param p_test the percentage of the test set size
+#'
+#' @return list with two elements - \code{training} and \code{test}
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' splitTrainingTestSets(ca)
+#' 
 splitTrainingTestSets <- function(assignment,
                                         p_test = 0.2){
   UseMethod("splitTrainingTestSets")
