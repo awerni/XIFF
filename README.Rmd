@@ -1,0 +1,34 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/"
+)
+```
+
+# XIFF <img src="man/figures/logo.png" align="right" alt="" width="120" />
+
+XIFF is designed to provide database access, machine learning and plotting functionality, 
+comparison class handling and R/shiny functions for CLIFF and TIFF.
+
+## Installation
+
+::: .XIFF-release
+```{r, eval = FALSE}
+# Install released version from CRAN
+# not available yet
+```
+:::
+
+::: .XIFF-devel
+```{r, eval = FALSE}
+# Install development version from GitHub
+devtools::install_github("broadinstitute/XIFF")
+```
+:::

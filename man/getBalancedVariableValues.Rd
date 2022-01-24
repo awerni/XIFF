@@ -5,6 +5,7 @@
 \alias{dropUnbalancedTumortypes}
 \alias{getValidTumorTypes}
 \alias{getBalancedTumorTypes}
+\alias{getBalancedTumortypes}
 \alias{getBalancedVariableValues}
 \title{Get valid tumor types / variables}
 \usage{
@@ -15,6 +16,8 @@ dropUnbalancedTumortypes(cs, anno, minCount = 1)
 getValidTumorTypes(cs, anno, minCount = 1)
 
 getBalancedTumorTypes(cs, anno, minCount = 1)
+
+getBalancedTumortypes(cs, anno, minCount = 1)
 
 getBalancedVariableValues(cs, anno, variable, minCount = 1)
 }
@@ -44,21 +47,21 @@ colnames(anno)[1] <- getOption("xiff.column")
 
 cs <- classAssignment(cl1 = c("a", "b", "c"), cl2 = c("d", "e", "f", "g"))
 
-getBalancedTumorTypes(cs, anno) # "x" and "y" are available in both classes
+getBalancedTumortypes(cs, anno) # "x" and "y" are available in both classes
 
 # 'g' has unbalanced tumortype
 dropUnbalancedTumortypes(cs, anno)
 dropUnbalancedTumortypes(cs, anno)$class2
 
 # only "x" appears at least 2 times in each class
-getBalancedTumorTypes(cs, anno, minCount = 2) 
+getBalancedTumortypes(cs, anno, minCount = 2) 
 
 cs2 <- dropUnbalancedTumortypes(cs, anno, 2)
 cs2$class1
 cs2$class2
 
 # empty results
-getBalancedTumorTypes(cs, anno, 3)
+getBalancedTumortypes(cs, anno, 3)
 dropUnbalancedTumortypes(cs, anno, 3)
 
 # getBalancedVariableValues and dropUnbalancedVariableValues

@@ -1,0 +1,52 @@
+url: https://cellline.info
+
+authors:
+  Andreas Wernitznig:
+    href: http://wernitznig.com
+  Michal Jakubczak:
+  Zygmunt Zawadzki:
+    
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    pkgdown-nav-height: 70px
+    font-size-base: 0.875rem # default 1em the relative size of  navbar elements, h1, h2, etc
+    small-font-size: 0.875rem # default .875em, used for code size
+    
+code:
+  width: 120
+
+development:
+  mode: auto
+
+reference:
+- title: Database functions 
+  contents:
+  - getPostgresql
+  - setPostgresql
+  - stashData
+
+- title: Dimension reduction functions
+  contents:
+  - calcPCA_expression
+  - calcTSNE
+  - calcUMAP
+  - starts_with("getExpressionDimRed")
+
+- title: Machine Learning 
+  contents:
+  - contains("Machine")
+  - contains("Model")
+  - contains("model")
+  - contains("ml")
+  - starts_with("selectBestFeatures")
+
+- title: Plotting
+  contents:
+  - starts_with("generate")
+
+- title: Shiny Functions
+  desc: Functions used by the shiny application. Not useful for API usage.
+  contents:
+  - matches(".*UI.*")
