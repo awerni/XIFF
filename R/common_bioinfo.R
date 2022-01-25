@@ -97,7 +97,26 @@ prepareClassificationTable <- function(class1, class2, addRownames = TRUE){
   df
 }
 
+
+#' Utility function for reordering class levels by score column
+#'
+#' @param df data.frame
+#' @param orderCol column to be ordered
+#' @param valueCol column used for ordering
+#' @param .desc use decreasing (TRUE) or increasing order (FALSE)
+#'
+#' @return data.frame with \code{orderCol} transformed to ordered factor
 #' @export
+#'
+#' @examples
+#' 
+#' df <- data.frame(class = c("X", "A", "C"), var = c(0,-5,5))
+#' levels(reorderByScore(df, orderCol = "class", valueCol = "var")$class)
+#' levels(
+#'   reorderByScore(df, orderCol = "class", valueCol = "var", .desc = FALSE)$class
+#' )
+#' 
+#' 
 reorderByScore <- function(df, orderCol = getOption("xiff.column"), 
                            valueCol = "score", .desc = TRUE){
   if (!is.data.frame(df) || nrow(df) == 0) return()
@@ -219,7 +238,45 @@ splitTrainingTestSets.classAssignment <- function(assignment,
 }
 
 
+
+#' Select Best Features
+#'
+#' @param df data.frame with class column and variables to be predicted
+#' @param threshold default threshold for variable importance cutoff
+#' @param maxFeatures max number of features to be selected
+#' @param .otherParams other parameters to be passed into 
+#' feature selection algorithm
+#'
+#' @return list with following 
+#' 
+#' \itemize{
+#'  \item{"stats"}{data.frame with feature importance statistics}
+#'  \item{"df"}{data.frame with the selected variables }
+#'  \item{".otherParams"}{list of other parameters used by the feature selection
+#'   algorithm, could be used downstream during the prediction/data preparation pahse}
+#'  \item{"method"}{name of the feature selection metod}
+#' }
+#' 
+#' @details 
+#' 
+#' \code{selectBestFeaturesTTest} - uses the t.test
+#' 
+#' \code{selectBestFeaturesGlmnet} - uses the glmnet logistic regression.
+#' 
+#' @rdname selectBestFeatures
 #' @export
+#'
+#' @examples
+#' 
+#' library(dplyr)
+#' iris2 <- iris %>% rename(class = Species) %>%
+#'   filter(class %in% c("setosa", "versicolor")) %>%
+#'   mutate(class = droplevels(class))
+#' 
+#' selectBestFeatures(iris2)
+#' selectBestFeaturesTTest(iris2)
+#' selectBestFeaturesGlmnet(iris2)
+#' 
 selectBestFeatures <-
   function(df,
            threshold = "Confirmed",
@@ -235,6 +292,7 @@ selectBestFeatures <-
   selectBestFeaturesBoruta(df, threshold, maxFeatures, .otherParams = .otherParams)
 }
 
+#' @rdname selectBestFeatures
 #' @export
 selectBestFeaturesTTest <-
   function(df,
@@ -271,6 +329,7 @@ selectBestFeaturesTTest <-
   )
 }
 
+#' @rdname selectBestFeatures
 #' @export
 #' @importFrom glmnet cv.glmnet glmnet
 selectBestFeaturesGlmnet <-
@@ -929,7 +988,19 @@ getClassDistances <- function(mat, pheno, metric = "euclidean"){
   d
 }
 
+
+#' Scale rows by mean and standard deviation
+#'
+#' @param x matrix
+#'
+#' @return scaled matrix
 #' @export
+#'
+#' @examples
+#' 
+#' x <- cbind(c(10,200,3000), c(20,300,5000))
+#' scaleRows(x)
+#' 
 scaleRows <- function(x){
   m <- apply(x, 1, mean, na.rm = TRUE)
   s <- apply(x, 1, sd, na.rm = TRUE)

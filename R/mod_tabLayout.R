@@ -1,3 +1,4 @@
+#' @rdname tabLayout
 #' @export
 tabLayoutUI_main <- function(id, useMiddlePlot = TRUE){
   ns <- NS(id)
@@ -26,6 +27,7 @@ tabLayoutUI_main <- function(id, useMiddlePlot = TRUE){
   )
 }
 
+#' @rdname tabLayout
 #' @export
 tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additionalChoices = c(), hidden = c(), useMiddlePlot = TRUE){
   ns <- NS(id)
@@ -81,7 +83,19 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
   )
 }
 
+
+#' Tab module layout
+#'
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param plotFun 
+#' @param TableData 
+#' @param jsRowCallback 
+#'
+#' @rdname tabLayout
 #' @export
+#'
 tabLayout <- function(input, output, session, plotFun, TableData,
                       jsRowCallback = htmlwidgets::JS("preventLinkSelections")){
   rowCallback <- if (is.reactive(jsRowCallback)){
