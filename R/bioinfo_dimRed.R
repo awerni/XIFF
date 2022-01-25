@@ -242,7 +242,14 @@ geneExpressionDimRed <-
   resWithClusters
 }
 
+
+#' Create Gene Expression Dimension Reduction Plot
+#'
+#' @param dimRed result of the \code{geneExpressionDimRed} function
+#' @param useLabels logical, if true add labels to the plot
+#'
 #' @export
+#'
 geneExpressionDimRedPlot <- function(dimRed, useLabels = FALSE) {
   
   df <- dimRed$clusterRes

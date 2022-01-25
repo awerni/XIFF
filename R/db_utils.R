@@ -131,7 +131,18 @@ getSQL_filter <- function(filter_col, filter_options) {
   }
 }
 
+
+#' Prepare SQL Where condition statements from list of R character vectors
+#'
+#' @param ... character variables to be transformed into SQL WHERE statements
+#'
+#' @return string with SQL expression
 #' @export
+#'
+#' @examples
+#' 
+#' prepareConditionSql(x = c("1", "2"), y = c("A", "B"))
+#' 
 prepareConditionSql <- function(...){
   dots <- list(...)
   

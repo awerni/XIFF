@@ -91,7 +91,15 @@ ProcessProgress <- R6::R6Class(
   )
 )
 
+
+#' Utility function for checking the result of a function
+#'
+#' @param x result to be validated, if string, then the function will throw an
+#' error.
+#'
+#' @return nothing, called for side effects
 #' @export
+#'
 validateFunctionResult <- function(x){
   if (is.character(x)) validate(need(FALSE, x))
 }

@@ -1,4 +1,5 @@
 #' @export
+#' @rdname geneExpressionDimRedTab
 geneExpressionDimRedTabUI_main <- function(id){
   ns <- NS(id)
   
@@ -10,6 +11,7 @@ geneExpressionDimRedTabUI_main <- function(id){
 }
 
 #' @export
+#' @rdname geneExpressionDimRedTab
 geneExpressionDimRedTabUI_sidebar <- function(id){
   ns <- NS(id)
   
@@ -52,10 +54,22 @@ geneExpressionDimRedTabUI_sidebar <- function(id){
   )
 }
 
+#' Gene Expression Dimension Reduction Module
+#' 
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param fm 
+#' @param Results 
+#' @param TableData 
+#' @param getDataGeneExpression 
+#'
 #' @importFrom tibble column_to_rownames
 #' @importFrom FutureManager fmValidate fmGenerateTaskId
 #' @importFrom tidyr pivot_wider
 #' @export
+#' @rdname geneExpressionDimRedTab
+#' 
 geneExpressionDimRedTab <- function(input, output, session, fm, Results, TableData, getDataGeneExpression){
   ns <- session$ns
   

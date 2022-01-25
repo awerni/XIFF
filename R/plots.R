@@ -424,9 +424,50 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
   return(ret)
 }
 
+
+#' Generate Class Selection Plot
+#'
+#' @param sampleClasses classAssigment object
+#' @param prop1 property to be put on x axis
+#' @param prop2 property used for color scale
+#' @param n_classes 
+#' @param plot_type "bar" or "pie"
+#' @param usePercent if TRUE uses percentages rather than counts
+#' @param annotation annotaion data
+#' @param annotationFocus annotation data
+#' @param classLabel optional list with class labels
+#'
 #' @export
-generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, n_classes,
-                                       plot_type = "bar", usePercent = FALSE, annotation, annotationFocus) {
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'   CLIFF::setDbOptions()
+#'   cs <- CLIFF::exampleClassAssigment()
+#'   anno <- CLIFF::getCellLineAnno("human")
+#'   
+#'   generateClassSelectionPlot(
+#'     sampleClasses = cs,
+#'     prop1 = "tumortype", prop2 = "gender", n_classes = 10,
+#'     annotation = anno, annotationFocus = anno
+#'   )
+#'   
+#'   generateClassSelectionPlot(
+#'     sampleClasses = cs,
+#'     prop1 = "tumortype", prop2 = "gender", n_classes = 10,
+#'     annotation = anno, annotationFocus = anno,
+#'     usePercent = TRUE
+#'   )
+#' }
+#' 
+generateClassSelectionPlot <- function(sampleClasses, prop1, prop2, n_classes,
+                                       plot_type = "bar", usePercent = FALSE, annotation, annotationFocus,
+                                       classLabel = NULL) {
+  
+  if(is.null(classLabel)) {
+    classLabel <- getClassLabel(sampleClasses)
+  }
+  
   colname <- getOption("xiff.column")
 
   data <- stackClasses(sampleClasses, classLabel, return_factor = TRUE) %>%

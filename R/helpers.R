@@ -211,7 +211,25 @@ renameClassIdToLabel <- function(df, column, ca){
   ca
 }
 
+
+#' Rename label in classAssignment
+#'
+#' @param ca classAssignment object
+#' @param classId which class label needs to be changed ("class1" or "class2")
+#' @param value new label
+#'
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' 
+#' setClassLabel(ca, "class1") <- "C1"
+#' ca
+#' 
+#' setClassLabel(ca, "class2") <- "C2"
+#' ca
+#' 
 `setClassLabel<-` <- function(ca, classId, value){
   stopifnot(
     is(ca, "classAssignment"),
@@ -225,7 +243,25 @@ renameClassIdToLabel <- function(df, column, ca){
   ca
 }
 
+
+#' Convert ClassAssigment to data.frame
+#'
+#' @param ca classAssigment
+#' @param useLabels use classAssigment labels
+#' @param returnFactor logical. If true (default), then class column will be
+#' returned as factor
+#'
+#' @return data.frame with two columns
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' getAssignmentDf(ca)
+#' 
+#' setClassLabel(ca, "class2") <- "C2"
+#' getAssignmentDf(ca)
+#' 
 getAssignmentDf <- function(ca, useLabels = TRUE, returnFactor = TRUE){
   stopifnot(is(ca, "classAssignment"))
   
