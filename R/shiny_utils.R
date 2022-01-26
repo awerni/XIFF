@@ -308,13 +308,18 @@ appUI_title_right <- function(id, docuLink, packageName, dbName) {
   ns <- NS(id)
   list(
     bslib::nav_item(
+      class = "nav-item-right",
       paste(
         "Version",
         as.character(packageVersion(packageName))
       )
     ),
-    bslib::nav_item(dbName),
     bslib::nav_item(
+      class = "nav-item-right",
+      dbName
+    ),
+    bslib::nav_item(
+      class = "nav-item-right",
       a(
         id = ns("help_link"),
         href = docuLink,

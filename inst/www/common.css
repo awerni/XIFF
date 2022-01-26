@@ -39,14 +39,24 @@ body:not(.modal-open) {
 .navbar-static-top .nav-item .nav-link {
   padding: 0.7rem 1rem !important;
   color: #18BC9C !important;
-  height:100%;
-  border-radius:5px
+  height: 100%;
+  border-radius: 5px;
 }
 .navbar-static-top .nav-item .nav-link.active {
   background-color: #18BC9C;
   color: #000000 !important;
 }
-
+.navbar-static-top .nav-item .nav-link:hover {
+  background-color: rgba(24, 188, 156, 0.1);
+  color: #000000 !important;
+}
+.navbar-static-top .nav-item-right {
+  margin-left: 10px;
+  color: #6c757d;
+}
+.navbar-static-top .nav-item-right a {
+  color: #18BC9C !important;
+}
 .flex-container {
    max-width: 100%;
 }
