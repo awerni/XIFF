@@ -95,7 +95,16 @@ classAssignment <- function(..., positiveClass = NULL) {
   res
 }
 
+
+#' Utility function for creating class assignment objects.
+#'
+#' @param sampleClasses 
+#' @param classLabel 
+#'
+#' @return
 #' @export
+#'
+#' @examples
 makeClassAssignment <- function(sampleClasses, classLabel){
   
   shiny::validate(
@@ -186,10 +195,24 @@ classIdToLabel <- function(x, ca){
   res
 }
 
-
-
-
+#' Rename ClassId To Labels from classAssignment
+#'
+#' @param df data.frame
+#' @param column column 
+#' @param ca classAssignment object
+#'
+#' @return data.frame with \code{column} remapped to labels
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' setClassLabel(ca, "class1") <- "C1"
+#' setClassLabel(ca, "class2") <- "C2"
+#' 
+#' df <- data.frame(cl = c("class1", "class2", "class1"))
+#' renameClassIdToLabel(df, "cl", ca)
+#' 
 renameClassIdToLabel <- function(df, column, ca){
   if (is(ca, "classAssignment")){
     column <- rlang::sym(column)
@@ -199,7 +222,23 @@ renameClassIdToLabel <- function(df, column, ca){
   }
 }
 
+
+#' Set items in ClassAssigment object
+#'
+#' @param ca classAssigment
+#' @param classId id of class ('class1' or 'class2')
+#' @param value character vector with new items
+#'
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' ca$class1
+#' 
+#' setClassItems(ca, "class1") <- c("A", "B")
+#' ca$class1
+#' 
 `setClassItems<-` <- function(ca, classId, value = NULL){
   stopifnot(
     is(ca, "classAssignment"),

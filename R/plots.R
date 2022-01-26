@@ -1,4 +1,7 @@
+#' XIFF default color scheme
+#' 
 #' @export
+#' 
 plotColors <- c("#d73027", "#4575b4", "#fc8d59", "#91bfdb", "#A8840D", "#24BF43", "#000000")
 
 
@@ -593,7 +596,22 @@ generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, prop2, 
   }
 }
 
+
+#' Generate Score Bar Plot
+#'
+#' @param data data.frame with \code{x_score} column
+#' @param score_desc 
+#'
+#' @return ggplot2 plot
 #' @export
+#'
+#' @examples
+#' 
+#' dt <- exampleDataFrame()
+#' dt <- dt %>% mutate(x_score = cut(tpm, breaks = c(0,5,10,20,50, Inf)))
+#' 
+#' generateScoreBarPlot(dt, "TMP")
+#' 
 generateScoreBarPlot <- function(data, score_desc) {
   if (nrow(data) == 0) return()
 
@@ -619,7 +637,24 @@ generateScoreBarPlot <- function(data, score_desc) {
   }
 }
 
+
+#' Generate Score Waterfall plot
+#'
+#' @param data data.frame containing \code{x_score} and \code{tumortype} column
+#' @param score_desc 
+#' @param y_scale type of y-scale (e.g. identity or log10)
+#'
+#' @return
 #' @export
+#'
+#' @examples
+#' 
+#' df <- exampleDataFrame() %>% reorderByScore(valueCol = "tpm")
+#' df <- df %>% rename(x_score = tpm) %>%
+#'   mutate(tumortype = c(rep("A", 5), rep("B", 6)))
+#' generateScoreWaterfallPlot(df, "TPM")
+#' generateScoreWaterfallPlot(df, "TPM", "log10")
+#' 
 generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
   if (nrow(data) == 0) return()
 

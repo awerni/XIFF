@@ -103,10 +103,15 @@ generateVarImpPlot <- function(x){
 }
 
 
+
+#' Generate Error Plot for XIFF Random Forrest Machine Learning Model
+#'
+#' @param x Xiff Machine Learning MOdel
+#' @param cl list with class labels
+#'
+#' @return ggplot2 object containing error plot
 #' @export
-#' 
-#' @importFrom tibble rowid_to_column
-#' 
+#'
 generateErrorPlot <- function(x, cl = list(class1_name = "sensitive", class2_name = "resistant")){
   
   m <- x$finalModel

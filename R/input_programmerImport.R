@@ -1,4 +1,5 @@
 #' @export
+#' @rdname programmerImportInputMode
 programmerImportInputModeUI <- function(id){
   ns <- NS(id)
   
@@ -13,7 +14,18 @@ programmerImportInputModeUI <- function(id){
   )
 }
 
+
+#' Programmer Import Input Module
+#'
+#' @param id module id
+#' @param input 
+#' @param output 
+#' @param session 
+#' @param Annotation annotation data.frame
+#'
 #' @export
+#' @rdname programmerImportInputMode
+#'
 programmerImportInputMode <- function(input, output, session, Annotation){
   colname <- getOption("xiff.column")
   

@@ -1,4 +1,14 @@
+#' Check if database is online
+#'
+#' @param timeout database timeout in seconds
+#'
+#' @return logical, TRUE if database can be reached
 #' @export
+#'
+#' @examples
+#' 
+#' isDbOnline()
+#' 
 isDbOnline <- function(timeout = 5){
   info <- getDBConnectionData()
   RPostgres::dbCanConnect(

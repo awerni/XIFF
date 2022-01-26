@@ -269,7 +269,15 @@ getDataForModel <- function(assignment,
   UseMethod("getDataForModel", features)
 }
 
+
+#' Summarise Model Parameters in Table
+#'
+#' @param model machine learning model fitted in XIFF
+#'
+#' @return
 #' @export
+#'
+#' @examples
 mlGetTableData <- function(model) {
   UseMethod("mlGetTableData")
 }

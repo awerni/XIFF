@@ -78,7 +78,17 @@ prepareDataAndDesignCommon <- function(sampleClasses, dbDataFun, idCol,
   )
 }
 
+
+#' Prepare Classification Table
+#'
+#' @param class1 
+#' @param class2 
+#' @param addRownames 
+#'
+#' @return
 #' @export
+#'
+#' @examples
 prepareClassificationTable <- function(class1, class2, addRownames = TRUE){
   sampleNames <- c(class1, class2)
   df <- data.frame(
@@ -808,7 +818,6 @@ predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
   result
 }
 
-#' @export
 `newClassLabel<-` <- function(x, value){
   x$classLabel <- value
   x
@@ -971,8 +980,35 @@ getBalancedVariableValues <- function(cs, anno, variable, minCount = 1){
     as.character()
 }
 
+
+#' Get Class Distances
+#'
+#' @param mat gene set matrix (e.g. result of \code{getHeatmapDataHallmark})
+#' @param pheno data.frame with class assigment
+#' @param metric metrix used to calculate distances
+#'
+#' @return distance matrix
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'   
+#'   CLIFF::setDbOptions()
+#'   cs <- CLIFF::exampleClassAssigment()
+#'   data <- CLIFF::getHeatmapDataHallmark(cs)
+#'   pheno <- stackClasses(cs)
+#'   
+#'   res <- getClassDistances(data, pheno)
+#'   
+#'   as.matrix(res)[1:3, 1:3]
+#' 
+#' }
+#' 
 getClassDistances <- function(mat, pheno, metric = "euclidean"){
+  
+  if(is.data.frame(mat)) mat <- as.matrix(mat)
+  
   cv <- pheno[colnames(mat), "class"] # make sure the order is correct
   
   dn <- combn(
