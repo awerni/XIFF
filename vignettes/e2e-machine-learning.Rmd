@@ -29,15 +29,19 @@ setDbOptions()
 set.seed(123)
 
 # Preparing data
-cellline <- CLIFF::getWaterfallDataDepletion(ensg = "ENSG00000135679", study = "Avana", score = "ceres")
-cellline <- cellline %>% filter(tumortype %in% c("skin cancer", "lung cancer",  "ovarian cancer", "pancreatic cancer"))
+cellline <- CLIFF::getWaterfallDataDepletion(ensg = "ENSG00000135679", study = "Avana", score = "chronos")
+
+cellline <- cellline %>% filter(grepl("(pancrea|skin|lung|melanoma|SCLC|ovar)", tumortype)) 
 cellline <- cellline %>% filter(var < 0)
 
 # Select sensitive and resistant celllines
-# note that the number of resistant celllines is selected to be the same as number of sensistve celllines 
+# note that the number of resistant celllines is selected to be the same as the number of sensistve celllines
 sensitive <- cellline %>% filter(var < -1) %>% select(celllinename) %>% pull %>% as.character()
 resistant <- cellline %>% arrange(desc(var)) %>% head(length(sensitive)) %>% select(celllinename) %>% pull %>% as.character()
-cs <- list(class1 = sensitive, class2 = resistant)
+cs <- list(sensitive = sensitive, resistant = resistant) %>%
+  classAssignment()
+
+print(cs)
 ```
 
 ```{r}
@@ -48,15 +52,6 @@ geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
 geneAnno <- CLIFF::getGeneAnno()[["human"]]
 
 annoFocus <- CLIFF::getCellLineAnno("human")
-
-# Get data and split it into train and test set
-cs <- getStashedData("0766b1")
-cs <- split(cs$celllinename, cs$MDM2_class)
-cs <- classAssignment(
-  cs, positiveClass = "sensitive"
-)
-
-print(cs)
 ```
 
 
@@ -78,7 +73,7 @@ defaultFit <- XIFF::buildMachineLearning(
   p_test = 0.2
 )
 
-# model using caret functionality. It does not implement 
+# model using caret functionality. It does not implement
 # model specific function is XIFF, but uses sensible defaults
 glmnetFit <- XIFF::buildMachineLearning(
   cs = trainingSet,
@@ -121,7 +116,7 @@ modelTestDataGlmnet %>% select(celllinename, class) %>%
 ```{r}
 # Getting all features from rf and glmnet models
 # so the same data can be used in prediction
-allFeatures <- list(defaultFit, glmnetFit) %>% 
+allFeatures <- list(defaultFit, glmnetFit) %>%
   sapply("[[", "bestFeatures") %>%
   unlist() %>% unique()
 
@@ -231,7 +226,7 @@ if(XIFF::packageInstalled("rpart")) {
     geneAnno = geneAnno,
     method = "rpart"
   )
-  
+
   generateTrainingModelPlots(rpartFit)
   testResultRpart <- testModel(
     rpartFit,
@@ -244,7 +239,7 @@ if(XIFF::packageInstalled("rpart")) {
 
 # GREP method
 
-### Auto verion
+### Auto version
 
 ```{r}
 set.seed(123)
@@ -263,8 +258,6 @@ testResultGrep <- testModel(
   testSet = testSet,
   anno = annoFocus)
 generateTestModelPlots(testResultGrep)
-  
-
 ```
 
 ### Raw version
@@ -294,5 +287,4 @@ testResultGrep <- testModel(
   testSet = testSet,
   anno = annoFocus)
 generateTestModelPlots(testResultGrep)
-
 ```

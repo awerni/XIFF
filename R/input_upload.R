@@ -27,7 +27,7 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   }
 
   list(
-    fluidRow_12(h3(label, helpLink)),
+    fluidRow_12(h5(label, helpLink)),
     shinyBS::bsAlert(ns("top_error")),
     fluidRow(
       column_4(
@@ -127,15 +127,15 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
   )
 
   MlAnnotation <- reactive({
-    
+
     if(mlUseTumortypeFilter) {
       AnnotationFull()
     } else {
       AnnotationFiltered()
     }
-    
+
   })
-  
+
   MLItems <- callModule(
     module = mlUploadInputMode,
     id = "ml",
@@ -422,7 +422,7 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
   if (is.null(selected) || !nzchar(selected) || !selected %in% choices){
     selected <- choices[[1]]
   }
-  
+
 
   choices_facet <- df %>%
     filterSplitChoices() %>%
@@ -433,7 +433,7 @@ updateSplitChoices <- function(basicId, splitId, df, input, session){
       !facetSelected %in% choices_facet){
     facetSelected <- "-- none --"
   }
-  
+
   updateSelectInput(
     session = session,
     inputId = splitId,
@@ -485,11 +485,11 @@ mlUploadInputModeUI_stat <- function(id){
 
 mlUploadInputModeUI_options <- function(id, input, AllTumortype = NULL){
   ns <- NS(id)
-  
+
   if(!is.null(AllTumortype)) {
-    myT <- AllTumortype()  
+    myT <- AllTumortype()
   }
-  
+
 
   fluidRow(
     column_6(
@@ -530,13 +530,13 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
   Model <- reactive({
     info <- FileInfo()
     req(!is.null(info) && info[["isRds"]])
-    
+
     model <- withProgress(
       expr = readRDS(info$datapath),
       value = 0.2,
       message = "loading ML model..."
     )
-    
+
     validateXiffMachineLearningResult(model)
     log_trace("mlUploadInput: model loaded.")
     model
@@ -566,7 +566,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
         filter(!!colname %in% cl) %>%
         pull(tumortype) %>%
         unique()
-      
+
       log_trace("mlUploadInput: Updating the tumors")
       updateSelectInput(
         session = session,
@@ -580,7 +580,7 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
   DB_Data <- reactive({
     m <- Model()
     req(m)
-    
+
     withProgress(
       expr = getRawDataForModel(features = m),
       value = 0.4,
@@ -594,18 +594,18 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
 
     req(d, m, TrainingSet())
     trainingSet <- TrainingSet()$df[[colname]]
-    
+
     if(useTumortypeFilter) {
       tumortypes <- input$tumortype
       if (length(tumortypes) == 0) return()
-      
+
       items <- Annotation() %>%
         filter(tumortype %in% tumortypes) %>%
         pull(!!colname)
     } else {
       items <- Annotation() %>% pull(!!colname)
     }
-    
+
     showType <- input$show
 
     if (showType == "all"){
@@ -622,17 +622,17 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     if (!useTraining){
       items <- setdiff(items, trainingSet)
     }
-    
+
     df <- d %>% filter(!!colname %in% items)
 
     validate(need(nrow(df) > 0, "no data available"))
-    
+
     df <- df %>% tidyr::pivot_wider(names_from = ensg, values_from = score)
 
     assignment <- withProgress(
       expr = withErrorHandler(
         expr = predict(m, newdata = df, useClassLabels = FALSE),
-        errorId = topErrorId, 
+        errorId = topErrorId,
         session = session
       ),
       value = 0.8,
@@ -682,20 +682,20 @@ mlUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
   })
 
   UploadPlotCheck <- reactive({
-    
+
     validate(need(!is.null(Model()), "Please Load model."))
     if(useTumortypeFilter) {
       validate(need(length(input$tumortype) > 0, "Please select tumors."))
     }
     validate(
-      need(!is.null(Data()), 
+      need(!is.null(Data()),
         paste(
-          "No data for model.", 
+          "No data for model.",
           "If this is not expected please contact the app authors"
         )
       )
     )
-    
+
     TRUE
   })
 

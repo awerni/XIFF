@@ -1,9 +1,9 @@
 machineLearningApplyModelTabUI_main <- function(id){
   ns <- NS(id)
-  
+
   div(
     fluidRow(
-      h4("Provide an RDS file obtained from the machine learning tab"),
+      h5("Provide an RDS file obtained from the machine learning tab"),
       mlApplyModelUI_header(ns("tab"))
     ),
     fluidRow(
@@ -25,17 +25,17 @@ machineLearningApplyModelTabUI_sidebar <- function(id){
 
 machineLearningApplyModelTab <- function(input, output, session, classSelection, classLabel, AnnotationFocus){
   ns <- session$ns
-  
+
   Model <- reactive({
     uploadInfo <- input$upload
     if (is.null(uploadInfo)) return()
-    
+
     model <- readRDS(input$upload$datapath)
     validateXiffMachineLearningResult(model)
     model
-    
+
   })
-  
+
   callModule(
     module = mlApplyModel,
     id = "tab",

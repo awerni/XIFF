@@ -22,24 +22,136 @@ isDbOnline <- function(timeout = 5){
   )
 }
 
+# GCloud auth -----------------------------------------------------------------
+#' Run GCloud command
+#'
+#' Runs gcloud command with additional args using system2()
+#'
+#' @param args character vector of the command arguments, see system2 docs for
+#' details
+#'
+#' @export
+#' @return the command output
+#' 
+runGCloudCommand <- function(args){
+  res <- tryCatch(
+    expr = suppressWarnings(system2(
+      command = "gcloud",
+      args = args,
+      stdout = TRUE,
+      stderr = TRUE
+    )),
+    error = function(e){
+      stop(
+        "Error occured when trying to run gcloud. ",
+        "Did you install and configure gcloud CLI?"
+      )
+    }
+  )
+
+  statusCode <- attr(res, "status")
+  if (!is.null(statusCode)){
+    msg <- paste(res, collapse = "\n")
+    stop("Error occured when running gcloud:\n", msg)
+  }
+
+  res
+}
+
+#' Get current GCloud user
+#'
+#' Returns a currently logged-in GCloud user
+#'
+#' @return the current user email
+#' @export
+#' 
+getCurrentGCloudUser <- function(){
+  runGCloudCommand(c("config", "list", "account", "--format", "'value(core.account)'"))
+}
+
+#' Create GCloud access token
+#'
+#' Retrieves a GCloud access token for the currently logged-in user
+#'
+#' @return list with fields: user, token, timestamp
+#' @export
+#' 
+createGCloudAccessToken <- function(){
+  timestamp <- Sys.time()
+  currentUser <- getCurrentGCloudUser()
+  token <- runGCloudCommand(c("auth", "print-access-token"))
+
+  list(
+    user = currentUser,
+    token = token,
+    timestamp = timestamp
+  )
+}
+
+#' Get GCloud access token
+#'
+#' Returns an active GCloud access token. If the token does not exist or is
+#' outdated (was created more than 59min ago), a new one is created and stored
+#' in xiff.gToken option.
+#'
+#' @return list with fields: user, token, timestamp
+#' @export
+#' 
+getGCloudAccessToken <- function(){
+  token <- getOption("xiff.gToken")
+  currentTime <- Sys.time()
+
+  shouldRefresh <- FALSE
+
+  if (is.null(token)){
+    shouldRefresh <- TRUE
+  } else {
+    timestampDiff <- as.numeric(difftime(
+      time1 = currentTime,
+      time2 = token$timestamp,
+      units = "s"
+    ))
+
+    if (timestampDiff > 59){
+      shouldRefresh <- TRUE
+    }
+  }
+
+  if (shouldRefresh){
+    token <- createGCloudAccessToken()
+    options("xiff.gToken" = token)
+  }
+
+  token
+}
+
+# DB connection ---------------------------------------------------------------
 getDBConnectionData <- function(){
   myDB <- getOption("dbname")
   if (is.null(myDB)) myDB <- db
   DBhost <- getOption("dbhost")
   DBport <- getOption("dbport")
 
-  user <- getOption("dbuser")
-  password <- getOption("dbpass")
+  useGCloud <- getOption("useGCloudAuth", default = FALSE)
 
-  compare <- function(x, y) (x == y | y == "*")
+  if (useGCloud){
+    token <- getGCloudAccessToken()
+    user <- token$user
+    password <- token$token
+  } else {
+    user <- getOption("dbuser")
+    password <- getOption("dbpass")
 
-  if (user == Sys.getenv("USER")) {
-    if (password == "" | is.na(password)) {
-      pgpass <- strsplit(scan("~/.pgpass", what = "", quiet = TRUE), ":")
-      n <- sapply(pgpass, function(x) {
-        compare(DBhost, x[[1]]) & compare(myDB, x[[3]]) & compare(user, x[[4]])
-      })
-      password <- pgpass[[which(n)[1]]][[5]]
+    compare <- function(x, y) (x == y | y == "*")
+
+    if (user == Sys.getenv("USER")) {
+      if (password == "" | is.na(password)) {
+        pgpass <- strsplit(scan("~/.pgpass", what = "", quiet = TRUE), ":")
+        n <- sapply(pgpass, function(x) {
+          compare(DBhost, x[[1]]) & compare(myDB, x[[3]]) & compare(user, x[[4]])
+        })
+        password <- pgpass[[which(n)[1]]][[5]]
+      }
     }
   }
 
@@ -68,9 +180,9 @@ getPostgresqlConnection <- function() {
 }
 
 #' Get data from Postgres
-#' 
+#'
 #' Function that queries the DB
-#' 
+#'
 #' @param sql character string, the SQL query
 #' @return data.frame
 #' @export
@@ -86,9 +198,9 @@ getPostgresql <- function(sql) {
 }
 
 #' Run set query in Postgres
-#' 
+#'
 #' Function that queries the DB
-#' 
+#'
 #' @param sql character string, the SQL query
 #' @return TRUE if success
 #' @export
@@ -102,13 +214,13 @@ setPostgresql <- function(sql){
 runDbQuery <- function(sql){
   con <- getPostgresqlConnection()
   if (class(con) == "try-error") stop("no connection to database")
-  
+
   rs <- try(RPostgres::dbSendQuery(con, sql))
   if (class(rs) == "try-error") {
     RPostgres::dbDisconnect(con)
     stop("can not exectute sql command")
   }
-  
+
   list(rs = rs, con = con)
 }
 
@@ -135,7 +247,7 @@ getSQL_filter <- function(filter_col, filter_options) {
   #sql <- paste0(filter_col, " IN (", paste(filter_options, collapse = ","), ")")
   #}
   #return(sql)
-  
+
   if (length(filter_options) > 0){
     paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")
   }
@@ -155,7 +267,7 @@ getSQL_filter <- function(filter_col, filter_options) {
 #' 
 prepareConditionSql <- function(...){
   dots <- list(...)
-  
+
   items <- napply(
     X = dots,
     FUN = function(x, name){
@@ -179,7 +291,7 @@ prepareConditionSql <- function(...){
       }
     }
   )
-  
+
   items <- dropNulls(items)
   if (length(items) > 0){
     paste(items, collapse = " AND ")
@@ -187,10 +299,10 @@ prepareConditionSql <- function(...){
 }
 
 #' Stash data and use them in apps
-#' 
+#'
 #' For expert usage only. You have to have writing permissions to the DB.
 #' Returned hash may be used in the Restore selection input mode.
-#' 
+#'
 #' @param df data.frame data to store
 #' @return character string, the dataset hash
 #' @export
@@ -205,15 +317,15 @@ prepareConditionSql <- function(...){
 #' }
 stashData <- function(df){
   stopifnot(is.data.frame(df))
-  
+
   myHash <- substr(digest::digest(Sys.time()), 1, 6)
   payload <- jsonlite::toJSON(df)
-  
+
   sql <- paste0(
     "INSERT INTO datastack (datastackid, playload, created) VALUES ('",
     myHash, "','", payload, "', now());"
   )
-  
+
   invisible(setPostgresql(sql))
   myHash
 }
@@ -238,7 +350,7 @@ stashData <- function(df){
 getStashedData <- function(hash){
   sql <- paste0("SELECT playload FROM datastack WHERE datastackid = '", hash, "'")
   res <- getPostgresql(sql)
-  
+
   if (nrow(res) > 0){
     jsonlite::fromJSON(res$playload)
   }
@@ -252,24 +364,24 @@ getStashedData <- function(hash){
 #'
 #' @return vector of gene symbols. If there's no ensg in the database the NA is
 #' returned for that gene.
-#' 
+#'
 #' @export
 #'
 #' @examples
-#' 
+#'
 #' \dontrun{
-#' 
+#'
 #' getGeneSymbol(c("ENSG00000133703", "xx", "ENSG00000268173", "ENSG00000133703"))
-#' 
+#'
 #' }
-#' 
+#'
 getGeneSymbol <- function(ensgs, species = "human"){
   sql <- paste0(
     "SELECT ensg, coalesce(symbol, ensg) as symbol FROM gene ",
     "WHERE ", prepareConditionSql(ensg = ensgs, species = species)
   )
   res <- getPostgresql(sql)
-  
+
   res <- (res %>% tibble::column_to_rownames("ensg"))[ensgs,,drop = FALSE]
   res$symbol
 }
