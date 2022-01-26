@@ -9,6 +9,7 @@ brushPlotUI <- function(id, ..., direction = "x", height = "600px"){
         fluidRow(
           class = "brush-info",
           div(
+            style = "width:100%;",
             textOutput(ns("selectionStat"), inline = TRUE),
             uiOutput(ns("dropdown"), inline = TRUE, class = "dropdown-container")
           )
@@ -403,7 +404,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
     content <- append(
       content,
       list(
-        h4("Panel"),
+        h5("Panel"),
         div(
           class = "panel-selection",
           facetSelector,
@@ -442,7 +443,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
     content <- append(
       content,
       list(
-        h4("X axis"),
+        h5("X axis"),
         `if`(length(choices) > 1, xSelector, shinyjs::hidden(xSelector)),
         uiOutput(ns("score_options_x"))
       )
@@ -460,7 +461,7 @@ getOptionsContent <- function(ns, facetInfo, defaultCutoff_x, defaultCutoff_y, a
     content <- append(
       content,
       list(
-        h4("Y axis"),
+        h5("Y axis"),
         `if`(length(choices) > 1, ySelector, shinyjs::hidden(ySelector)),
         uiOutput(ns("score_options_y"))
       )

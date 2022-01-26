@@ -4,7 +4,7 @@ withErrorHandler <- function(expr, errorId = NULL, session = getDefaultReactiveD
     expr = expr,
     error = function(e){
       errorMsg <- e$message
-      
+
       if (is.character(errorId)){
         shinyBS::createAlert(
           session = session,
@@ -13,7 +13,7 @@ withErrorHandler <- function(expr, errorId = NULL, session = getDefaultReactiveD
           style = "danger"
         )
       }
-      
+
       if (is.function(callback)){
         callback(errorMsg)
       }
@@ -149,28 +149,28 @@ styleHigherCol <- function(condition, cl){
 #' @export
 getEnsgRowCallback <- function(species, idx = 1){
   spFull <- getEnsemblSpecies(species)
-  
+
   if(length(idx) > 1) {
     idx <- sprintf("[%s]", paste(idx - 1, collapse = ","))
   } else {
     idx <- idx - 1
   }
-  
+
   htmlwidgets::JS(paste0("function(row, data, dataIndex) { ensgRowCallback(row, data, '", spFull, "', ", idx, "); }"))
 }
 
 #' Set DB options
-#' 
+#'
 #' This function sets all R options required for DB connection based on the
 #' settings object or environment variables (dbhost, dbname, dbuser, dbpass, dbport).
-#' 
+#'
 #' @param settings list of settings
-#' @return nothing 
+#' @return nothing
 #' @export
 setDbOptions <- function(settings = NULL){
-  
+
   if(is.null(settings)) {
-    
+
     settings <- list(db = list(
       dbhost = Sys.getenv("dbhost"),
       dbname = Sys.getenv("dbname"),
@@ -178,26 +178,26 @@ setDbOptions <- function(settings = NULL){
       dbpass = Sys.getenv("dbpass"),
       dbport = as.numeric(Sys.getenv("dbport", unset = 5432))
     ))
-    
+
     dbConfigMissing <- vapply(settings[["db"]], function(x) x == "", FUN.VALUE = TRUE)
     if(any(dbConfigMissing)) {
       missingNames <- names(dbConfigMissing[dbConfigMissing])
       stop(paste0(
-        "'settings' parameter was NULL. ", 
+        "'settings' parameter was NULL. ",
         "XIFF::setDbOptions attempted to read the config from environment variables.\n",
-        "However, parameters ", paste(missingNames, collapse = ", "), 
+        "However, parameters ", paste(missingNames, collapse = ", "),
         " are missing.\n",
         "Please set the proper values using either the '.Renviron' file (it requires the session restart)"),
         " or by using Sys.setenv() function:\n",
         paste(sprintf("Sys.setenv(%s = 'your-%s-here')", missingNames, missingNames), collapse = "\n")
       )
     }
-    
+
     # Rename values to be settings compatible. Using verions with `db` prefix is better easier
     # for rendering the error function (env names can be directry read from the list).
     names(settings[["db"]]) <- c("host", "name", "user", "password", "port")
   }
-  
+
   options("dbname" = settings[["db"]][["name"]])
   options("dbhost" = settings[["db"]][["host"]])
   options("dbport" = settings[["db"]][["port"]])
@@ -236,37 +236,37 @@ validateArgs <- function(args){
 #' @export
 registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
   resultClassLabel <- reactiveValues(class1_name = NULL, class2_name = NULL)
-  
+
   output$runClassLabel <- renderUI({
-    
+
     status <- .isMustRerun(id, fm)
     log_trace("Class label - {id} status: {status}.")
-    
+
     if(!status) {
       resultClassLabel$class1_name <- classLabel$class1_name
       resultClassLabel$class2_name <- classLabel$class2_name
-    } 
+    }
     # to depend on Results(), but not render the message if Results is an error
     # or not yet completed
-    try(Results(), silent = TRUE) 
-    
+    try(Results(), silent = TRUE)
+
     NULL
   })
-  
+
   resultClassLabel
 }
 
 
 #' Column Tab Panel
 #'
-#' @param title 
-#' @param value 
-#' @param inputMenu 
-#' @param outputArea 
+#' @param title
+#' @param value
+#' @param inputMenu
+#' @param outputArea
 #'
 #' @export
 columnTabPanel <- function(title, value, inputMenu, outputArea) {
-  
+
   if(is.null(inputMenu)) {
     tabPanel(
       title = title,
@@ -290,13 +290,13 @@ columnTabPanel <- function(title, value, inputMenu, outputArea) {
 
 #' Tabsets for shiny application
 #'
-#' @param id 
-#' @param docuLink 
-#' @param aboutTabUIFunc 
+#' @param id
+#' @param docuLink
+#' @param aboutTabUIFunc
 #'
 #' @export
 #' @rdname appTabsets
-#' 
+#'
 appUI_main_about <- function(id, docuLink, aboutTabUIFunc) {
   ns <- NS(id)
   tabPanel(title = "About", aboutTabUIFunc(ns("about"), docuLink))
@@ -332,6 +332,6 @@ appUI_title <- function(id, title, logoPath) {
     src = logoPath,
     title = title,
     height = "40px",
-    margin = "10px"
+    style = "margin:10px;"
   )
 }
