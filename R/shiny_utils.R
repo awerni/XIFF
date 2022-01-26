@@ -169,18 +169,34 @@ getEnsgRowCallback <- function(species, idx = 1){
 #' @export
 setDbOptions <- function(settings = NULL){
 
-  if(is.null(settings)) {
+  if (is.null(settings)) {
+    useGCloudAuth <- as.logical(Sys.getenv("dbusegcloudauth", unset = FALSE))
+    if (!is.logical(useGCloudAuth)){
+      stop("dbusegcloudauth env variable should be a logical")
+    }
 
     settings <- list(db = list(
       dbhost = Sys.getenv("dbhost"),
       dbname = Sys.getenv("dbname"),
-      dbuser = Sys.getenv("dbuser"),
-      dbpass = Sys.getenv("dbpass"),
-      dbport = as.numeric(Sys.getenv("dbport", unset = 5432))
+      dbport = as.numeric(Sys.getenv("dbport", unset = 5432)),
+      dbusegcloudauth = useGCloudAuth
     ))
+    altNames <- c("host", "name", "port", "useGCloudAuth")
+
+    if (!useGCloudAuth){
+      settings$db <- c(
+        settings$db,
+        list(
+          dbuser = Sys.getenv("dbuser"),
+          dbpass = Sys.getenv("dbpass")
+        )
+      )
+      altNames <- c(altNames, "user", "password")
+    }
 
     dbConfigMissing <- vapply(settings[["db"]], function(x) x == "", FUN.VALUE = TRUE)
-    if(any(dbConfigMissing)) {
+
+    if (any(dbConfigMissing)) {
       missingNames <- names(dbConfigMissing[dbConfigMissing])
       stop(paste0(
         "'settings' parameter was NULL. ",
@@ -195,14 +211,20 @@ setDbOptions <- function(settings = NULL){
 
     # Rename values to be settings compatible. Using verions with `db` prefix is better easier
     # for rendering the error function (env names can be directry read from the list).
-    names(settings[["db"]]) <- c("host", "name", "user", "password", "port")
+    names(settings[["db"]]) <- altNames
   }
 
   options("dbname" = settings[["db"]][["name"]])
   options("dbhost" = settings[["db"]][["host"]])
   options("dbport" = settings[["db"]][["port"]])
-  options("dbuser" = settings[["db"]][["user"]])
-  options("dbpass" = settings[["db"]][["password"]])
+
+  if (settings[["db"]][["useGCloudAuth"]]){
+    options("useGCloudAuth" = TRUE)
+  } else {
+    options("useGCloudAuth" = FALSE)
+    options("dbuser" = settings[["db"]][["user"]])
+    options("dbpass" = settings[["db"]][["password"]])
+  }
 }
 
 #' @export
