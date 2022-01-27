@@ -41,7 +41,18 @@ differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol,
     arrange(P.Value, adj.p.val)
 }
 
+
+#' Prepare Data And Design
+#'
+#' @param sampleClasses 
+#' @param dbDataFun 
+#' @param idCol 
+#' @param scoreCol 
+#'
+#' @return
 #' @export
+#'
+#' @examples
 prepareDataAndDesignCommon <- function(sampleClasses, dbDataFun, idCol, 
                                        scoreCol = "score"){
   class1 <- sampleClasses$class1

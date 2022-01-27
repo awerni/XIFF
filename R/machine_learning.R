@@ -333,7 +333,29 @@ mlGenerateExpressionPlot <- function(model, df, ca, plotType = "point", gene) {
   UseMethod("mlGenerateExpressionPlot")
 }
 
+
+#' Get Raw Data For MLXIFF Model
+#'
+#' @param features character vector with features or MLXIFF object
+#' @param names character vector with items for which the data needs to be extracted
+#' @param schema data base schema to be used
+#' (in most cases default value is sufficient)
+#' @param column name of the column which stores the items
+#' (in most cases default value is sufficient)
+#'
+#' @return long form data.frame containing {itemname}, ensg, and score
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#' 
+#'   ca <- CLIFF::exampleClassAssigment()
+#'   geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
+#'   getRawDataForModel(geneSet, unlist(ca))
+#' 
+#' }
+#' 
 getRawDataForModel <- function(features,
                                        names = NULL,
                                        schema = getOption("xiff.schema"),

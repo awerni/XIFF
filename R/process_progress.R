@@ -1,3 +1,7 @@
+#' R6 ProcessProgress bar
+#' 
+#' @details Progress bar for shiny
+#' 
 #' @importFrom FutureManager fmIsInterrupted fmUpdateProgress fmError
 #' @export
 ProcessProgress <- R6::R6Class(
