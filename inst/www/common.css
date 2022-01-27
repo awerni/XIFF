@@ -57,6 +57,12 @@ body:not(.modal-open) {
 .navbar-static-top .nav-item-right a {
   color: #18BC9C !important;
 }
+.table.dataTable tbody tr.active td {
+  background-color: #18BC9C !important;
+}
+.table.dataTable tbody tr.active td a {
+  color: #6c757d;
+}
 .flex-container {
    max-width: 100%;
 }
