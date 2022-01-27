@@ -282,12 +282,53 @@ mlGetTableData <- function(model) {
   UseMethod("mlGetTableData")
 }
 
+
+#' Get TPM data for given ML Model
+#'
+#' @param model MLXIFF object
+#' @param ensg gene ensg
+#' @param annoFocus celline annotation data 
+#'
+#' @details This function is required to be implemented for new MLXIFF model.
+#' Seel \code{mlGetTableData.XiffGREP} for an example.
+#'
+#' @return data.frame with columns: celllinename, ensg, tpm, tumortype
 #' @export
+#' 
+#' @example 
+#' 
+#' \dontrun{
+#' 
+#' df <- mlGetTpmData(model, "ENSG00000147889", annoFocus)
+#' 
+#' }
+#' 
 mlGetTpmData <- function(model, ensg, annoFocus) {
   UseMethod("mlGetTpmData")
 }
 
+
+#' Generate Expression Plot for Machine Learning Model
+#'
+#' @param model MLXIFF object
+#' @param df result of \code{mlGetTpmData}
+#' @param ca classAssigment object
+#' @param plotType plot type
+#' @param gene list with gene symbol and ensg
+#'
+#' @details this plot is mostly used in the ShinyApplication
+#' @return ggplot2
 #' @export
+#'
+#' @examples
+#' 
+#' \notrun{
+#' 
+#' df <- mlGetTpmData(model, "ENSG00000147889", annoFocus)
+#' gene <- list(symbol = getGeneSymbol("ENSG00000147889"), ensg = "ENSG00000147889")
+#' mlGenerateExpressionPlot(model, df, trainingSet, gene = gene)
+#' }
+#' 
 mlGenerateExpressionPlot <- function(model, df, ca, plotType = "point", gene) {
   UseMethod("mlGenerateExpressionPlot")
 }
