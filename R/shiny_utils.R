@@ -218,7 +218,7 @@ setDbOptions <- function(settings = NULL){
   options("dbhost" = settings[["db"]][["host"]])
   options("dbport" = settings[["db"]][["port"]])
 
-  if (settings[["db"]][["useGCloudAuth"]]){
+  if (settings[["db"]][["useGCloudAuth"]] %||% FALSE){
     options("useGCloudAuth" = TRUE)
   } else {
     options("useGCloudAuth" = FALSE)
