@@ -26,13 +26,16 @@ reference:
   - getPostgresql
   - setPostgresql
   - stashData
+  - setDbOptions
+  - runGCloudCommand
+  - initialDbCheck
+  - getPostgresql
+  - getSQL_filter
 
 - title: Dimension reduction functions
   contents:
-  - calcPCA_expression
-  - calcTSNE
-  - calcUMAP
   - starts_with("getExpressionDimRed")
+  - contains("DimRed")
 
 - title: Machine Learning 
   contents:
@@ -41,12 +44,28 @@ reference:
   - contains("model")
   - contains("ml")
   - starts_with("selectBestFeatures")
+  - stripGrepModel
+  - splitTrainingTestSets
 
 - title: Plotting
   contents:
   - starts_with("generate")
+  
+- title: Miscellaneous
+  contents:
+  - napply
+  - n_common
+  - plotColors
+  - packageInstalled
 
 - title: Shiny Functions
   desc: Functions used by the shiny application. Not useful for API usage.
   contents:
-  - matches(".*UI.*")
+  - matches("UI")
+  - starts_with("fm")
+  - fluidRow_12
+  - classicUploadInputMode
+  - appTabsets
+  - withHash
+  - column_x
+  - brushPlot-module

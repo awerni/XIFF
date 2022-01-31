@@ -322,7 +322,7 @@ mlGetTpmData <- function(model, ensg, annoFocus) {
 #'
 #' @examples
 #' 
-#' \notrun{
+#' \dontrun{
 #' 
 #' df <- mlGetTpmData(model, "ENSG00000147889", annoFocus)
 #' gene <- list(symbol = getGeneSymbol("ENSG00000147889"), ensg = "ENSG00000147889")
