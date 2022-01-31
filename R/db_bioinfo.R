@@ -83,7 +83,7 @@ getAntibodyInformation <- function(antibody = NA, checkData = FALSE) {
 #' 
 getMetadataGeneSetTable <- function() {
   getPostgresql("
-    SELECT * FROM public.geneset      
+    SELECT genesetname, species FROM public.geneset
   ")
 }
 
@@ -93,7 +93,7 @@ getGeneSet <- function(geneset) {
   
   sql <- glue::glue_sql(
     "SELECT 
-       * 
+       ensg
      FROM
        public.geneassignment
      WHERE 
