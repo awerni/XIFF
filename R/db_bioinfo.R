@@ -62,3 +62,44 @@ getAntibodyInformation <- function(antibody = NA, checkData = FALSE) {
   
   result
 }
+
+#' Get Gene Set Information
+#'
+#' @param geneset gene set name
+#'
+#' @return vector with genes ensg
+#' @export
+#' 
+#' @importFrom glue glue_sql
+#' @importFrom DBI ANSI
+#' @rdname getGeneSet
+#' @examples
+#' 
+#' setDbOptions()
+#' meta <- getMetadataGeneSetTable()
+#' meta
+#' 
+#' head(getGeneSet(meta$genesetname[1]))
+#' 
+getMetadataGeneSetTable <- function() {
+  getPostgresql("
+    SELECT * FROM public.geneset      
+  ")
+}
+
+#' @rdname getGeneSet
+#' @export
+getGeneSet <- function(geneset) {
+  
+  sql <- glue::glue_sql(
+    "SELECT 
+       * 
+     FROM
+       public.geneassignment
+     WHERE 
+       genesetname = {geneset}",
+    .con = DBI::ANSI()
+  )
+  
+  getPostgresql(sql)[["ensg"]]
+}
