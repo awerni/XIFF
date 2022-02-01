@@ -1,5 +1,79 @@
+.fm-run {
+  margin-top: 5px;
+  min-width: 40%;
+}
+
 body:not(.modal-open) {
   overflow-y: scroll;
+}
+
+.tab-content {
+  margin-top: 10px;
+}
+.tabbable .nav-tabs {
+  margin-bottom: 10px;
+}
+
+.navbar-static-top {
+  align-items: center;
+  padding: 0 !important;
+  margin-bottom: 3px !important;
+  margin-top: 3px;
+  border-bottom: 1px solid #dee2e6 !important;
+
+}
+.navbar-static-top .navbar-header {
+  display: none;
+}
+.navbar-static-top .container-fluid {
+  background-color: #FFFFFF;
+  padding: 0;
+}
+.navbar-static-top ul {
+  align-items:center;
+}
+.navbar-static-top ul li:first-child {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+.navbar-static-top .nav-item .nav-link {
+  padding: 0.7rem 1rem !important;
+  color: #18BC9C !important;
+  height: 100%;
+  border-radius: 5px;
+}
+.navbar-static-top .nav-item .nav-link.active {
+  background-color: #18BC9C;
+  color: #000000 !important;
+}
+.navbar-static-top .nav-item .nav-link:hover {
+  background-color: rgba(24, 188, 156, 0.1);
+  color: #000000 !important;
+}
+.navbar-static-top .nav-item-right {
+  margin-left: 10px;
+  color: #6c757d;
+}
+.navbar-static-top .nav-item-right a {
+  color: #18BC9C !important;
+}
+.table.dataTable tbody tr.active td {
+  background-color: #18BC9C !important;
+}
+.table.dataTable tbody tr.active td a {
+  color: #6c757d;
+}
+.flex-container {
+   max-width: 100%;
+}
+.width-65 {
+  display: inline-flex;
+  width: 65%;
+}
+.width-30 {
+  display: inline-flex;
+  width: 30%;
+  margin-left: 3%;
 }
 
 #shiny-modal-wrapper > .danger .modal-header {
@@ -26,7 +100,7 @@ body:not(.modal-open) {
 }
 
 .column-picker .bs-placeholder {
-  color: #fff !important;
+  color: #000000 !important;
 }
 
 .brush-info .dropdown-menu {
@@ -34,11 +108,15 @@ body:not(.modal-open) {
   top: 0;
   margin: 0 0 0 2px;
 }
-.brush-info .btn-dropdown-input {
+
+.brush-info .sw-dropdown-content {
+  padding-bottom: 20px;
+}
+.brush-info .sw-dropdown {
   float: right;
   margin-right: 15px;
 }
-.brush-info .btn-dropdown-input .caret {
+.brush-info .sw-dropdown .glyphicon {
   display: none;
 }
 
@@ -142,4 +220,29 @@ body:not(.modal-open) {
 
 .red-help-block {
   color: red;
+}
+
+.shiny-input-radiogroup > .control-label {
+  margin-bottom: 1rem;
+}
+
+.radio {
+  margin-top: 0px;
+}
+
+.input-method-selector > .shiny-input-container {
+  margin-top:10px;
+}
+
+.input-method-selector .selectize-input {
+  border: 2px solid #18bc9c;
+}
+
+.input-method-selector .control-label {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.about-information-table {
+  overflow-x: auto;
 }

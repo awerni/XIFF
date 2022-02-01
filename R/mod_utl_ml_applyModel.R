@@ -1,6 +1,6 @@
 mlApplyModelUI_main <- function(id){
   ns <- NS(id)
-  
+
   div(
     fluidRow(
       column_6(plotWrapperUI(ns("plot"))),
@@ -22,21 +22,21 @@ mlApplyModelUI_header <- function(id){
 
 mlApplyModel <- function(input, output, session, Model, classSelection, classLabel, AnnotationFocus){
   ns <- session$ns
-  
+
   Data <- reactive({
     m <- Model()
     req(m)
-    
+
     cs <- reactiveValuesToList(classSelection)
     assignment <- stackClasses(cs)
     validate(need(nrow(assignment) > 0,  "goto input tab and select cell lines"))
-    
+
     getDataForModel(
       assignment = assignment,
       features = m
     )
   })
-  
+
   Predictions <- reactive({
     df <- Data()
     m <- Model()
@@ -49,17 +49,17 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
       session = session
     )
   })
-  
+
   Results <- reactive({
     positive_model <- input$positive_model
     positive_cs <- input$positive_cs
     req(positive_model, positive_cs)
-    
+
     preds <- Predictions()
     req(preds)
-    
+
     d <- Data()
-    
+
     XIFF::getPredictionSummary(
       items = d[[getOption("xiff.column")]],
       preds = preds,
@@ -72,7 +72,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
       annoFocus = AnnotationFocus()
     )
   })
-  
+
   Choices_cs <- reactive({
     cl <- reactiveValuesToList(classLabel)
     structure(
@@ -80,7 +80,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
       names = c(cl$class1_name, cl$class2_name)
     )
   })
-  
+
   Choices_model <- reactive({
     m <- Model()
     validate(need(m, "load the model first"))
@@ -89,10 +89,10 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
       names = c(m$classLabel$class1_name, m$classLabel$class2_name)
     )
   })
-  
+
   output$sidebar <- renderUI({
     list(
-      h4("Positive class"),
+      h5("Positive class"),
       selectInput(
         inputId = ns("positive_model"),
         label = "From the model",
@@ -107,24 +107,24 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
       ),
       hr(),
       textInput(
-        inputId = ns("download_filename"), 
-        label = "Choose file name", 
+        inputId = ns("download_filename"),
+        label = "Choose file name",
         value = "predictions"
       ),
       downloadButton(
-        outputId = ns("download"), 
+        outputId = ns("download"),
         label = "Download"
       )
     )
   })
-  
+
   # Table ---------------------------------------------------------------------
   TableData <- reactive({
     res <- Results()
     req(res)
-    
+
     name <- rlang::sym(getOption("xiff.column"))
-    
+
     res$data %>% select(
       !!name,
       tumortype,
@@ -134,7 +134,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     ) %>%
       mutate_at(c("predicted", "reference"), factor)
   })
-  
+
   output$table <- DT::renderDataTable(
     expr = TableData(),
     rownames = FALSE,
@@ -146,29 +146,29 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     escape = FALSE,
     selection = "none"
   )
-  
+
   # Table plot ----------------------------------------------------------------
   TablePlot <- reactive({
     res <- Results()
     req(res)
     df <- prepareTablePlotData(
       df = res$data,
-      positive_preds = input$positive_model, 
+      positive_preds = input$positive_model,
       positive_refs <- input$positive_cs,
-      labels_preds = names(Choices_model()), 
+      labels_preds = names(Choices_model()),
       labels_refs = names(Choices_cs()),
       labels = c("positive", "negative")
     )
-    
+
     XIFF::generateTablePlot(df)
   })
-  
+
   callModule(
     plotWrapper,
     id = "plot",
     PlotExpr = TablePlot
   )
-  
+
   # Performance plot ----------------------------------------------------------
   PerformancePlot <- reactive({
     res <- Results()
@@ -176,13 +176,13 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
     df <- XIFF::generateTestPerformanceData(res$res$table)
     XIFF::generateTestPerformancePlot(df)
   })
-  
+
   callModule(
     plotWrapper,
     id = "metrics",
     PlotExpr = PerformancePlot
   )
-  
+
   # Download ------------------------------------------------------------------
   output$download <- downloadHandler(
     filename = function() { paste0(input$download_filename, ".csv") },
