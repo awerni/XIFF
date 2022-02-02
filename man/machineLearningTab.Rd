@@ -2,12 +2,15 @@
 % Please edit documentation in R/mod_tab_machineLearning.R
 \name{machineLearningTabUI_main}
 \alias{machineLearningTabUI_main}
+\alias{appUI_main_machine_learning}
 \alias{machineLearningTabUI}
 \alias{machineLearningTabUI_sidebar}
 \alias{machineLearningTab}
 \title{machineLearningTabUI}
 \usage{
 machineLearningTabUI_main(id)
+
+appUI_main_machine_learning(id)
 
 machineLearningTabUI(id)
 
