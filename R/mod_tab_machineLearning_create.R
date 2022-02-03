@@ -128,7 +128,7 @@ machineLearningCreateModelTab <- function(input, output, session, fm, classSelec
   # Sidebar --------------------------------------------------------------------
   ns <- session$ns
   output$sidebar_run <- renderUI({
-    fmButtonOneClass(ns("run"), fm, classSelection)
+    fmButtonBothClasses(ns("run"), fm, classSelection)
   })
   
   output$indicator <- renderUI({
