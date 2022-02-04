@@ -7,12 +7,6 @@
 columnTabPanel(title, value, inputMenu, outputArea)
 }
 \arguments{
-\item{title}{}
-
-\item{value}{}
-
-\item{inputMenu}{}
-
 \item{outputArea}{}
 }
 \description{

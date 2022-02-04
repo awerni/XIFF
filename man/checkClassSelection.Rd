@@ -11,6 +11,8 @@ checkClassSelection(cs)
 }
 \value{
 TRUE if class1 and class2 are not empty, FALSE otherwise
+
+TODO: check the intent
 }
 \description{
 Check if both classes in classAssigment object are not empty

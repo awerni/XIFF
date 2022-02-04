@@ -13,10 +13,6 @@ appUI_title_right(id, docuLink, packageName, dbName)
 appUI_title(id, title, logoPath)
 }
 \arguments{
-\item{id}{}
-
-\item{docuLink}{}
-
 \item{aboutTabUIFunc}{}
 }
 \description{

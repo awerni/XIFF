@@ -7,6 +7,17 @@
 \usage{
 x \%||\% y
 }
+\arguments{
+\item{x}{any R object}
+
+\item{y}{defalut value used if x is NULL}
+}
 \description{
 Null default
+}
+\examples{
+
+1 \%||\% 2
+NULL \%||\% 2
+
 }
