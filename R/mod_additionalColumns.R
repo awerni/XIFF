@@ -1,6 +1,6 @@
 #' Additional Columns module
 #'
-#' @param id 
+#' @param id shiny id
 #' @param Table 
 #' @param defaultCols 
 #' @param maxAdditionalCols 

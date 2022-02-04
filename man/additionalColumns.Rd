@@ -13,7 +13,7 @@ additionalColumnsUI_sidebar(id)
 additionalColumns(id, Table, defaultCols = NULL, maxAdditionalCols = 5, ...)
 }
 \arguments{
-\item{id}{}
+\item{id}{shiny id}
 
 \item{Table}{}
 

@@ -667,7 +667,15 @@ generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
   )
 }
 
+
+#' Utility function for plotting customPlotPrint object
+#'
+#' @param x custom plot
+#'
+#' @return
 #' @export
+#'
+#' @exportS3Method 
 print.customPlotPrint <- function(x){
   grid::grid.draw(x)
 }

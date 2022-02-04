@@ -18,9 +18,9 @@ programmerImportInputModeUI <- function(id){
 #' Programmer Import Input Module
 #'
 #' @param id module id
-#' @param input 
-#' @param output 
-#' @param session 
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
 #' @param Annotation annotation data.frame
 #'
 #' @export

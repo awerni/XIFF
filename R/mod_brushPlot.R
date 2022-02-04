@@ -1,8 +1,8 @@
 #' Brush Plot Module
 #'
-#' @param input 
-#' @param output 
-#' @param session 
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
 #' @param plotExpr 
 #' @param checkExpr 
 #' @param textCallback 

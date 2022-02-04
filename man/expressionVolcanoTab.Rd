@@ -13,11 +13,11 @@ expressionVolcanoTabUI_sidebar(id)
 expressionVolcanoTab(input, output, session, classLabel, TableData)
 }
 \arguments{
-\item{input}{}
+\item{input}{shiny input object}
 
-\item{output}{}
+\item{output}{shiny output object}
 
-\item{session}{}
+\item{session}{shiny session object}
 
 \item{classLabel}{}
 

@@ -2,7 +2,7 @@
 #'
 #' @param expr 
 #' @param errorId 
-#' @param session 
+#' @param session shiny session object
 #' @param callback 
 #'
 #' @rdname shiny-utility
@@ -386,9 +386,9 @@ columnTabPanel <- function(title, value, inputMenu, outputArea) {
 
 #' Tabsets for shiny application
 #'
-#' @param id
-#' @param docuLink
-#' @param aboutTabUIFunc
+#' @param id shiny id
+#' @param docuLink link to the documentation
+#' @param aboutTabUIFunc function that creates about ui
 #'
 #' @export
 #' @rdname appTabsets

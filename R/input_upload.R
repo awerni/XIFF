@@ -49,9 +49,9 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
 
 #' Upload Input Mode
 #'
-#' @param input 
-#' @param output 
-#' @param session 
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
 #' @param AnnotationFull 
 #' @param translationFun 
 #' @param AllTumortype 

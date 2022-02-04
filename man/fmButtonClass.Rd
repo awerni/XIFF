@@ -12,7 +12,7 @@ fmButtonBothClasses(inputId, fm, cs, defaultValue = FALSE)
 \arguments{
 \item{inputId}{module id}
 
-\item{fm}{futureManger object}
+\item{fm}{FutureManager object}
 
 \item{cs}{class selection object}
 

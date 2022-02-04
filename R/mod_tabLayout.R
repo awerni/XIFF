@@ -86,9 +86,9 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
 
 #' Tab module layout
 #'
-#' @param input 
-#' @param output 
-#' @param session 
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
 #' @param plotFun 
 #' @param TableData 
 #' @param jsRowCallback 

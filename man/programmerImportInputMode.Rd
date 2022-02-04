@@ -12,11 +12,11 @@ programmerImportInputMode(input, output, session, Annotation)
 \arguments{
 \item{id}{module id}
 
-\item{input}{}
+\item{input}{shiny input object}
 
-\item{output}{}
+\item{output}{shiny output object}
 
-\item{session}{}
+\item{session}{shiny session object}
 
 \item{Annotation}{annotation data.frame}
 }

@@ -421,7 +421,7 @@ stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE
 #' Utility function for styling Future Manager Run Buttons
 #'
 #' @param inputId module id
-#' @param fm futureManger object
+#' @param fm FutureManager object
 #' @param cs class selection object
 #' @param defaultValue logical, the initial button value
 #'

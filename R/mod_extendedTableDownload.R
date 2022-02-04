@@ -31,9 +31,9 @@ extendedTableDownloadUI <- function(id, label, filename = label){
 
 #' Module for downloading tables as csv files.
 #'
-#' @param input 
-#' @param output 
-#' @param session 
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
 #' @param Table 
 #' @param Subject 
 #' @param Item 

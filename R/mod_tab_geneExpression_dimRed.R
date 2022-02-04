@@ -56,10 +56,10 @@ geneExpressionDimRedTabUI_sidebar <- function(id){
 
 #' Gene Expression Dimension Reduction Module
 #' 
-#' @param input 
-#' @param output 
-#' @param session 
-#' @param fm 
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
+#' @param fm FutureManager object
 #' @param Results 
 #' @param TableData 
 #' @param getDataGeneExpression 

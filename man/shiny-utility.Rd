@@ -40,7 +40,7 @@ validateArgs(args)
 
 \item{errorId}{}
 
-\item{session}{}
+\item{session}{shiny session object}
 
 \item{callback}{}
 }
