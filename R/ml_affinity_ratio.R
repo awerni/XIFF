@@ -7,7 +7,6 @@
 #' @param minFeatures min number of features resulting from affinity propagation.
 #' @param epsilonRNAseq
 #'
-#' @return
 #' @export
 #' 
 getGrepFeatureSelection <- function(df,

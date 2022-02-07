@@ -10,7 +10,7 @@ containerDT(id)
 \item{id}{shiny id}
 }
 \value{
-
+div with datatable container
 }
 \description{
 DT Container with smaller font

@@ -22,7 +22,7 @@ selectBestFeaturesBoruta(
 \item{threads}{number of threads to be used by Boruta algorithm.}
 }
 \value{
-
+list with data.frame containing only the selected variable
 }
 \description{
 Use Bortua algorithm for feature selection.

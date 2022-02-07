@@ -10,7 +10,7 @@ mlGetTableData(model)
 \item{model}{machine learning model fitted in XIFF}
 }
 \value{
-
+summary of MLXIFF model
 }
 \description{
 Summarise Model Parameters in Table

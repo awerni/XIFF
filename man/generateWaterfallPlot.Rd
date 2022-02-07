@@ -30,7 +30,7 @@ generateWaterfallPlot(
 \item{fill}{}
 }
 \value{
-
+ggplot2 object
 }
 \description{
 Generate Waterfall Plot

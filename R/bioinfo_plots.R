@@ -7,7 +7,7 @@
 #' @param FCside "both sides", "left", "right"
 #' @param classLabels 
 #'
-#' @return
+#' @return ggplot2 object
 #' @export
 #'
 #' @examples

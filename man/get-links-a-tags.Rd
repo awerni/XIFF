@@ -21,7 +21,7 @@ getGeneSetLink(geneset, msigDBLink, rawGeneset = NULL)
 \item{species}{}
 }
 \value{
-
+vector with html tags
 }
 \description{
 Get HTML tags with links

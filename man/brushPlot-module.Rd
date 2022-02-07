@@ -28,6 +28,8 @@ brushPlot(
 )
 }
 \arguments{
+\item{id}{shiny id}
+
 \item{...}{}
 
 \item{input}{shiny input object}
@@ -61,9 +63,6 @@ brushPlot(
 \item{availableChoices}{}
 
 \item{test}{}
-}
-\value{
-
 }
 \description{
 Brush Plot Module

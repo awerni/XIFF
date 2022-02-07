@@ -128,7 +128,7 @@ handleTestSet <- function(classSelection, p_test = 0.2) {
 #'
 #' @importFrom FutureManager is.fmError
 #' @export
-#' @return
+#' @return MLXIFF object
 #'
 buildMachineLearning <- function(cs,
                                  geneSet,
@@ -248,18 +248,20 @@ xiffSupportedModels <- function() {
 #' @param column column containing the items, default value shoud be used
 #' @param classLabel list with alternative class labels
 #'
-#' @return
+#' @return raw data.frame with features for MLXIFF model
 #' @export
 #'
 #' @examples
+#' if(require("CLIFF"))
+#'   CLIFF::setDbOptions()
+#'   ca <- CLIFF::exampleClassAssigment()
+#'   geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
 #' 
-#' ca <- CLIFF::exampleClassAssigment()
-#' geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
+#'   modelData <- getDataForModel(ca, geneSet)
+#'   head(modelData)
 #' 
-#' modelData <- getDataForModel(ca, geneSet)
-#' head(modelData)
-#' 
-#' getDataForModel(ca, geneSet, classLabel = list(class1 = "c1", class2 = "c2"))
+#'   getDataForModel(ca, geneSet, classLabel = list(class1 = "c1", class2 = "c2"))
+#' }
 #' 
 getDataForModel <- function(assignment,
                             features,
@@ -274,7 +276,7 @@ getDataForModel <- function(assignment,
 #'
 #' @param model machine learning model fitted in XIFF
 #'
-#' @return
+#' @return summary of MLXIFF model
 #' @export
 #'
 #' @examples

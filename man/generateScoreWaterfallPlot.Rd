@@ -14,7 +14,7 @@ generateScoreWaterfallPlot(data, score_desc, y_scale = "identity")
 \item{y_scale}{type of y-scale (e.g. identity or log10)}
 }
 \value{
-
+ggplot2 plot
 }
 \description{
 Generate Score Waterfall plot

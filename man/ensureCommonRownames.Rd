@@ -16,13 +16,12 @@ ensureCommonRownames(m1, m2, sortRownames = FALSE, outNames = NULL)
 \item{outNames}{names for the output list}
 }
 \value{
-
+list with m1 and m2 data.frame both containing rows with the same names
 }
 \description{
 Extract rows with the same rownames from data.frame
 }
 \examples{
-
 
 m1 <- data.frame(x = 1:3, y = 1:3, row.names = c("A", "B", "C"))
 m2 <- data.frame(x = 2:4*100, y = 2:4*10, row.names = c("B", "C", "D"))

@@ -12,7 +12,7 @@ makeClassAssignment(sampleClasses, classLabel)
 \item{classLabel}{}
 }
 \value{
-
+classAssignment object
 }
 \description{
 Utility function for creating class assignment objects.

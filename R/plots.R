@@ -10,7 +10,7 @@ plotColors <- c("#d73027", "#4575b4", "#fc8d59", "#91bfdb", "#A8840D", "#24BF43"
 #' @param legend.position where the legend need to be located
 #' @param textSize base text size
 #'
-#' @return
+#' @return ggplot2 theme
 #' @export
 #'
 #' @examples
@@ -45,7 +45,7 @@ commonPlotTheme <- function(legend.position = "right", textSize = 16){
 #' @param diffPlotFun function used to make diffPlotFun
 #' @param ... other arguments passed to the plotting function
 #'
-#' @return
+#' @return ggplot2 plot
 #' @export
 #'
 #' @rdname xiff-basic-plot-types
@@ -194,7 +194,7 @@ generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
 #' @param limits 
 #' @param fill 
 #'
-#' @return
+#' @return ggplot2 object
 #' @export
 #'
 #' @examples
@@ -644,7 +644,7 @@ generateScoreBarPlot <- function(data, score_desc) {
 #' @param score_desc 
 #' @param y_scale type of y-scale (e.g. identity or log10)
 #'
-#' @return
+#' @return ggplot2 plot
 #' @export
 #'
 #' @examples
@@ -672,7 +672,7 @@ generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
 #'
 #' @param x custom plot
 #'
-#' @return
+#' @return called from side effect
 #' @export
 #'
 #' @exportS3Method 

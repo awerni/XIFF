@@ -27,7 +27,7 @@ generateVolcanoPlot(
 \item{classLabels}{}
 }
 \value{
-
+ggplot2 object
 }
 \description{
 Generate Volcano Plot

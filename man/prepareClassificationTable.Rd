@@ -7,15 +7,20 @@
 prepareClassificationTable(class1, class2, addRownames = TRUE)
 }
 \arguments{
-\item{class1}{}
+\item{class1}{vector with class one items}
 
-\item{class2}{}
+\item{class2}{vector with class two items}
 
-\item{addRownames}{}
+\item{addRownames}{logical, if \code{TRUE} then adds items as rownames}
 }
 \value{
-
+data.frame
 }
 \description{
 Prepare Classification Table
+}
+\examples{
+
+prepareClassificationTable(c("A", "B"), c("C", "D"))
+
 }

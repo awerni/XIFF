@@ -10,7 +10,7 @@
 \item{x}{custom plot}
 }
 \value{
-
+called from side effect
 }
 \description{
 Utility function for plotting customPlotPrint object

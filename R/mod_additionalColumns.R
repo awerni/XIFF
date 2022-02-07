@@ -4,13 +4,11 @@
 #' @param Table 
 #' @param defaultCols 
 #' @param maxAdditionalCols 
-#' @param ... 
+#' @param ... additional arguments passed to datatable
 #'
 #' @export
 #' @rdname additionalColumns
 #'
-#' @examples
-#' 
 additionalColumnsUI_main <- function(id, style = "font-size:80%"){
   ns <- NS(id)
   div(

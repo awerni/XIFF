@@ -49,7 +49,7 @@ generateDiffPlot(
 \item{...}{other arguments passed to the plotting function}
 }
 \value{
-
+ggplot2 plot
 }
 \description{
 Basic Plots

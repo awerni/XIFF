@@ -101,7 +101,7 @@ classAssignment <- function(..., positiveClass = NULL) {
 #' @param sampleClasses 
 #' @param classLabel 
 #'
-#' @return
+#' @return classAssignment object
 #' @export
 #'
 #' @examples
@@ -380,7 +380,7 @@ dropNulls <- function(x){
 #' @param classLabel 
 #' @param return_factor 
 #'
-#' @return
+#' @return data.frame with {getOption("xiff.column")} and class columns
 #' @export
 #'
 #' @examples
@@ -488,7 +488,7 @@ getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2
 #'
 #' @param n number of items
 #'
-#' @return
+#' @return string with the label
 #' @export
 #'
 #' @examples
@@ -606,7 +606,6 @@ n_common <- function(x, y){
 #'
 #' @param geneSets vector with HALLMARK genes setes names
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -631,7 +630,7 @@ getHallmarkGeneSetChoices <- function(geneSets){
 #' @param location 
 #' @param species 
 #'
-#' @return
+#' @return vector with html tags 
 #' @export
 #' @rdname get-links-a-tags
 #'

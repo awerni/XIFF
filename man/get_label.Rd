@@ -10,7 +10,7 @@ get_label(n)
 \item{n}{number of items}
 }
 \value{
-
+string with the label
 }
 \description{
 Get XIFF label with the number of items for plots

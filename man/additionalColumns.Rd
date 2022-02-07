@@ -21,11 +21,8 @@ additionalColumns(id, Table, defaultCols = NULL, maxAdditionalCols = 5, ...)
 
 \item{maxAdditionalCols}{}
 
-\item{...}{}
+\item{...}{additional arguments passed to datatable}
 }
 \description{
 Additional Columns module
-}
-\examples{
-
 }

@@ -1,5 +1,6 @@
 #' Brush Plot Module
 #'
+#' @param id shiny id
 #' @param input shiny input object
 #' @param output shiny output object
 #' @param session shiny session object
@@ -18,8 +19,6 @@
 #' @param test 
 #' @param ... 
 #'
-#' @return
-#' 
 #' @export
 #' @rdname brushPlot-module
 #'

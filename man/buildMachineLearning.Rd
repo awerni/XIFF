@@ -97,7 +97,7 @@ if custom function is used.}
 use custom methods. For advanced users.}
 }
 \value{
-
+MLXIFF object
 }
 \description{
 Workhorse for machine learning.

@@ -15,9 +15,6 @@ prepareDataAndDesignCommon(sampleClasses, dbDataFun, idCol, scoreCol = "score")
 
 \item{scoreCol}{}
 }
-\value{
-
-}
 \description{
 Prepare Data And Design
 }

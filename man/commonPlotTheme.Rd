@@ -12,7 +12,7 @@ commonPlotTheme(legend.position = "right", textSize = 16)
 \item{textSize}{base text size}
 }
 \value{
-
+ggplot2 theme
 }
 \description{
 XIFF ggplot2 theme

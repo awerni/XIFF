@@ -2,7 +2,7 @@
 % Please edit documentation in R/bioinfo_plots.R
 \name{generateGSEA_plot}
 \alias{generateGSEA_plot}
-\title{Title}
+\title{Generate GSEA Plot}
 \usage{
 generateGSEA_plot(diffExResult, ensg_geneset, rankType, classLabels = NULL)
 }
@@ -16,10 +16,10 @@ generateGSEA_plot(diffExResult, ensg_geneset, rankType, classLabels = NULL)
 \item{classLabels}{}
 }
 \value{
-
+ggplot2 plot
 }
 \description{
-Title
+Generate GSEA Plot
 }
 \examples{
 

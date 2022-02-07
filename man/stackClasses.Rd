@@ -14,7 +14,7 @@ stackClasses(sampleClasses, classLabel = NULL, return_factor = FALSE)
 \item{return_factor}{}
 }
 \value{
-
+data.frame with {getOption("xiff.column")} and class columns
 }
 \description{
 Stack Class Assignment object

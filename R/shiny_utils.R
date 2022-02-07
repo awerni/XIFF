@@ -181,7 +181,7 @@ fluidRow_12 <- function(...) fluidRow(column_12(...))
 #'
 #' @param id shiny id
 #'
-#' @return
+#' @return div with datatable container
 #' @export
 #'
 #' @examples
@@ -445,7 +445,6 @@ appUI_title <- function(id, title, logoPath) {
 #' @param font font name to use
 #' @param ... arguments passed to bs_theme
 #' 
-#' @return 
 #' @export
 appTheme <- function(version = 4, font = "Roboto", ...){
   robotoFont <- bslib::font_collection(bslib::font_google(font), "sans-serif")
