@@ -49,10 +49,8 @@ differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol,
 #' @param idCol 
 #' @param scoreCol 
 #'
-#' @return
 #' @export
 #'
-#' @examples
 prepareDataAndDesignCommon <- function(sampleClasses, dbDataFun, idCol, 
                                        scoreCol = "score"){
   class1 <- sampleClasses$class1
@@ -92,14 +90,17 @@ prepareDataAndDesignCommon <- function(sampleClasses, dbDataFun, idCol,
 
 #' Prepare Classification Table
 #'
-#' @param class1 
-#' @param class2 
-#' @param addRownames 
+#' @param class1 vector with class one items
+#' @param class2 vector with class two items
+#' @param addRownames logical, if \code{TRUE} then adds items as rownames
 #'
-#' @return
+#' @return data.frame
 #' @export
 #'
 #' @examples
+#' 
+#' prepareClassificationTable(c("A", "B"), c("C", "D"))
+#' 
 prepareClassificationTable <- function(class1, class2, addRownames = TRUE){
   sampleNames <- c(class1, class2)
   df <- data.frame(
@@ -161,11 +162,10 @@ reorderByScore <- function(df, orderCol = getOption("xiff.column"),
 #' @param sortRownames should the rownames should sorted
 #' @param outNames names for the output list
 #'
-#' @return
+#' @return list with m1 and m2 data.frame both containing rows with the same names
 #' @export
 #'
 #' @examples
-#' 
 #' 
 #' m1 <- data.frame(x = 1:3, y = 1:3, row.names = c("A", "B", "C"))
 #' m2 <- data.frame(x = 2:4*100, y = 2:4*10, row.names = c("B", "C", "D"))
@@ -400,7 +400,7 @@ selectBestFeaturesGlmnet <-
 #' @param threads number of threads to be used by Boruta algorithm.
 #' 
 #' 
-#' @return
+#' @return list with data.frame containing only the selected variable
 #' @export
 #' @importFrom Boruta Boruta
 #'

@@ -80,14 +80,14 @@ generateVolcanoPlot <- function(diffExpr, minuslog10pval, minuslog10adjpval, log
 }
 
 
-#' Title
+#' Generate GSEA Plot
 #'
 #' @param diffExResult 
 #' @param ensg_geneset 
 #' @param rankType "p.valueDir", "logFC"
 #' @param classLabels 
 #'
-#' @return
+#' @return ggplot2 plot
 #' @export
 #'
 #' @examples
