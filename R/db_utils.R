@@ -22,7 +22,7 @@ isDbOnline <- function(timeout = 5){
 #'
 #' @export
 #' @return the command output
-#' 
+#'
 runGCloudCommand <- function(args){
   res <- tryCatch(
     expr = suppressWarnings(system2(
@@ -54,9 +54,16 @@ runGCloudCommand <- function(args){
 #'
 #' @return the current user email
 #' @export
-#' 
+#'
 getCurrentGCloudUser <- function(){
-  runGCloudCommand(c("config", "list", "account", "--format", "'value(core.account)'"))
+  testUserName <- getOption("xiff.testUserName", default = NULL)
+
+  if (is.null(testUserName)){
+    runGCloudCommand(c("config", "list", "account", "--format", "'value(core.account)'"))
+  } else {
+    warning("Using test user name! Please set xiff.testUserName option to NULL to avoid this")
+    testUserName
+  }
 }
 
 #' Create GCloud access token
@@ -65,7 +72,7 @@ getCurrentGCloudUser <- function(){
 #'
 #' @return list with fields: user, token, timestamp
 #' @export
-#' 
+#'
 createGCloudAccessToken <- function(){
   timestamp <- Sys.time()
   currentUser <- getCurrentGCloudUser()
@@ -86,7 +93,7 @@ createGCloudAccessToken <- function(){
 #'
 #' @return list with fields: user, token, timestamp
 #' @export
-#' 
+#'
 getGCloudAccessToken <- function(){
   token <- getOption("xiff.gToken")
   currentTime <- Sys.time()
