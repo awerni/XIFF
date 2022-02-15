@@ -99,7 +99,7 @@ getGCloudAccessToken <- function(){
     timestampDiff <- as.numeric(difftime(
       time1 = currentTime,
       time2 = token$timestamp,
-      units = "s"
+      units = "m"
     ))
 
     if (timestampDiff > 59){
