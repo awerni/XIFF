@@ -9,9 +9,6 @@ getHallmarkGeneSetChoices(geneSets)
 \arguments{
 \item{geneSets}{vector with HALLMARK genes setes names}
 }
-\value{
-
-}
 \description{
 Get Hallmark Gene Set Choices
 }

@@ -27,9 +27,6 @@ with other feature selection methods.}
 
 \item{epsilonRNAseq}{}
 }
-\value{
-
-}
 \description{
 Feature selection using GREP methodology.
 }
