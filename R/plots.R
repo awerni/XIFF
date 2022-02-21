@@ -554,7 +554,7 @@ generateClassSelectionPlot <- function(sampleClasses, prop1, prop2, n_classes,
       xlab("") +
       ylab("") +
       labs(fill = "") +
-      commonPlotTheme("bottom", 20)
+      commonPlotTheme("bottom", 20) +
       theme(
         axis.text = element_blank(),
         axis.ticks = element_blank()

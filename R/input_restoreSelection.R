@@ -163,8 +163,8 @@ saveProperties <- function(res, classSelection, classLabel, classStack, Annotati
   if (nrow(assignment) > 0) {
     dialog_text <- paste0(
       "Saving ", msg, " of ", nrow(assignment), " ", label, "s.\n",
-      "Goto 'input' and select 'restore selection' to use these properties",
-      "for a new ", label, " classification "
+      "In 'Input' tab select 'restore selection' to use these properties",
+      " for a new ", label, " classification "
     )
 
     if (is.data.frame(res) && nrow(res) > 0 && colname %in% names(res)){
