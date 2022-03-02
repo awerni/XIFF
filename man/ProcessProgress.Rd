@@ -28,6 +28,15 @@ Progress bar for shiny
 \if{html}{\out{<div class="r">}}\preformatted{ProcessProgress$new(label, p = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{label}}{character string}
+
+\item{\code{p}}{progress type}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-update"></a>}}
@@ -37,6 +46,15 @@ Progress bar for shiny
 \if{html}{\out{<div class="r">}}\preformatted{ProcessProgress$update(value, msg)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{value}}{numeric}
+
+\item{\code{msg}}{character string}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-error"></a>}}
@@ -46,6 +64,13 @@ Progress bar for shiny
 \if{html}{\out{<div class="r">}}\preformatted{ProcessProgress$error(msg)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{msg}}{character string}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}

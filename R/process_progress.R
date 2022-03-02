@@ -7,6 +7,8 @@
 ProcessProgress <- R6::R6Class(
   classname = "ProcessProgress",
   public = list(
+    #' @param label character string
+    #' @param p progress type, logical or shiny session object
     initialize = function(label, p = FALSE){
       private$label <- label
       private$type <- if (is.logical(p)){
@@ -27,6 +29,8 @@ ProcessProgress <- R6::R6Class(
       invisible(self)
     },
 
+    #' @param value numeric
+    #' @param msg character string
     update = function(value, msg){
       if (private$type == "none") return()
       switch(
@@ -37,6 +41,7 @@ ProcessProgress <- R6::R6Class(
       )
     },
 
+    #' @param msg character string
     error = function(msg){
       args <- if (private$type == "fm"){
         list(fmError(msg))

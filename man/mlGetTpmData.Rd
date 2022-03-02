@@ -23,3 +23,12 @@ Get TPM data for given ML Model
 This function is required to be implemented for new MLXIFF model.
 Seel \code{mlGetTableData.XiffGREP} for an example.
 }
+\examples{
+
+\dontrun{
+
+df <- mlGetTpmData(model, "ENSG00000147889", annoFocus)
+
+}
+
+}

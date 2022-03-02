@@ -252,7 +252,7 @@ xiffSupportedModels <- function() {
 #' @export
 #'
 #' @examples
-#' if(require("CLIFF"))
+#' if(require("CLIFF")){
 #'   CLIFF::setDbOptions()
 #'   ca <- CLIFF::exampleClassAssigment()
 #'   geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
@@ -297,7 +297,7 @@ mlGetTableData <- function(model) {
 #' @return data.frame with columns: celllinename, ensg, tpm, tumortype
 #' @export
 #' 
-#' @example 
+#' @examples
 #' 
 #' \dontrun{
 #' 

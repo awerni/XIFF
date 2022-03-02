@@ -355,10 +355,10 @@ registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
 
 #' Column Tab Panel
 #'
-#' @param title
-#' @param value
-#' @param inputMenu
-#' @param outputArea
+#' @param title character string
+#' @param value character string
+#' @param inputMenu shiny tag
+#' @param outputArea shiny tag
 #'
 #' @export
 columnTabPanel <- function(title, value, inputMenu, outputArea) {

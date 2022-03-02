@@ -26,3 +26,7 @@ devtools::install_github("broadinstitute/XIFF")
 ```
 
 </div>
+
+## Build docker image
+
+    docker build -t wernitznig/xiff .

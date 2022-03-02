@@ -29,3 +29,16 @@ raw data.frame with features for MLXIFF model
 \description{
 Get Data for Machine Learning Model
 }
+\examples{
+if(require("CLIFF")){
+  CLIFF::setDbOptions()
+  ca <- CLIFF::exampleClassAssigment()
+  geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
+
+  modelData <- getDataForModel(ca, geneSet)
+  head(modelData)
+
+  getDataForModel(ca, geneSet, classLabel = list(class1 = "c1", class2 = "c2"))
+}
+
+}

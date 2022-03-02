@@ -32,3 +32,8 @@ comparison class handling and R/shiny functions for CLIFF and TIFF.
 devtools::install_github("broadinstitute/XIFF")
 ```
 :::
+
+## Build docker image
+```
+docker build -t wernitznig/xiff .
+```
