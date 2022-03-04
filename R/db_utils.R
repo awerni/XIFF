@@ -1,4 +1,14 @@
+#' Check if database is online
+#'
+#' @param timeout database timeout in seconds
+#'
+#' @return logical, TRUE if database can be reached
 #' @export
+#'
+#' @examples
+#' 
+#' isDbOnline()
+#' 
 isDbOnline <- function(timeout = 5){
   info <- getDBConnectionData()
   RPostgres::dbCanConnect(
@@ -221,7 +231,21 @@ runDbQuery <- function(sql){
   list(rs = rs, con = con)
 }
 
+
+#' Create SQL Where filter
+#'
+#' @param filter_col name of the column
+#' @param filter_options vector of elements to be but in the 'IN' expression
+#'
+#' @return null if filter_options is empty or SQL 
+#' string with part of sql where expression.
 #' @export
+#'
+#' @examples
+#' 
+#' getSQL_filter("column", c("A", "B"))
+#' getSQL_filter("column", NULL)
+#' 
 getSQL_filter <- function(filter_col, filter_options) {
   #if (typeof(filter_options) == "character") {
   #sql <- paste0(filter_col, " IN ('", paste(filter_options, collapse = "','"), "')")
@@ -236,7 +260,18 @@ getSQL_filter <- function(filter_col, filter_options) {
   }
 }
 
+
+#' Prepare SQL Where condition statements from list of R character vectors
+#'
+#' @param ... character variables to be transformed into SQL WHERE statements
+#'
+#' @return string with SQL expression
 #' @export
+#'
+#' @examples
+#' 
+#' prepareConditionSql(x = c("1", "2"), y = c("A", "B"))
+#' 
 prepareConditionSql <- function(...){
   dots <- list(...)
 
@@ -302,7 +337,23 @@ stashData <- function(df){
   myHash
 }
 
+
+#' Get Stashed Data from database
+#'
+#' @param hash 6-character long hash of stashed data
+#'
+#' @return data.frame with stashed data or NULL if there's no data for given 
+#' hash
+#' 
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'   CLIFF::setDbOptions()
+#'   head(getStashedData("000000"))
+#' }
+#' 
 getStashedData <- function(hash){
   sql <- paste0("SELECT playload FROM datastack WHERE datastackid = '", hash, "'")
   res <- getPostgresql(sql)

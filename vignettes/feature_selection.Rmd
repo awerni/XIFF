@@ -54,7 +54,8 @@ message(glue("Number of features selected by ColTest: {ncol(featureFitTTest$df)-
 
 ```{r}
 # Plot the result
-plot(featureFit$fit, las = 1, horizontal = TRUE)
+par(mar = c(5, 10, 4, 2))
+plot(featureFit$fit, las = 1, horizontal = TRUE, ylab = NULL)
 # Show resulting table
 featureFit$stats
 ```
@@ -62,7 +63,8 @@ featureFit$stats
 
 ```{r}
 featureFit <- test_time(selectBestFeaturesBoruta(feature_selection_data, maxFeatures = 5))
-plot(featureFit$fit, las = 1, horizontal = TRUE)
+par(mar = c(5, 10, 4, 2))
+plot(featureFit$fit, las = 1, horizontal = TRUE, ylab = NULL)
 featureFitTTest <- test_time(selectBestFeaturesTTest(feature_selection_data, maxFeatures = 5))
 
 s1 <- featureFit$stats %>% select(ensg) %>% mutate(BorutaSelection = ensg)

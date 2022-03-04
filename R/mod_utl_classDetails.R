@@ -144,7 +144,20 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
 
 # Main class which handles all the tasks related to classDetails
 # it contains two classDetails modules.
+
+#' Class Details Shiny Module
+#'
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param classLabel class labels reactive
+#' @param classSelection class selection reactive
+#' @param Selected selected items
+#' @param onChange function called on change
+#'
 #' @export
+#' @rdname classDetailsWrapper
+#'
 classDetailsWrapperUI_main <- function(id,
                                        defaults = c("sensitive", "resistant")) {
   ns <- NS(id)
@@ -165,6 +178,7 @@ classDetailsWrapperUI_main <- function(id,
 }
 
 #' @export
+#' @rdname classDetailsWrapper
 classDetailsWrapperUI_show <- function(id) {
   ns <- NS(id)
   tagList(
@@ -180,8 +194,8 @@ classDetailsWrapperUI_show <- function(id) {
 }
 
 
-
 #' @export
+#' @rdname classDetailsWrapper
 classDetailsWrapper <- function(input, output, session, classLabel, classSelection, Selected, onChange){
   
   safeClassLabel <- reactiveValues(class1_name = "class1", class2_name = "class2")

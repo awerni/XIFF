@@ -1,4 +1,5 @@
 #' @export
+#' @rdname uploadInputMode
 uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   ns <- NS(id)
 
@@ -45,7 +46,21 @@ uploadInputModeUI <- function(id, allowRds = FALSE, helpUrl = NULL){
   )
 }
 
+
+#' Upload Input Mode
+#'
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
+#' @param AnnotationFull 
+#' @param translationFun 
+#' @param AllTumortype 
+#' @param AnnotationFiltered 
+#' @param mlUseTumortypeFilter 
+#'
 #' @export
+#' @rdname uploadInputMode
+#' 
 uploadInputMode <- function(input, output, session, AnnotationFull, translationFun, AllTumortype = NULL, AnnotationFiltered = NULL, mlUseTumortypeFilter = TRUE){
   ns <- session$ns
 

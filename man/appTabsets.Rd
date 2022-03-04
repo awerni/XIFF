@@ -13,7 +13,11 @@ appUI_title_right(id, docuLink, packageName, dbName)
 appUI_title(id, title, logoPath)
 }
 \arguments{
-\item{aboutTabUIFunc}{}
+\item{id}{shiny id}
+
+\item{docuLink}{link to the documentation}
+
+\item{aboutTabUIFunc}{function that creates about ui}
 }
 \description{
 Tabsets for shiny application

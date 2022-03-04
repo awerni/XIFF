@@ -6,6 +6,7 @@
 \alias{unlistClassAssignment}
 \alias{addClassAssigmentAttribute}
 \alias{getClassAssigmentAttribute}
+\alias{getClassAssigmentAttributeIfNull}
 \title{Get class label list from classAssignment object.}
 \usage{
 getClassLabel(ca)
@@ -17,6 +18,8 @@ unlistClassAssignment(ca)
 addClassAssigmentAttribute(x, ca)
 
 getClassAssigmentAttribute(x)
+
+getClassAssigmentAttributeIfNull(ca, x)
 }
 \arguments{
 \item{ca}{classAssigment object}

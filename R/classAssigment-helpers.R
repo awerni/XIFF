@@ -78,6 +78,7 @@ getClassAssigmentAttribute <- function(x) {
   attr(x, "ClassSelection")
 }
 
+#' @rdname ClassAssigmentUtils
 #' @export
 getClassAssigmentAttributeIfNull <- function(ca, x) {
   if(!is.null(ca)) return(ca)

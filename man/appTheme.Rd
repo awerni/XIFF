@@ -13,9 +13,6 @@ appTheme(version = 4, font = "Roboto", ...)
 
 \item{...}{arguments passed to bs_theme}
 }
-\value{
-
-}
 \description{
 bslib theme to be used in apps
 }

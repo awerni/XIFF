@@ -1,4 +1,18 @@
+
+#' Get GSEA Collection
+#'
+#' @param species name of the species
+#'
+#' @return named vector with GSEA Collections
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'   CLIFF::setDbOptions()
+#'   getGSEACollection()
+#' }
+#' 
 getGSEACollection <- function(species = "human") {
   sql <- paste0("SELECT distinct collection, collection_name ",
                 "FROM msigdb WHERE species = '", species, "'")

@@ -1,3 +1,4 @@
+#' @rdname extendedTableDownload
 #' @export
 extendedTableDownloadUI <- function(id, label, filename = label){
   ns <- NS(id)
@@ -27,7 +28,23 @@ extendedTableDownloadUI <- function(id, label, filename = label){
   )
 }
 
+
+#' Module for downloading tables as csv files.
+#'
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
+#' @param Table 
+#' @param Subject 
+#' @param Item 
+#' @param classSelection 
+#' @param classLabel 
+#' @param by 
+#' @param additional 
+#' 
+#' @rdname extendedTableDownload
 #' @export
+#'
 extendedTableDownload <- function(input, output, session, Table, Subject, Item,
                                   classSelection, classLabel, by, additional = NULL){
   colname <- getOption("xiff.column")
@@ -65,7 +82,6 @@ extendedTableDownload <- function(input, output, session, Table, Subject, Item,
   )
 }
 
-#' @export
 stripHtml <- function(x){
   gsub("<[^>]*>", "", x)
 }

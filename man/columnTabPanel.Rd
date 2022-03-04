@@ -7,7 +7,13 @@
 columnTabPanel(title, value, inputMenu, outputArea)
 }
 \arguments{
-\item{outputArea}{}
+\item{title}{character string}
+
+\item{value}{character string}
+
+\item{inputMenu}{shiny tag}
+
+\item{outputArea}{shiny tag}
 }
 \description{
 Column Tab Panel

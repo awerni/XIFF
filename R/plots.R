@@ -1,7 +1,27 @@
+#' XIFF default color scheme
+#' 
 #' @export
+#' 
 plotColors <- c("#d73027", "#4575b4", "#fc8d59", "#91bfdb", "#A8840D", "#24BF43", "#000000")
 
+
+#' XIFF ggplot2 theme
+#'
+#' @param legend.position where the legend need to be located
+#' @param textSize base text size
+#'
+#' @return ggplot2 theme
 #' @export
+#'
+#' @examples
+#' 
+#' df <- data.frame(
+#'   gp = factor(rep(letters[1:3], each = 10)),
+#'   y = rnorm(30)
+#' )
+#' ggplot(df, aes(gp, y)) + geom_point() + commonPlotTheme()
+#' 
+#' 
 commonPlotTheme <- function(legend.position = "right", textSize = 16){
   theme(
     text = element_text(
@@ -13,7 +33,29 @@ commonPlotTheme <- function(legend.position = "right", textSize = 16){
   )
 }
 
+
+#' Basic Plots
+#'
+#' @param data data.frame
+#' @param plotType type of the plot (all, point, roc, violin, box, coverage)
+#' @param dataCol which column 
+#' @param title ggplot2 title
+#' @param ca classAssigment object
+#' @param rocPlotFun function used to create ROC plots
+#' @param diffPlotFun function used to make diffPlotFun
+#' @param ... other arguments passed to the plotting function
+#'
+#' @return ggplot2 plot
 #' @export
+#'
+#' @rdname xiff-basic-plot-types
+#' @examples
+#' 
+#' df <- exampleDataFrame()
+#' ca <- exampleClassAssigment()
+#' generatePlotByType(df, "point", "tpm", "Plot", ca = ca)
+#' generatePlotByType(df, "roc", "tpm", "Plot", ca = ca)
+#' 
 generatePlotByType <- function(data, plotType, dataCol, title = NULL, ca = NULL, 
                                rocPlotFun = generateROCPlot, 
                                diffPlotFun = generateDiffPlot, ...) {
@@ -81,6 +123,7 @@ generatePlotByType <- function(data, plotType, dataCol, title = NULL, ca = NULL,
   )
 }
 
+#' @rdname xiff-basic-plot-types
 #' @export
 generateROCPlot <- function(data, ca, dataCol, title = "ROC plot") {
   if (is.null(data) || is.null(ca) || is.null(dataCol)) return()
@@ -106,6 +149,7 @@ generateROCPlot <- function(data, ca, dataCol, title = "ROC plot") {
   p + annotate("text", x = .75, y = .25, label = paste("AUC =", signif(auc, 3)))
 }
 
+#' @rdname xiff-basic-plot-types
 #' @export
 generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
                              xlabel = "", ylabel = "", trans = "identity", ...) {
@@ -139,7 +183,25 @@ generateDiffPlot <- function(data, ca, dataCol, plotFunc, title = NULL,
     ylab(ylabel)
 }
 
+
+#' Generate Waterfall Plot
+#'
+#' @param data 
+#' @param dataCol 
+#' @param xlabel 
+#' @param ylabel 
+#' @param trans 
+#' @param limits 
+#' @param fill 
+#'
+#' @return ggplot2 object
 #' @export
+#'
+#' @examples
+#' 
+#' df <- exampleDataFrame() %>% reorderByScore(valueCol = "tpm")
+#' generateWaterfallPlot(df, "tpm", fill = "tpm")
+#' 
 generateWaterfallPlot <-
   function(data,
            dataCol,
@@ -265,7 +327,7 @@ generateDataCoveragePlot <- function(data, col, ca, addCountLabels = TRUE) {
   p
 }
 
-#' @export
+
 generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, fontSize = 10, p = FALSE) {
   ret <- list(status = "ok")
 
@@ -365,9 +427,50 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
   return(ret)
 }
 
+
+#' Generate Class Selection Plot
+#'
+#' @param sampleClasses classAssigment object
+#' @param prop1 property to be put on x axis
+#' @param prop2 property used for color scale
+#' @param n_classes 
+#' @param plot_type "bar" or "pie"
+#' @param usePercent if TRUE uses percentages rather than counts
+#' @param annotation annotaion data
+#' @param annotationFocus annotation data
+#' @param classLabel optional list with class labels
+#'
 #' @export
-generateClassSelectionPlot <- function(sampleClasses, classLabel, prop1, prop2, n_classes,
-                                       plot_type = "bar", usePercent = FALSE, annotation, annotationFocus) {
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'   CLIFF::setDbOptions()
+#'   cs <- CLIFF::exampleClassAssigment()
+#'   anno <- CLIFF::getCellLineAnno("human")
+#'   
+#'   generateClassSelectionPlot(
+#'     sampleClasses = cs,
+#'     prop1 = "tumortype", prop2 = "gender", n_classes = 10,
+#'     annotation = anno, annotationFocus = anno
+#'   )
+#'   
+#'   generateClassSelectionPlot(
+#'     sampleClasses = cs,
+#'     prop1 = "tumortype", prop2 = "gender", n_classes = 10,
+#'     annotation = anno, annotationFocus = anno,
+#'     usePercent = TRUE
+#'   )
+#' }
+#' 
+generateClassSelectionPlot <- function(sampleClasses, prop1, prop2, n_classes,
+                                       plot_type = "bar", usePercent = FALSE, annotation, annotationFocus,
+                                       classLabel = NULL) {
+  
+  if(is.null(classLabel)) {
+    classLabel <- getClassLabel(sampleClasses)
+  }
+  
   colname <- getOption("xiff.column")
 
   data <- stackClasses(sampleClasses, classLabel, return_factor = TRUE) %>%
@@ -493,7 +596,22 @@ generateClassSelectionBarPlot <- function(data, mapping, ylabel, n_rows, prop2, 
   }
 }
 
+
+#' Generate Score Bar Plot
+#'
+#' @param data data.frame with \code{x_score} column
+#' @param score_desc 
+#'
+#' @return ggplot2 plot
 #' @export
+#'
+#' @examples
+#' 
+#' dt <- exampleDataFrame()
+#' dt <- dt %>% mutate(x_score = cut(tpm, breaks = c(0,5,10,20,50, Inf)))
+#' 
+#' generateScoreBarPlot(dt, "TMP")
+#' 
 generateScoreBarPlot <- function(data, score_desc) {
   if (nrow(data) == 0) return()
 
@@ -519,7 +637,24 @@ generateScoreBarPlot <- function(data, score_desc) {
   }
 }
 
+
+#' Generate Score Waterfall plot
+#'
+#' @param data data.frame containing \code{x_score} and \code{tumortype} column
+#' @param score_desc 
+#' @param y_scale type of y-scale (e.g. identity or log10)
+#'
+#' @return ggplot2 plot
 #' @export
+#'
+#' @examples
+#' 
+#' df <- exampleDataFrame() %>% reorderByScore(valueCol = "tpm")
+#' df <- df %>% rename(x_score = tpm) %>%
+#'   mutate(tumortype = c(rep("A", 5), rep("B", 6)))
+#' generateScoreWaterfallPlot(df, "TPM")
+#' generateScoreWaterfallPlot(df, "TPM", "log10")
+#' 
 generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
   if (nrow(data) == 0) return()
 
@@ -532,7 +667,15 @@ generateScoreWaterfallPlot <- function(data, score_desc, y_scale = "identity") {
   )
 }
 
+
+#' Utility function for plotting customPlotPrint object
+#'
+#' @param x custom plot
+#'
+#' @return called from side effect
 #' @export
+#'
+#' @exportS3Method 
 print.customPlotPrint <- function(x){
   grid::grid.draw(x)
 }

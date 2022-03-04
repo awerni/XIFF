@@ -1,4 +1,16 @@
+
+#' Internal Function to be used differentialXXX family of functions
+#'
+#' @param sampleClasses classAssignment object
+#' @param dbDataFun function to fetch the data from database
+#' @param idCol name of the column with id
+#' @param scoreCol name of the column with score
+#' @param progressLabel optional label for progress bar 
+#' @param itemLabel optional label for progress bar
+#' @param p
+#'
 #' @export
+#'
 differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol, 
                                     progressLabel, itemLabel, p = FALSE){
   progress <- ProcessProgress$new(progressLabel, p)
@@ -29,7 +41,16 @@ differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol,
     arrange(P.Value, adj.p.val)
 }
 
+
+#' Prepare Data And Design
+#'
+#' @param sampleClasses 
+#' @param dbDataFun 
+#' @param idCol 
+#' @param scoreCol 
+#'
 #' @export
+#'
 prepareDataAndDesignCommon <- function(sampleClasses, dbDataFun, idCol, 
                                        scoreCol = "score"){
   class1 <- sampleClasses$class1
@@ -66,7 +87,20 @@ prepareDataAndDesignCommon <- function(sampleClasses, dbDataFun, idCol,
   )
 }
 
+
+#' Prepare Classification Table
+#'
+#' @param class1 vector with class one items
+#' @param class2 vector with class two items
+#' @param addRownames logical, if \code{TRUE} then adds items as rownames
+#'
+#' @return data.frame
 #' @export
+#'
+#' @examples
+#' 
+#' prepareClassificationTable(c("A", "B"), c("C", "D"))
+#' 
 prepareClassificationTable <- function(class1, class2, addRownames = TRUE){
   sampleNames <- c(class1, class2)
   df <- data.frame(
@@ -85,7 +119,26 @@ prepareClassificationTable <- function(class1, class2, addRownames = TRUE){
   df
 }
 
+
+#' Utility function for reordering class levels by score column
+#'
+#' @param df data.frame
+#' @param orderCol column to be ordered
+#' @param valueCol column used for ordering
+#' @param .desc use decreasing (TRUE) or increasing order (FALSE)
+#'
+#' @return data.frame with \code{orderCol} transformed to ordered factor
 #' @export
+#'
+#' @examples
+#' 
+#' df <- data.frame(class = c("X", "A", "C"), var = c(0,-5,5))
+#' levels(reorderByScore(df, orderCol = "class", valueCol = "var")$class)
+#' levels(
+#'   reorderByScore(df, orderCol = "class", valueCol = "var", .desc = FALSE)$class
+#' )
+#' 
+#' 
 reorderByScore <- function(df, orderCol = getOption("xiff.column"), 
                            valueCol = "score", .desc = TRUE){
   if (!is.data.frame(df) || nrow(df) == 0) return()
@@ -101,7 +154,24 @@ reorderByScore <- function(df, orderCol = getOption("xiff.column"),
   )
 }
 
+
+#' Extract rows with the same rownames from data.frame
+#'
+#' @param m1 first data frame
+#' @param m2 second data.frame
+#' @param sortRownames should the rownames should sorted
+#' @param outNames names for the output list
+#'
+#' @return list with m1 and m2 data.frame both containing rows with the same names
 #' @export
+#'
+#' @examples
+#' 
+#' m1 <- data.frame(x = 1:3, y = 1:3, row.names = c("A", "B", "C"))
+#' m2 <- data.frame(x = 2:4*100, y = 2:4*10, row.names = c("B", "C", "D"))
+#' 
+#' ensureCommonRownames(m1,m2)
+#' 
 ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
   r1 <- rownames(m1)
   r2 <- rownames(m2)
@@ -123,7 +193,20 @@ ensureCommonRownames <- function(m1, m2, sortRownames = FALSE, outNames = NULL){
 }
 
 # Machine learning ------------------------------------------------------------
+
+#' Split classAssigment into training and test sets
+#'
+#' @param assignment classAssigment object or data.frame
+#' @param p_test the percentage of the test set size
+#'
+#' @return list with two elements - \code{training} and \code{test}
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' splitTrainingTestSets(ca)
+#' 
 splitTrainingTestSets <- function(assignment,
                                         p_test = 0.2){
   UseMethod("splitTrainingTestSets")
@@ -176,7 +259,45 @@ splitTrainingTestSets.classAssignment <- function(assignment,
 }
 
 
+
+#' Select Best Features
+#'
+#' @param df data.frame with class column and variables to be predicted
+#' @param threshold default threshold for variable importance cutoff
+#' @param maxFeatures max number of features to be selected
+#' @param .otherParams other parameters to be passed into 
+#' feature selection algorithm
+#'
+#' @return list with following 
+#' 
+#' \itemize{
+#'  \item{"stats"}{data.frame with feature importance statistics}
+#'  \item{"df"}{data.frame with the selected variables }
+#'  \item{".otherParams"}{list of other parameters used by the feature selection
+#'   algorithm, could be used downstream during the prediction/data preparation pahse}
+#'  \item{"method"}{name of the feature selection metod}
+#' }
+#' 
+#' @details 
+#' 
+#' \code{selectBestFeaturesTTest} - uses the t.test
+#' 
+#' \code{selectBestFeaturesGlmnet} - uses the glmnet logistic regression.
+#' 
+#' @rdname selectBestFeatures
 #' @export
+#'
+#' @examples
+#' 
+#' library(dplyr)
+#' iris2 <- iris %>% rename(class = Species) %>%
+#'   filter(class %in% c("setosa", "versicolor")) %>%
+#'   mutate(class = droplevels(class))
+#' 
+#' selectBestFeatures(iris2)
+#' selectBestFeaturesTTest(iris2)
+#' selectBestFeaturesGlmnet(iris2)
+#' 
 selectBestFeatures <-
   function(df,
            threshold = "Confirmed",
@@ -192,6 +313,7 @@ selectBestFeatures <-
   selectBestFeaturesBoruta(df, threshold, maxFeatures, .otherParams = .otherParams)
 }
 
+#' @rdname selectBestFeatures
 #' @export
 selectBestFeaturesTTest <-
   function(df,
@@ -228,6 +350,7 @@ selectBestFeaturesTTest <-
   )
 }
 
+#' @rdname selectBestFeatures
 #' @export
 #' @importFrom glmnet cv.glmnet glmnet
 selectBestFeaturesGlmnet <-
@@ -277,7 +400,7 @@ selectBestFeaturesGlmnet <-
 #' @param threads number of threads to be used by Boruta algorithm.
 #' 
 #' 
-#' @return
+#' @return list with data.frame containing only the selected variable
 #' @export
 #' @importFrom Boruta Boruta
 #'
@@ -706,14 +829,23 @@ predict.MLXIFF <- function(x, newdata = NULL, ..., useClassLabels = TRUE) {
   result
 }
 
-#' @export
 `newClassLabel<-` <- function(x, value){
   x$classLabel <- value
   x
 }
 
 # Unbalanced tumortypes -------------------------------------------------------
+
+#' Shiny Drop Unbalanced Tumortypes
+#'
+#' @param AnnotationFocus item annotation
+#' @param classSelection classAssignment object
+#' @param minCount min count for getBalancedTumortypes
+#'
+#' @details module for dropping unbalanced tumortypes
+#'
 #' @export
+#'
 shinyDropUnbalancedTumortypes <- function(AnnotationFocus, classSelection, minCount = 1){
   anno <- AnnotationFocus()
   if (is.null(anno) || nrow(anno) == 0) return()
@@ -859,8 +991,35 @@ getBalancedVariableValues <- function(cs, anno, variable, minCount = 1){
     as.character()
 }
 
+
+#' Get Class Distances
+#'
+#' @param mat gene set matrix (e.g. result of \code{getHeatmapDataHallmark})
+#' @param pheno data.frame with class assigment
+#' @param metric metrix used to calculate distances
+#'
+#' @return distance matrix
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#'   
+#'   CLIFF::setDbOptions()
+#'   cs <- CLIFF::exampleClassAssigment()
+#'   data <- CLIFF::getHeatmapDataHallmark(cs)
+#'   pheno <- stackClasses(cs)
+#'   
+#'   res <- getClassDistances(data, pheno)
+#'   
+#'   as.matrix(res)[1:3, 1:3]
+#' 
+#' }
+#' 
 getClassDistances <- function(mat, pheno, metric = "euclidean"){
+  
+  if(is.data.frame(mat)) mat <- as.matrix(mat)
+  
   cv <- pheno[colnames(mat), "class"] # make sure the order is correct
   
   dn <- combn(
@@ -876,7 +1035,19 @@ getClassDistances <- function(mat, pheno, metric = "euclidean"){
   d
 }
 
+
+#' Scale rows by mean and standard deviation
+#'
+#' @param x matrix
+#'
+#' @return scaled matrix
 #' @export
+#'
+#' @examples
+#' 
+#' x <- cbind(c(10,200,3000), c(20,300,5000))
+#' scaleRows(x)
+#' 
 scaleRows <- function(x){
   m <- apply(x, 1, mean, na.rm = TRUE)
   s <- apply(x, 1, sd, na.rm = TRUE)

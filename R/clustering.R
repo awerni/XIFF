@@ -41,7 +41,6 @@ orderByVariance <- function(data.cross, geneSource, numGenes) {
   maxVarRows
 }
 
-#' @export
 calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE, ...) {
   if (is.null(PCAData)) return()
 
@@ -86,7 +85,6 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE, .
   res
 }
 
-#' @export
 calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p = FALSE, ...) {
   if (is.null(TSNEData)) return()
 
@@ -116,7 +114,6 @@ calcTSNE <- function(TSNEData, geneSource, numGenes = 300, unit = "log2tpm", p =
   final_res
 }
 
-#' @export
 calcUMAP <- function(UMAPData, geneSource, numGenes = 30, unit = "log2tpm", p = FALSE, ...){
   if (is.null(UMAPData)) return()
   

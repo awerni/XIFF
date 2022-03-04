@@ -30,15 +30,15 @@ machineLearningTab(
 )
 }
 \arguments{
-\item{id}{}
+\item{id}{shiny id}
 
-\item{input}{}
+\item{input}{shiny input object}
 
-\item{output}{}
+\item{output}{shiny output object}
 
-\item{session}{}
+\item{session}{shiny session object}
 
-\item{fm}{}
+\item{fm}{FutureManager object}
 
 \item{classSelection}{}
 

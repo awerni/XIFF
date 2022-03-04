@@ -1,4 +1,23 @@
+#' Save Classes Properties in Shiny Application
+#'
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
+#' @param res data.frame with additional info about 
+#' @param classSelection reactive containing class selection
+#' @param classLabel reactive containing class labels
+#' @param classStack reactive used to save data.frame with class properties
+#' @param Annotation annotation data
+#' @param msg additional message to be shown when saving data
+#'
+#' @details 
+#' 
+#' \code{saveProperties} is a function to be used in other modules to
+#' save the properties for \code{restoreSelectionInputMode} module.
+#'
+#' @rdname restoreSelectionInputMode
 #' @export
+#'
 restoreSelectionInputModeUI <- function(id, ...){
   ns <- NS(id)
 
@@ -31,6 +50,7 @@ restoreSelectionInputModeUI <- function(id, ...){
   )
 }
 
+#' @rdname restoreSelectionInputMode
 #' @export
 restoreSelectionInputMode <- function(input, output, session, classStack){
   colname <- getOption("xiff.column")
@@ -127,6 +147,7 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
   Restore_items
 }
 
+#' @rdname restoreSelectionInputMode
 #' @export
 saveProperties <- function(res, classSelection, classLabel, classStack, Annotation, msg = ""){
   n_cl1 <- length(classSelection$class1)

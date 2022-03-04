@@ -8,11 +8,7 @@ authors:
     
 template:
   bootstrap: 5
-  bootswatch: flatly
-  bslib:
-    pkgdown-nav-height: 70px
-    font-size-base: 0.875rem # default 1em the relative size of  navbar elements, h1, h2, etc
-    small-font-size: 0.875rem # default .875em, used for code size
+  bootswatch: default
     
 code:
   width: 120
@@ -23,16 +19,27 @@ development:
 reference:
 - title: Database functions 
   contents:
+  - useXIFF
   - getPostgresql
   - setPostgresql
   - stashData
+  - setDbOptions
+  - initialDbCheck
+  - getPostgresql
+  - getSQL_filter
+  - runGCloudCommand
+  - createGCloudAccessToken
+  - getGCloudAccessToken
+  - getCurrentGCloudUser
+  - isDbOnline
+  - prepareConditionSql
 
 - title: Dimension reduction functions
   contents:
-  - calcPCA_expression
-  - calcTSNE
-  - calcUMAP
   - starts_with("getExpressionDimRed")
+  - contains("DimRed")
+  - contains("dimRed")
+  - getClassDistances
 
 - title: Machine Learning 
   contents:
@@ -41,12 +48,91 @@ reference:
   - contains("model")
   - contains("ml")
   - starts_with("selectBestFeatures")
+  - stripGrepModel
+  - splitTrainingTestSets
+  - gatherPredictionResults
+  - getGrepFeatureSelection
+  - prepareClassificationTable
+  - prepareDataAndDesignCommon
+  - dropUnbalancedVariableValues
 
 - title: Plotting
   contents:
   - starts_with("generate")
+  - commonPlotTheme
+  - getPheatmap
+  - ggColorHue
+  - guessAxisScale
+  - print.customPlotPrint
+  - tooltipAes
+  
+- title: Class assignment
+  contents:
+  - classAssignment
+  - classAssignment2df
+  - makeClassAssignment
+  - getClassLabel
+  - checkClassSelection
+  - classIdToLabel
+  - classLabel2levels
+  - getAssignmentDf
+  - renameClassIdToLabel
+  - replaceClassLabels
+  - setClassItems<-
+  - setClassLabel<-
+  - stackClasses
+  
+- title: Analysis helpers
+  contents:
+  - differentialBayesCommon
+  - getAntibodyInformation
+  - getEnsemblLocationLink
+  - getGSEACollection
+  - getMetadataGeneSetTable
+  - getGeneSymbol
+  - getHallmarkGeneSetChoices
+  - getStashedData
+  - addTumortypes
+  - reorderByScore
+  - scaleRows
+  - tpmGREPtransform
+  
+- title: Miscellaneous
+  contents:
+  - napply
+  - n_common
+  - plotColors
+  - packageInstalled
+  - dropNulls
+  - ensureCommonRownames
+  - get_label
+  - invalid
+  - isDifferent
+  - op-null-default
 
 - title: Shiny Functions
   desc: Functions used by the shiny application. Not useful for API usage.
   contents:
-  - matches(".*UI.*")
+  - matches("UI")
+  - starts_with("fm")
+  - fluidRow_12
+  - uploadInputMode
+  - appTabsets
+  - withHash
+  - starts_with("column_")
+  - brushPlot
+  - ProcessProgress
+  - appTheme
+  - columnTabPanel
+  - containerDT
+  - inputWithHelp
+  - registerFreezedClassLabel
+  - shinyDropUnbalancedTumortypes
+  - validateFunctionResult
+  - withErrorHandler
+  - textAreaContentToVector
+
+- title: Example helpers
+  contents:
+  - exampleClassAssigment
+  - exampleDataFrame

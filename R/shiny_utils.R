@@ -1,4 +1,13 @@
+#' Shiny Utility Functions
+#'
+#' @param expr 
+#' @param errorId 
+#' @param session shiny session object
+#' @param callback 
+#'
+#' @rdname shiny-utility
 #' @export
+#'
 withErrorHandler <- function(expr, errorId = NULL, session = getDefaultReactiveDomain(), callback = NULL){
   tryCatch(
     expr = expr,
@@ -21,6 +30,7 @@ withErrorHandler <- function(expr, errorId = NULL, session = getDefaultReactiveD
   )
 }
 
+#' @rdname shiny-utility
 #' @export
 errorScreen <- function(reason){
   msg <- if (reason == "db"){
@@ -46,6 +56,7 @@ errorScreen <- function(reason){
   )
 }
 
+#' @rdname shiny-utility
 #' @export
 registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, initValue = NULL, debug = FALSE, ignoreInit = TRUE, ...){
   id <- inputId # prevent lazy load
@@ -79,7 +90,22 @@ registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, i
   )
 }
 
+#' Add help text to selectInput shiny object
+#' 
+#' @param param selectInput shiny object
+#' @param helpText 
+#'
 #' @export
+#' 
+#' @examples 
+#' 
+#' select <- shiny::selectInput("x", "Input", 1:2)
+#' select2 <- inputWithHelp(select, "Help!")
+#' 
+#' if(interactive()) {
+#'   shinyApp(fluidPage(select2), function(input, output, session) {})
+#' }
+#' 
 inputWithHelp <- function(param, helpText = "help me Obi-Wan Kenobi"){
   helpIcon <- icon("question-circle")
   helpIcon$attribs[["data-toggle"]] <- "tooltip"
@@ -92,46 +118,73 @@ inputWithHelp <- function(param, helpText = "help me Obi-Wan Kenobi"){
   param
 }
 
+
+#' Convenience Shiny Column Functions
+#' 
+#' @param ... shiny ui elements
+#'
+#' @rdname column_x
 #' @export
+#' 
 column_1 <- function(...) column(width = 1, ...)
 
+#' @rdname column_x
 #' @export
 column_2 <- function(...) column(width = 2, ...)
 
+#' @rdname column_x
 #' @export
 column_3 <- function(...) column(width = 3, ...)
 
+#' @rdname column_x
 #' @export
 column_4 <- function(...) column(width = 4, ...)
 
+#' @rdname column_x
 #' @export
 column_5 <- function(...) column(width = 5, ...)
 
+#' @rdname column_x
 #' @export
 column_6 <- function(...) column(width = 6, ...)
 
+#' @rdname column_x
 #' @export
 column_7 <- function(...) column(width = 7, ...)
 
+#' @rdname column_x
 #' @export
 column_8 <- function(...) column(width = 8, ...)
 
+#' @rdname column_x
 #' @export
 column_9 <- function(...) column(width = 9, ...)
 
+#' @rdname column_x
 #' @export
 column_10 <- function(...) column(width = 10, ...)
 
+#' @rdname column_x
 #' @export
 column_11 <- function(...) column(width = 11, ...)
 
+#' @rdname column_x
 #' @export
 column_12 <- function(...) column(width = 12, ...)
 
+#' @rdname column_x
 #' @export
 fluidRow_12 <- function(...) fluidRow(column_12(...))
 
+
+#' DT Container with smaller font
+#'
+#' @param id shiny id
+#'
+#' @return div with datatable container
 #' @export
+#'
+#' @examples
 containerDT <- function(id){
   div(
     style = "font-size:80%",
@@ -139,6 +192,7 @@ containerDT <- function(id){
   )
 }
 
+#' @rdname shiny-utility
 #' @export
 styleHigherCol <- function(condition, cl){
   c1 <- paste0('<span style="color:red">', cl$class1_name, '</span>')
@@ -146,6 +200,7 @@ styleHigherCol <- function(condition, cl){
   ifelse(condition, c1, c2)
 }
 
+#' @rdname shiny-utility
 #' @export
 getEnsgRowCallback <- function(species, idx = 1){
   spFull <- getEnsemblSpecies(species)
@@ -227,7 +282,13 @@ setDbOptions <- function(settings = NULL){
   }
 }
 
+#' Check Database Connection
+#'
+#' @param timeout timout for database connection
+#'
+#' @return logical, TRUE if database connection works, or FALSE otherwise 
 #' @export
+#'
 initialDbCheck <- function(timeout = 5){
   dbStatus <- isDbOnline(timeout)
   if (!dbStatus){
@@ -240,6 +301,7 @@ initialDbCheck <- function(timeout = 5){
   TRUE
 }
 
+#' @rdname shiny-utility
 #' @export
 validateArgs <- function(args){
   filtered <- args[!vapply(args, is.null, FUN.VALUE=logical(1))]
@@ -255,7 +317,19 @@ validateArgs <- function(args){
   }
 }
 
+#' Freeze Class Labels
+#'
+#' @param output shiny output object
+#' @param classLabel reactive containing class labels
+#' @param Results reactive containing the result of FutureManager
+#' @param fm FutureManager object
+#' @param id shiny id
+#'
+#' @details Used for keeping the old class labels values if Results object
+#' is invalidated.
+#'
 #' @export
+#'
 registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
   resultClassLabel <- reactiveValues(class1_name = NULL, class2_name = NULL)
 
@@ -281,10 +355,10 @@ registerFreezedClassLabel <- function(output, classLabel, Results, fm, id) {
 
 #' Column Tab Panel
 #'
-#' @param title
-#' @param value
-#' @param inputMenu
-#' @param outputArea
+#' @param title character string
+#' @param value character string
+#' @param inputMenu shiny tag
+#' @param outputArea shiny tag
 #'
 #' @export
 columnTabPanel <- function(title, value, inputMenu, outputArea) {
@@ -312,9 +386,9 @@ columnTabPanel <- function(title, value, inputMenu, outputArea) {
 
 #' Tabsets for shiny application
 #'
-#' @param id
-#' @param docuLink
-#' @param aboutTabUIFunc
+#' @param id shiny id
+#' @param docuLink link to the documentation
+#' @param aboutTabUIFunc function that creates about ui
 #'
 #' @export
 #' @rdname appTabsets
@@ -371,7 +445,6 @@ appUI_title <- function(id, title, logoPath) {
 #' @param font font name to use
 #' @param ... arguments passed to bs_theme
 #' 
-#' @return 
 #' @export
 appTheme <- function(version = 4, font = "Roboto", ...){
   robotoFont <- bslib::font_collection(bslib::font_google(font), "sans-serif")

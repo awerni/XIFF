@@ -128,7 +128,7 @@ handleTestSet <- function(classSelection, p_test = 0.2) {
 #'
 #' @importFrom FutureManager is.fmError
 #' @export
-#' @return
+#' @return MLXIFF object
 #'
 buildMachineLearning <- function(cs,
                                  geneSet,
@@ -239,7 +239,30 @@ xiffSupportedModels <- function() {
 }
 
 
+
+#' Get Data for Machine Learning Model
+#'
+#' @param assignment stackClass assignment of items or classAssignment object 
+#' @param features character vector of genes ensg or fitted XIFF Machine Learning model
+#' @param schema data base schema, default value should be used
+#' @param column column containing the items, default value shoud be used
+#' @param classLabel list with alternative class labels
+#'
+#' @return raw data.frame with features for MLXIFF model
 #' @export
+#'
+#' @examples
+#' if(require("CLIFF")){
+#'   CLIFF::setDbOptions()
+#'   ca <- CLIFF::exampleClassAssigment()
+#'   geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
+#' 
+#'   modelData <- getDataForModel(ca, geneSet)
+#'   head(modelData)
+#' 
+#'   getDataForModel(ca, geneSet, classLabel = list(class1 = "c1", class2 = "c2"))
+#' }
+#' 
 getDataForModel <- function(assignment,
                             features,
                             schema = getOption("xiff.schema"),
@@ -248,22 +271,93 @@ getDataForModel <- function(assignment,
   UseMethod("getDataForModel", features)
 }
 
+
+#' Summarise Model Parameters in Table
+#'
+#' @param model machine learning model fitted in XIFF
+#'
+#' @return summary of MLXIFF model
 #' @export
+#'
+#' @examples
 mlGetTableData <- function(model) {
   UseMethod("mlGetTableData")
 }
 
+
+#' Get TPM data for given ML Model
+#'
+#' @param model MLXIFF object
+#' @param ensg gene ensg
+#' @param annoFocus celline annotation data 
+#'
+#' @details This function is required to be implemented for new MLXIFF model.
+#' Seel \code{mlGetTableData.XiffGREP} for an example.
+#'
+#' @return data.frame with columns: celllinename, ensg, tpm, tumortype
 #' @export
+#' 
+#' @examples
+#' 
+#' \dontrun{
+#' 
+#' df <- mlGetTpmData(model, "ENSG00000147889", annoFocus)
+#' 
+#' }
+#' 
 mlGetTpmData <- function(model, ensg, annoFocus) {
   UseMethod("mlGetTpmData")
 }
 
+
+#' Generate Expression Plot for Machine Learning Model
+#'
+#' @param model MLXIFF object
+#' @param df result of \code{mlGetTpmData}
+#' @param ca classAssigment object
+#' @param plotType plot type
+#' @param gene list with gene symbol and ensg
+#'
+#' @details this plot is mostly used in the ShinyApplication
+#' @return ggplot2
 #' @export
+#'
+#' @examples
+#' 
+#' \dontrun{
+#' 
+#' df <- mlGetTpmData(model, "ENSG00000147889", annoFocus)
+#' gene <- list(symbol = getGeneSymbol("ENSG00000147889"), ensg = "ENSG00000147889")
+#' mlGenerateExpressionPlot(model, df, trainingSet, gene = gene)
+#' }
+#' 
 mlGenerateExpressionPlot <- function(model, df, ca, plotType = "point", gene) {
   UseMethod("mlGenerateExpressionPlot")
 }
 
+
+#' Get Raw Data For MLXIFF Model
+#'
+#' @param features character vector with features or MLXIFF object
+#' @param names character vector with items for which the data needs to be extracted
+#' @param schema data base schema to be used
+#' (in most cases default value is sufficient)
+#' @param column name of the column which stores the items
+#' (in most cases default value is sufficient)
+#'
+#' @return long form data.frame containing {itemname}, ensg, and score
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#' 
+#'   ca <- CLIFF::exampleClassAssigment()
+#'   geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
+#'   getRawDataForModel(geneSet, unlist(ca))
+#' 
+#' }
+#' 
 getRawDataForModel <- function(features,
                                        names = NULL,
                                        schema = getOption("xiff.schema"),

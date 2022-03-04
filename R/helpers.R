@@ -95,7 +95,16 @@ classAssignment <- function(..., positiveClass = NULL) {
   res
 }
 
+
+#' Utility function for creating class assignment objects.
+#'
+#' @param sampleClasses 
+#' @param classLabel 
+#'
+#' @return classAssignment object
 #' @export
+#'
+#' @examples
 makeClassAssignment <- function(sampleClasses, classLabel){
   
   shiny::validate(
@@ -154,7 +163,20 @@ print.classAssignment <- function(x){
   cat(paste0("Class2 (", dict$class2, "): ", n2, " items\n"))
 }
 
+
+#' Convert classId to class labels
+#'
+#' @param x vector with class labels (class1/class2)
+#' @param ca classAssignment object
+#'
+#' @return vector containing the labels from classAssignment
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- classAssignment(sensitive = c("a", "b", "c"), resistant = NULL)
+#' classIdToLabel(c("class1", "class2", "class2", "class1", "class1"), ca)
+#' 
 classIdToLabel <- function(x, ca){
   returnFactor <- is.factor(x)
   stopifnot(
@@ -173,10 +195,24 @@ classIdToLabel <- function(x, ca){
   res
 }
 
-
-
-
+#' Rename ClassId To Labels from classAssignment
+#'
+#' @param df data.frame
+#' @param column column 
+#' @param ca classAssignment object
+#'
+#' @return data.frame with \code{column} remapped to labels
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' setClassLabel(ca, "class1") <- "C1"
+#' setClassLabel(ca, "class2") <- "C2"
+#' 
+#' df <- data.frame(cl = c("class1", "class2", "class1"))
+#' renameClassIdToLabel(df, "cl", ca)
+#' 
 renameClassIdToLabel <- function(df, column, ca){
   if (is(ca, "classAssignment")){
     column <- rlang::sym(column)
@@ -186,7 +222,23 @@ renameClassIdToLabel <- function(df, column, ca){
   }
 }
 
+
+#' Set items in ClassAssigment object
+#'
+#' @param ca classAssigment
+#' @param classId id of class ('class1' or 'class2')
+#' @param value character vector with new items
+#'
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' ca$class1
+#' 
+#' setClassItems(ca, "class1") <- c("A", "B")
+#' ca$class1
+#' 
 `setClassItems<-` <- function(ca, classId, value = NULL){
   stopifnot(
     is(ca, "classAssignment"),
@@ -198,7 +250,25 @@ renameClassIdToLabel <- function(df, column, ca){
   ca
 }
 
+
+#' Rename label in classAssignment
+#'
+#' @param ca classAssignment object
+#' @param classId which class label needs to be changed ("class1" or "class2")
+#' @param value new label
+#'
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' 
+#' setClassLabel(ca, "class1") <- "C1"
+#' ca
+#' 
+#' setClassLabel(ca, "class2") <- "C2"
+#' ca
+#' 
 `setClassLabel<-` <- function(ca, classId, value){
   stopifnot(
     is(ca, "classAssignment"),
@@ -212,7 +282,25 @@ renameClassIdToLabel <- function(df, column, ca){
   ca
 }
 
+
+#' Convert ClassAssigment to data.frame
+#'
+#' @param ca classAssigment
+#' @param useLabels use classAssigment labels
+#' @param returnFactor logical. If true (default), then class column will be
+#' returned as factor
+#'
+#' @return data.frame with two columns
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' getAssignmentDf(ca)
+#' 
+#' setClassLabel(ca, "class2") <- "C2"
+#' getAssignmentDf(ca)
+#' 
 getAssignmentDf <- function(ca, useLabels = TRUE, returnFactor = TRUE){
   stopifnot(is(ca, "classAssignment"))
   
@@ -233,25 +321,74 @@ getAssignmentDf <- function(ca, useLabels = TRUE, returnFactor = TRUE){
 
 # Others ----------------------------------------------------------------------
 #' Null default
+#' 
+#' @param x any R object
+#' @param y defalut value used if x is NULL
+#' 
 #' @name op-null-default
 #' @export
+#' @examples 
+#' 
+#' 1 %||% 2
+#' NULL %||% 2
+#' 
 `%||%` <- function(x, y){
   if (rlang::is_null(x) || length(x) == 0)
     y
   else x
 }
 
+
+#' Test if value is empty string, NA or NULL
+#'
+#' @param x any R object
+#'
+#' @return logical value
 #' @export
+#'
+#' @examples
+#' 
+#' invalid("")
+#' invalid(NULL)
+#' invalid(NA)
+#' 
 invalid <- function(x){
   is.null(x) || is.na(x) || !nzchar(x)
 }
 
+
+#' Drop NULL values from list
+#'
+#' @param x list 
+#'
+#' @return list x without NULL values
 #' @export
+#'
+#' @examples
+#' 
+#' ls <- list(1, NULL, 2)
+#' dropNulls(ls)
+#' 
 dropNulls <- function(x){
   x[!vapply(x, is.null, FUN.VALUE = logical(1))]
 }
 
+
+#' Stack Class Assignment object
+#'
+#' @param sampleClasses classAssignment object
+#' @param classLabel 
+#' @param return_factor 
+#'
+#' @return data.frame with {getOption("xiff.column")} and class columns
 #' @export
+#'
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' stackClasses(ca) %>% str
+#' stackClasses(ca, return_factor = TRUE) %>% str
+#' 
 stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE) {
   colname <- getOption("xiff.column")
 
@@ -280,7 +417,17 @@ stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE
   return(assignment)
 }
 
+
+#' Utility function for styling Future Manager Run Buttons
+#'
+#' @param inputId module id
+#' @param fm FutureManager object
+#' @param cs class selection object
+#' @param defaultValue logical, the initial button value
+#'
 #' @export
+#' @rdname fmButtonClass
+#'
 fmButtonOneClass <- function(inputId, fm, cs, defaultValue = FALSE){
   condition <- length(cs$class1) == 0 && length(cs$class2) == 0
 
@@ -296,6 +443,7 @@ fmButtonOneClass <- function(inputId, fm, cs, defaultValue = FALSE){
 }
 
 #' @export
+#' @rdname fmButtonClass
 fmButtonBothClasses <- function(inputId, fm, cs, defaultValue = FALSE){
   condition <- length(cs$class1) == 0 || length(cs$class2) == 0
 
@@ -310,7 +458,6 @@ fmButtonBothClasses <- function(inputId, fm, cs, defaultValue = FALSE){
   )
 }
 
-#' @export
 getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2){
   focusLevels <- as.character(unique(annotationFocus[[prop1]]))
 
@@ -336,17 +483,41 @@ getPropertyFractions <- function(data, annotation, annotationFocus, prop1, prop2
     select(class, prop1, prop2, percent)
 }
 
+
+#' Get XIFF label with the number of items for plots
+#'
+#' @param n number of items
+#'
+#' @return string with the label
 #' @export
+#'
+#' @examples
+#' 
+#' get_label(50)
+#' 
 get_label <- function(n) {
   paste0(n, " ", getOption("xiff.label"), ifelse(n != 1, "s", ""))
 }
 
+
+#' Check if two object are different
+#'
+#' @param x first object
+#' @param y second object
+#'
+#' @return true if x and y are different
 #' @export
+#'
+#' @examples
+#' 
+#' isDifferent(1, NULL)
+#' isDifferent(1, 1)
+#' 
 isDifferent <- function(x, y){
   !isTRUE(all.equal(x, y))
 }
 
-#' @export
+#' TODO: check if it is used - probably not
 replaceClassLabels <- function(df, cl) {
   names(cl) <- gsub("_name", "", names(cl))
   myLabel <- stack(cl) %>% rename(class = values, classold = ind) %>%
@@ -372,49 +543,116 @@ addTumortypes <- function(data, anno){
   data %>% left_join(tt, by = strColname)
 }
 
+
+#' Convert the input of Text Area into Vector
+#'
+#' @param content content of textArea
+#'
+#' @return character vector, or NULL if content is empty
 #' @export
+#'
+#' @examples
+#' 
+#' textAreaContentToVector("")
+#' textAreaContentToVector("A\nB\nC")
+#' 
 textAreaContentToVector <- function(content){
   ret <- if (stringr::str_length(content) > 0) as.vector(sapply(strsplit(content,'\n'), stringr::str_trim)) else c()
   if (any(ret == "")) ret <- ret[ret != ""]
   return(ret)
 }
 
+
+#' Check if both classes in classAssigment object are not empty
+#'
+#' @param cs classAssigment object
+#'
+#' @return TRUE if class1 and class2 are not empty, FALSE otherwise
+#'
+#' TODO: check the intent
+#'
 #' @export
+#' @examples
+#' 
+#' ca <- exampleClassAssigment()
+#' checkClassSelection(ca)
+#' ca$class2 <- c()
+#' checkClassSelection(ca)
+#' 
 checkClassSelection <- function(cs) {
   (length(cs$class1) > 0 && length(cs$class1)) > 0
 }
 
+
+#' Number of common entries in two vectors
+#'
+#' @param x first vector
+#' @param y second vector
+#'
+#' @return interger denoting the number of common items in both vectors
 #' @export
+#'
+#' @examples
+#' 
+#' n_common(1:4,2:5)
+#' n_common(1:4,5:10)
+#' 
 n_common <- function(x, y){
   length(intersect(x, y))
 }
 
+
+#' Get Hallmark Gene Set Choices
+#'
+#' @param geneSets vector with HALLMARK genes setes names
+#'
 #' @export
+#'
+#' @examples
+#' 
+#' if(require("CLIFF")) {
+#' 
+#'    dt <- CLIFF::differentialHallmarkSets(CLIFF::exampleClassAssigment()) %>%
+#'      head %>% select(gene_set)
+#'    names(getHallmarkGeneSetChoices(dt$gene_set))
+#' 
+#' }
+#' 
 getHallmarkGeneSetChoices <- function(geneSets){
   if (length(geneSets) > 0){
     structure(geneSets, names = gsub("^HALLMARK_", "", geneSets))
   }
 }
 
+
+#' Get HTML tags with links
+#'
+#' @param location 
+#' @param species 
+#'
+#' @return vector with html tags 
 #' @export
+#' @rdname get-links-a-tags
+#'
 getEnsemblLocationLink <- function(location, species = "human"){
   species <- getEnsemblSpecies(species)
   glue::glue('<a href="https://www.ensembl.org/{species}/Location/View?db=core;r={location}" target="_blank">{location}</a>')
 }
 
 #' @export
+#' @rdname get-links-a-tags
 getEnsemblGeneLink <- function(gene, species = "human"){
   species <- getEnsemblSpecies(species)
   glue::glue('<a href="https://www.ensembl.org/{species}/Gene/Summary?db=core;g={gene}" target="_blank">{gene}</a>')
 }
 
 #' @export
+#' @rdname get-links-a-tags
 getEnsemblTranscriptLink <- function(transcript, species){
   species <- getEnsemblSpecies(species)
   glue::glue('<a href="https://www.ensembl.org/{species}/Transcript/Summary?db=core;t={transcript}" target="_blank">{transcript}</a>')
 }
 
-#' @export
 getEnsemblSpecies <- function(species){
   species <- switch(
     EXPR = species,
@@ -426,17 +664,44 @@ getEnsemblSpecies <- function(species){
 }
 
 #' @export
+#' @rdname get-links-a-tags
 getGeneSetLink <- function(geneset, msigDBLink, rawGeneset = NULL){
   if(is.null(rawGeneset)) rawGeneset <- geneset
   paste0('<a href="', msigDBLink, rawGeneset, '" target="_blank">', geneset, '</a>')
 }
 
+
+#' Check if Package is Available
+#'
+#' @param name package name
+#'
+#' @return logical, \code{TRUE} if package is available
 #' @export
+#'
+#' @examples
+#' 
+#' packageInstalled("XIFF")
+#' packageInstalled("XIFFFF")
+#' 
 packageInstalled <- function(name){
   is.character(name) && name %in% rownames(installed.packages())
 }
 
+
+#' mapply with vector names as argument
+#'
+#' @param X named vector 
+#' @param FUN function with at least two parameters
+#' @param ... other arguments passed to mapply
+#'
+#' @return vector resulted from mapply
 #' @export
+#'
+#' @examples
+#' 
+#' x <- setNames(1:3, c("A", "B", "C"))
+#' napply(x, function(x, name) paste(name, x^2, sep = ": "))
+#' 
 napply <- function(X, FUN, ...){
   if (length(X) == 0) return(list())
   
@@ -449,5 +714,54 @@ napply <- function(X, FUN, ...){
     FUN = FUN,
     X, n,
     ...
+  )
+}
+
+#' Example Class Assignment to be used in Examples
+#'
+#' @return classAssignment object
+#' @export
+#'
+#' @examples
+#' 
+#' exampleClassAssigment()
+#' 
+exampleClassAssigment <- function() {
+  structure(
+    list(
+      class1 = c("fb1b6", "2abec", "0ed25", "972d2", "45f5d"),
+      class2 = c("102a0", "65d7c", "0a389", "f7f21", "8ad8a", "e1942")
+    ),
+    labels = list(class1 = "class1", class2 = "class2"),
+    class = c("classAssignment", "list")
+  )
+}
+
+#' Example Data Frame to be used in Examples
+#'
+#' @return data.frame object
+#' @export
+#'
+#' @examples
+#' 
+#' exampleDataFrame()
+#' 
+exampleDataFrame <- function() {
+  structure(
+    list(
+      celllinename = c(
+        "fb1b6", "2abec", "0ed25", "972d2",
+        "45f5d", "102a0", "65d7c", "0a389",
+        "f7f21", "8ad8a", "e1942"
+      ),
+      tpm = c(
+        11.62, 27.44, 9.92, 11.02,
+        39.69, 13.08, 12.06, 13.72,
+        9.31, 18.75, 9.97
+      )
+    ),
+    row.names = c(NA, 11L),
+    class = c("ClassAssigmentInAttribute",
+              "data.frame")
   )
 }

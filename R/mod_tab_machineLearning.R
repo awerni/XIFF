@@ -1,6 +1,6 @@
 #' machineLearningTabUI
 #'
-#' @param id 
+#' @param id shiny id
 #'
 #' @rdname machineLearningTab
 #' @export
@@ -92,10 +92,10 @@ machineLearningTabUI_sidebar <- function(id){
   )
 }
 
-#' @param input 
-#' @param output 
-#' @param session 
-#' @param fm 
+#' @param input shiny input object
+#' @param output shiny output object
+#' @param session shiny session object
+#' @param fm FutureManager object
 #' @param classSelection 
 #' @param classLabel 
 #' @param gsea_data_hallmark 
