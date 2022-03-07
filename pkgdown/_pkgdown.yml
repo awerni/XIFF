@@ -8,7 +8,7 @@ authors:
     
 template:
   bootstrap: 5
-  bootswatch: default
+  bootswatch: lumen
     
 code:
   width: 120
