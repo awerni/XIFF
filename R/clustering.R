@@ -230,12 +230,11 @@ getExpressionDimRed <- function(data,
   
   result$data <- addClustering(result$data, clusterMethod, p = .p)
   
-  result$data <- left_join(result$data, anno, by = "celllinename")
+  result$data <- left_join(result$data, anno, by = getOption("xiff.column"))
   
   resultTable <- result$data
-  
   attr(resultTable, "title") <- result$title
-  attr(resultTable, "celllines") <- result$celllines
+  attr(resultTable, getOption("xiff.name")) <- result[[getOption("xiff.name")]]
   attr(resultTable, "progressText") <- progressText
   attr(resultTable, "method") <- method
   
@@ -286,7 +285,7 @@ generateExpressionDimRedPlot <- function(dimRedResult,
       mutate(plotlabel =  NA)
   }
   
-  dt <- list(data = dimRedResult, attrs$celllines)
+  dt <- list(data = dimRedResult, attrs[[getOption("xiff.name")]])
   names(dt)[2] <- getOption("xiff.name")
   
   generateDimRedPlot(
