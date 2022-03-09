@@ -3,10 +3,12 @@
 #' @import ggplot2
 #' @importFrom grDevices pdfFonts postscriptFonts
 .onLoad <- function(libname, pkgname){
-  options(xiff.column = "celllinename")
-  options(xiff.schema = "cellline")
-  options(xiff.label = "cell line")
-  options(xiff.name = "celllines")
+  
+  options(xiff.column = getOption("xiff.column", default = "celllinename"))
+  options(xiff.schema = getOption("xiff.schema", default = "cellline"))
+  options(xiff.label = getOption("xiff.label", default = "cell line"))
+  options(xiff.name = getOption("xiff.name", default = "celllines"))
+
   options(xiff.tooltipCallbackFun = tooltipCallbackFun)
   options(xiff.boruta.threads = 2)
 
