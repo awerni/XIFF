@@ -390,6 +390,15 @@ dropNulls <- function(x){
 #' stackClasses(ca, return_factor = TRUE) %>% str
 #' 
 stackClasses <- function(sampleClasses, classLabel = NULL, return_factor = FALSE) {
+  
+  if(is.character(sampleClasses)) {
+    sampleClasses <- list(class1 = sampleClasses)
+  }
+  
+  if(!is.list(sampleClasses)) {
+    stop("sampleClasses must be character vector, list or classAssignment object.")
+  }
+  
   colname <- getOption("xiff.column")
 
   sampleClasses[sapply(sampleClasses, is.null)] <- NULL
