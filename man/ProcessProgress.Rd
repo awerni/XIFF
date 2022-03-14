@@ -33,7 +33,7 @@ Progress bar for shiny
 \describe{
 \item{\code{label}}{character string}
 
-\item{\code{p}}{progress type}
+\item{\code{p}}{progress type, logical or shiny session object}
 }
 \if{html}{\out{</div>}}
 }
