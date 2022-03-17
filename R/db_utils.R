@@ -4,9 +4,10 @@
 #'
 #' @return logical, TRUE if database can be reached
 #' @export
-#'
-#' @examples
 #' 
+#' @examples
+#'
+#' setDbOptions(CLIFF::getSettings())
 #' isDbOnline()
 #' 
 isDbOnline <- function(timeout = 5){

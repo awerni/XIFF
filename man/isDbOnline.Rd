@@ -17,6 +17,7 @@ Check if database is online
 }
 \examples{
 
+setDbOptions(CLIFF::getSettings())
 isDbOnline()
 
 }
