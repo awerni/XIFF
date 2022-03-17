@@ -96,6 +96,7 @@ reference:
   - reorderByScore
   - scaleRows
   - tpmGREPtransform
+  - getGSEAdata
   
 - title: Miscellaneous
   contents:

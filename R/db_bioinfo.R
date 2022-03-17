@@ -29,6 +29,48 @@ getGSEACollection <- function(species = "human") {
   ret
 }
 
+# GSEA ------------------------------------------------------------------------
+#' Get gene set data.
+#'
+#' @param species selected species. E.g. 'human'.
+#' @param collection_name name of the gene set collection.
+#' @param gene_set name of single gene set to be returned. If specified then the
+#'        function returns character vector containing that gene set.
+#'
+#' @return 
+#' 
+#' List of gene set. If \code{gene_set} is used, then it returns just a 
+#' character vector with that gene set.
+#' 
+#' @export
+#' 
+getGSEAdata <- function(species, collection_name = "mSigDB", gene_set = NULL) {
+  
+  if (collection_name == "mSigDB") { 
+    collection_name <- NULL
+  }
+  conditions <- prepareConditionSql(
+    species = species,
+    collection_name = collection_name,
+    gene_set = gene_set
+  )
+  
+  sql <- paste0(
+    "SELECT gene_set, array_to_string(ensg_array, ',') AS ensg FROM public.msigdb ",
+    "WHERE ", conditions
+  )
+  
+  msig <- getPostgresql(sql)
+  res <- stringr::str_split(msig$ensg, ",")
+  
+  if(!is.null(gene_set)) {
+    res[[1]] # if gene_set is specified, then returns gene set directly
+  } else {
+    names(res) <- msig$gene_set
+    res # returns list
+  }
+  
+}
 
 #' Get Antibody Information
 #'
