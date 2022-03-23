@@ -60,7 +60,7 @@ mlApplyModel <- function(input, output, session, Model, classSelection, classLab
 
     d <- Data()
 
-    XIFF::getPredictionSummary(
+    getPredictionSummary(
       items = d[[getOption("xiff.column")]],
       preds = preds,
       refs = d$class,
