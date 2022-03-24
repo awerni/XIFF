@@ -55,7 +55,7 @@ getData <- function(hash, hallmarkGeneSet = "P53_PATHWAY") {
     geneSet <- getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
   }
   
-  geneAnno <- CLIFF::getGeneAnno()[["human"]]
+  geneAnno <- CLIFF::getGeneAnno("human")
   
   
   annoFocus <- CLIFF::getCellLineAnno("human") %>% dplyr::filter(celllinename %in% unlist(cs))

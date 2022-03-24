@@ -33,7 +33,7 @@ hallmarkGeneSet <- "P53_PATHWAY"
 geneSet <- getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
 
 # Gene Annotation
-geneAnno <- CLIFF::getGeneAnno()[["human"]]
+geneAnno <- CLIFF::getGeneAnno("human")
 ```
 
 # Creating a new model

@@ -49,7 +49,7 @@ print(cs)
 geneSet <- getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
 
 # Gene Annotation
-geneAnno <- CLIFF::getGeneAnno()[["human"]]
+geneAnno <- CLIFF::getGeneAnno("human")
 
 annoFocus <- CLIFF::getCellLineAnno("human")
 ```
