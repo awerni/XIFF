@@ -50,9 +50,9 @@ getData <- function(hash, hallmarkGeneSet = "P53_PATHWAY") {
   }
   
   if(hallmarkGeneSet == "WP_APOPTOSIS_MODULATION_AND_SIGNALING") {
-    geneSet <- CLIFF::getGSEAdata("human","mSigDB")[[hallmarkGeneSet]]
+    geneSet <- getGSEAdata("human","mSigDB")[[hallmarkGeneSet]]
   } else {
-    geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+    geneSet <- getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
   }
   
   geneAnno <- CLIFF::getGeneAnno()[["human"]]

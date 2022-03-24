@@ -33,7 +33,7 @@ Get Raw Data For MLXIFF Model
 if(require("CLIFF")) {
 
   ca <- CLIFF::exampleClassAssigment()
-  geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
+  geneSet <- getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
   getRawDataForModel(geneSet, unlist(ca))
 
 }

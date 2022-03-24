@@ -30,7 +30,7 @@ testSet <- with(sets$test, split(celllinename, class))
 
 # Hallmark gene set
 hallmarkGeneSet <- "P53_PATHWAY"
-geneSet <- CLIFF::getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
+geneSet <- getGSEAdata("human", "hallmark")[[paste0("HALLMARK_", hallmarkGeneSet)]]
 
 # Gene Annotation
 geneAnno <- CLIFF::getGeneAnno()[["human"]]
