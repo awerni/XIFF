@@ -37,7 +37,7 @@ trainingSet <- sets$training
 testSet <- sets$test
 
 geneSetName <- "WP_APOPTOSIS_MODULATION_AND_SIGNALING"
-geneSet <- CLIFF::getGSEAdata("human", "curated")[[geneSetName]]
+geneSet <- getGSEAdata("human", "curated")[[geneSetName]]
 
 set.seed(321)
 grepFit <- XIFF::buildMachineLearning(

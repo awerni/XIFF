@@ -255,7 +255,7 @@ xiffSupportedModels <- function() {
 #' if(require("CLIFF")){
 #'   CLIFF::setDbOptions()
 #'   ca <- CLIFF::exampleClassAssigment()
-#'   geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
+#'   geneSet <- head(getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
 #' 
 #'   modelData <- getDataForModel(ca, geneSet)
 #'   head(modelData)
@@ -353,7 +353,7 @@ mlGenerateExpressionPlot <- function(model, df, ca, plotType = "point", gene) {
 #' if(require("CLIFF")) {
 #' 
 #'   ca <- CLIFF::exampleClassAssigment()
-#'   geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
+#'   geneSet <- getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
 #'   getRawDataForModel(geneSet, unlist(ca))
 #' 
 #' }

@@ -96,7 +96,7 @@ generateVolcanoPlot <- function(diffExpr, minuslog10pval, minuslog10adjpval, log
 #'    gene_anno <- CLIFF::getGeneAnno("human")
 #'    cs <- CLIFF::exampleClassAssigment()
 #'    limmaData <- CLIFF::differentialGeneExpression_LimmaVoom(cs, gene_anno)
-#'    geneset <- CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY")
+#'    geneset <- getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY")
 #'    
 #'    generateGSEA_plot(
 #'      limmaData,

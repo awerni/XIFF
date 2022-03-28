@@ -33,7 +33,7 @@ Get Data for Machine Learning Model
 if(require("CLIFF")){
   CLIFF::setDbOptions()
   ca <- CLIFF::exampleClassAssigment()
-  geneSet <- head(CLIFF::getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
+  geneSet <- head(getGSEAdata("human", gene_set = "HALLMARK_P53_PATHWAY"), 3)
 
   modelData <- getDataForModel(ca, geneSet)
   head(modelData)

@@ -46,10 +46,10 @@ print(cs)
 
 ```{r}
 # Hallmark gene set
-geneSet <- CLIFF::getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
+geneSet <- getGSEAdata("human", "hallmark", "HALLMARK_P53_PATHWAY")
 
 # Gene Annotation
-geneAnno <- CLIFF::getGeneAnno()[["human"]]
+geneAnno <- CLIFF::getGeneAnno("human")
 
 annoFocus <- CLIFF::getCellLineAnno("human")
 ```
