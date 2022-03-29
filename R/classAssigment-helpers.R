@@ -48,7 +48,7 @@ getClassLabelVector <- function(ca) {
 unlistClassAssignment <- function(ca) {
   
   isClassAssignmentList <- function(ca) {
-    # many modules in CLIFF still uses the old interface which was based on the list
+    # many modules in CLIFF still use the old interface which was based on the list
     is.list(ca) && all(names(ca) %in% c("class1", "class2"))
   }
   
