@@ -47,7 +47,12 @@ getClassLabelVector <- function(ca) {
 #' 
 unlistClassAssignment <- function(ca) {
   
-  if(!(is.character(ca) || inherits(ca, "classAssignment"))) {
+  isClassAssignmentList <- function(ca) {
+    # many modules in CLIFF still uses the old interface which was based on the list
+    is.list(ca) && all(names(ca) %in% c("class1", "class2"))
+  }
+  
+  if(!(is.character(ca) || inherits(ca, "classAssignment") || isClassAssignmentList(ca))) {
     stop("`ca` must be character vector or `classAssignment` object.")
   }
   
