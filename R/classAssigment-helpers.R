@@ -135,3 +135,51 @@ classAssignment2df <- function(ca) {
   
   stackClasses(ca, classLabel = labels)
 }
+
+
+
+#' Functions to check if an object is a classAssignment
+#'
+#' @param x any R object
+#'
+#' @return logical value, TRUE if x is an classAssignment object
+#' @export
+#' @rdname is.classAssignment
+#' 
+#' @details Note that this functions uses 'duck typing', so if an object 
+#' can be used without any conversion as a \code{classAssignment}, then
+#' the returned value is \code{TRUE}.
+#'
+#' @examples
+#' 
+#' is.classAssignment(list()) # FALSE
+#' is.classAssignment(list(x = 1, y = 2)) # FALSE
+#' is.classAssignment(classAssignment(list(x = 1, y = 2))) # TRUE - classAssignment object
+#' is.classAssignment(list(class1 = 1, class2 = 2)) # TRUE - duck typing
+#' 
+is.classAssignment <- function(x) {
+  
+  # note that the second condition is
+  # If it walks like a duck and it quacks like a duck, then it must be a duck
+  
+  inherits(x, "classAssignment") || 
+  (is.list(x) && length(x) == 2 && all(names(x) %in% c("class1", "class2")))
+}
+
+#' @export
+#' @rdname is.classAssignment
+assertClassAssignment <- function(x) {
+  if(!is.classAssignment(x)) {
+    cl <- class(x)[1]
+    
+    
+    msg <- glue::glue("The '{cl}' class was used but the 'classAssignment' is expected.")
+    if(is.list(cl)) {
+      msg <- paste(msg,
+                   "In most cases lists can easily be transformed", 
+                   "to 'classAssignment' object by calling `classAssignment(x)`")
+    }
+    
+    stop(msg)
+  }
+}
