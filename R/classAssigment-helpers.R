@@ -174,12 +174,13 @@ assertClassAssignment <- function(x) {
     
     
     msg <- glue::glue("The '{cl}' class was used but the 'classAssignment' is expected.")
-    if(is.list(cl)) {
+    if(is.list(x)) {
       msg <- paste(msg,
-                   "In most cases lists can easily be transformed", 
+                   "\n  In most cases, lists can easily be transformed", 
                    "to 'classAssignment' object by calling `classAssignment(x)`")
     }
     
     stop(msg)
   }
 }
+
