@@ -13,6 +13,8 @@
 #'
 differentialBayesCommon <- function(sampleClasses, dbDataFun, idCol, scoreCol, 
                                     progressLabel, itemLabel, p = FALSE){
+  
+  assertClassAssignment(sampleClasses)
   progress <- ProcessProgress$new(progressLabel, p)
   progress$update(0.2, paste("fetching", itemLabel, "data..."))
   
