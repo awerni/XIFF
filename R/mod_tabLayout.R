@@ -97,7 +97,8 @@ tabLayoutUI_sidebar <- function(id, defaults = list(), input = list(), additiona
 #' @export
 #'
 tabLayout <- function(input, output, session, plotFun, TableData,
-                      jsRowCallback = htmlwidgets::JS("preventLinkSelections")){
+                      jsRowCallback = htmlwidgets::JS("preventLinkSelections"), 
+                      otherDToptions = list()){
   rowCallback <- if (is.reactive(jsRowCallback)){
     jsRowCallback
   } else {
@@ -142,11 +143,11 @@ tabLayout <- function(input, output, session, plotFun, TableData,
 
     DT::datatable(
       data = df,
-      options = list(
+      options = c(list(
         pageLength = 10,
         search = list(regex = TRUE),
         createdRow = rc
-      ),
+      ), otherDToptions),
       rownames = FALSE,
       filter = "top",
       escape = FALSE,
