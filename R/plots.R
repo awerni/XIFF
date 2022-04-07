@@ -350,7 +350,7 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
     pV <- data$percentVar
     xlabel <- paste0("PC1: ", pV[1],"% variance")
     ylabel <- paste0("PC2: ", pV[2],"% variance")
-    title <- glue::glue("PCA plot\n#{getOption('xiff.label')}s={nItems}")
+    title <- paste0("PCA plot\n", data$title)
 
   } else if (progressText == "plot t-SNE") {
     mapping <- aes(
@@ -390,7 +390,7 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
     
     xlabel <- "PHATE-1"
     ylabel <- "PHATE-2"
-    title <- "PHATE plot"
+    title <- paste0("PHATE plot\n", data$title)
   }
 
   df <- data$data %>% mutate(class = factor(class))
