@@ -23,7 +23,8 @@ tabLayout(
   session,
   plotFun,
   TableData,
-  jsRowCallback = htmlwidgets::JS("preventLinkSelections")
+  jsRowCallback = htmlwidgets::JS("preventLinkSelections"),
+  otherDToptions = list()
 )
 }
 \arguments{

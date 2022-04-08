@@ -21,25 +21,55 @@ getExpressionDimRed(
 \arguments{
 \item{data}{result of getExpressionDimRedData function.}
 
-\item{anno}{data annotation.}
+\item{anno}{sample annotation.}
 
 \item{method}{method for dimension reduction. 
 See: \code{dimRedAvailableMethods()} for supported methods.}
 
 \item{clusterMethod}{clustering method.}
 
-\item{geneSource}{}
+\item{geneSource}{a method used to obtain genes. If set to \code{varying_genes}
+then the number of genes will be limited by \code{numGenes} parameters. Other possible
+value \code{gene_set} does not limit the number of final genes.}
 
-\item{numGenes}{}
+\item{numGenes}{maximum number of most varying genes to be preserved if \code{geneSource}
+equals \code{varying_genes}. Default 30.}
 
-\item{unit}{}
+\item{unit}{sets the unit used for dimension reduction. Possible values: \code{log2tpm} (default)
+and \code{counts}.}
 
 \item{...}{other parameters passed to dimension reduction functions.}
 
-\item{.p}{}
+\item{.p}{progress type, logical or shiny session object}
+}
+\value{
+adds to sample annotation data additional columns:
 
-\item{ca}{}
+\itemize{
+ \item{"X1, X2"}{ - coordinates in 2D space based on the dimension reduction \code{method}}
+ \item{"cluster"}{ - cluster assignment}
+}
 }
 \description{
 Create Expression DimReduction.
+}
+\examples{
+
+# example based on the CLIFF package
+if(require("CLIFF")) {
+  
+  # note - data extraction is done by CLIFF functions
+  setDbOptions(getSettings())
+  ca <- CLIFF::exampleClassAssigment()
+  data <- CLIFF::getExpressionDimRedData(ca, p = TRUE)
+  anno <- CLIFF::getCellLineAnno("human")
+  
+  # data analysis is done by XIFF
+  dimRedData <- getExpressionDimRed(data, anno)
+  dimRedData \%>\% select(celllinename, X1, X2, class, cluster) \%>\% head
+  
+  generateExpressionDimRedPlot(dimRedData)
+
+}
+
 }
