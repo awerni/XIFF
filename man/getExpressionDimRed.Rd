@@ -19,7 +19,7 @@ getExpressionDimRed(
 )
 }
 \arguments{
-\item{data}{result of \code{getExpressionDimRedData} function.}
+\item{data}{result of the \code{getExpressionDimRedData} function.}
 
 \item{anno}{sample annotation.}
 
