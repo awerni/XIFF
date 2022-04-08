@@ -76,10 +76,14 @@ calcPCA_expression <- function(PCAData, geneSource, numGenes = 300, p = FALSE, .
 
   colnames(pcadata)[5] <- getOption("xiff.column")
 
+  
+  myTitle <- glue::glue("#{getOption('xiff.label')}s={ncol(data.counts)}  #genes={nrow(data.counts)}")
+  
   res <- list(
     data = pcadata,
     genes = nrow(data.counts),
-    percentVar = percentVar
+    percentVar = percentVar,
+    title = myTitle
   )
   res[[getOption("xiff.name")]] <- ncol(data.counts)
   res
@@ -156,6 +160,8 @@ calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p 
   
   phate <- phateR::phate(t(data.cross), ...)
   
+  myTitle <- glue::glue("#{getOption('xiff.label')}s={ncol(data.cross)}  #genes={nrow(data.cross)}")
+  
   colname <- getOption("xiff.column")
   phateData <- phate$embedding %>%
     as.data.frame() %>%
@@ -163,7 +169,8 @@ calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p 
     tibble::rownames_to_column(colname)
   
   res <- list(
-    data = left_join(phateData, PHATEdata[["assignment"]], by = colname)
+    data = left_join(phateData, PHATEdata[["assignment"]], by = colname),
+    title = myTitle
   )
   res[[getOption("xiff.name")]] <- ncol(data.cross)
   res
