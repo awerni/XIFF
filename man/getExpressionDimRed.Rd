@@ -19,7 +19,7 @@ getExpressionDimRed(
 )
 }
 \arguments{
-\item{data}{result of getExpressionDimRedData function.}
+\item{data}{result of \code{getExpressionDimRedData} function.}
 
 \item{anno}{sample annotation.}
 
@@ -29,14 +29,14 @@ See: \code{dimRedAvailableMethods()} for supported methods.}
 \item{clusterMethod}{clustering method.}
 
 \item{geneSource}{a method used to obtain genes. If set to \code{varying_genes}
-then the number of genes will be limited by \code{numGenes} parameters. Other possible
-value \code{gene_set} does not limit the number of final genes.}
+then the number of genes will be limited by the \code{numGenes} parameter. Other possible
+value \code{gene_set} does not limit the number of genes taken into consideration.}
 
 \item{numGenes}{maximum number of most varying genes to be preserved if \code{geneSource}
 equals \code{varying_genes}. Default 30.}
 
 \item{unit}{sets the unit used for dimension reduction. Possible values: \code{log2tpm} (default)
-and \code{counts}.}
+or \code{counts}.}
 
 \item{...}{other parameters passed to dimension reduction functions.}
 
