@@ -181,7 +181,7 @@ calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p 
 #' Create Expression DimReduction.
 #'
 #' @param data result of getExpressionDimRedData function.
-#' @param anno data annotation.
+#' @param anno sample annotation.
 #' @param method  method for dimension reduction. 
 #'        See: \code{dimRedAvailableMethods()} for supported methods.
 #' @param clusterMethod clustering method.
