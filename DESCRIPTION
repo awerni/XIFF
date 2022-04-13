@@ -58,11 +58,13 @@ Imports:
       apcluster,
       caret,
       bslib (>= 0.3.1),
-      DBI
+      DBI,
+      matrixTests
 RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 2.1.0),
     shinytest,
     knitr,
-    rmarkdown
+    rmarkdown,
+    MASS
 VignetteBuilder: knitr
