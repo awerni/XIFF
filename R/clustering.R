@@ -180,19 +180,48 @@ calcPHATE <- function(PHATEdata, geneSource, numGenes = 30, unit = "log2tpm", p 
 
 #' Create Expression DimReduction.
 #'
-#' @param data result of getExpressionDimRedData function.
+#' @param data result of the \code{getExpressionDimRedData} function.
 #' @param anno sample annotation.
 #' @param method  method for dimension reduction. 
 #'        See: \code{dimRedAvailableMethods()} for supported methods.
 #' @param clusterMethod clustering method.
-#' @param geneSource 
-#' @param numGenes 
-#' @param unit 
+#' @param geneSource a method used to obtain genes. If set to \code{varying_genes}
+#' then the number of genes will be limited by the \code{numGenes} parameter. Other possible
+#' value \code{gene_set} does not limit the number of genes taken into consideration. 
+#' @param numGenes maximum number of most varying genes to be preserved if \code{geneSource}
+#' equals \code{varying_genes}. Default 30.
+#' @param unit sets the unit used for dimension reduction. Possible values: \code{log2tpm} (default)
+#' or \code{counts}.
 #' @param ... other parameters passed to dimension reduction functions.
-#' @param ca 
-#' @param .p 
+#' @param .p progress type, logical or shiny session object
 #'
 #' @export
+#' 
+#' @return adds to sample annotation data additional columns:
+#' 
+#' \itemize{
+#'  \item{"X1, X2"}{ - coordinates in 2D space based on the dimension reduction \code{method}}
+#'  \item{"cluster"}{ - cluster assignment}
+#' }
+#' 
+#' @examples
+#' 
+#' # example based on the CLIFF package
+#' if(require("CLIFF")) {
+#'   
+#'   # note - data extraction is done by CLIFF functions
+#'   setDbOptions(getSettings())
+#'   ca <- CLIFF::exampleClassAssigment()
+#'   data <- CLIFF::getExpressionDimRedData(ca, p = TRUE)
+#'   anno <- CLIFF::getCellLineAnno("human")
+#'   
+#'   # data analysis is done by XIFF
+#'   dimRedData <- getExpressionDimRed(data, anno)
+#'   dimRedData %>% select(celllinename, X1, X2, class, cluster) %>% head
+#'   
+#'   generateExpressionDimRedPlot(dimRedData)
+#' 
+#' }
 #'
 getExpressionDimRed <- function(data,
                                 anno,
@@ -262,7 +291,7 @@ getExpressionDimRedPlot<- function(dimRedResult,
   
 }
 
-#' generateExpressionDimRedPlot
+#' Generate Expression Dimension Reduction Plot
 #'
 #' @param dimRedResult result of \code{getExpressionDimRed}
 #' @param colorCol column name for coloring.
@@ -271,6 +300,26 @@ getExpressionDimRedPlot<- function(dimRedResult,
 #' 
 #' @rdname generateExpressionDimRedPlot
 #' @export
+#' 
+#' @export
+#' 
+#' @examples
+#' 
+#' # example based on the CLIFF package
+#' if(require("CLIFF")) {
+#'   
+#'   # note - data extraction is done by CLIFF functions
+#'   setDbOptions(getSettings())
+#'   ca <- CLIFF::exampleClassAssigment()
+#'   data <- CLIFF::getExpressionDimRedData(ca, p = TRUE)
+#'   anno <- CLIFF::getCellLineAnno("human")
+#'   
+#'   # data analysis is done by XIFF
+#'   dimRedData <- getExpressionDimRed(data, anno)
+#'   generateExpressionDimRedPlot(dimRedData)
+#' 
+#' }
+#' 
 generateExpressionDimRedPlot <- function(dimRedResult,
                                     colorCol = "class",
                                     labelCol = NULL,

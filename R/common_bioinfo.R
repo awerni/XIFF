@@ -7,7 +7,7 @@
 #' @param scoreCol name of the column with score
 #' @param progressLabel optional label for progress bar 
 #' @param itemLabel optional label for progress bar
-#' @param p
+#' @param p progress type, logical or shiny session object
 #'
 #' @export
 #'
