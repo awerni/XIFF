@@ -103,8 +103,6 @@ classAssignment <- function(..., positiveClass = NULL) {
 #'
 #' @return classAssignment object
 #' @export
-#'
-#' @examples
 makeClassAssignment <- function(sampleClasses, classLabel){
   
   shiny::validate(
