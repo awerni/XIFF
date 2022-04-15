@@ -183,8 +183,6 @@ fluidRow_12 <- function(...) fluidRow(column_12(...))
 #'
 #' @return div with datatable container
 #' @export
-#'
-#' @examples
 containerDT <- function(id){
   div(
     style = "font-size:80%",
@@ -463,4 +461,52 @@ appTheme <- function(version = 4, font = "Roboto", ...){
     heading_font = robotoFont,
     ...
   )
+}
+
+#' Get future strategy
+#' 
+#' Returns strategy for the background calculations. Settings should contain
+#' settings$options$fm_strategy field with a character string: "auto", "multicore",
+#' or "multisession". Auto strategy will use 
+#' \code{\link[FutureManager]{fmParallelStrategy}}, other choices refer to 
+#' \code{\link[future]{multicore}} and \code{\link[future]{multisession}} respectively.
+#' 
+#' For debug purposes \code{\link[future]{sequential}} is used - to enable it please 
+#' set `XIFF_FM_DEBUG` environmental variable to "YES".
+#' 
+#' @param settings application settings list
+#' @return future strategy
+#' @export
+getFmStrategy <- function(settings = NULL){
+  if (Sys.getenv("XIFF_FM_DEBUG", unset = "NO") != "NO") {
+    warning(
+      "You're using the sequential future strategy (debug mode). ",
+      "To disable it please set 'XIFF_FM_DEBUG' env variable to 'NO'"
+    )
+    return(future::sequential)
+  }
+  
+  defaultStrategy <- if (exists("fmParallelStrategy", where = asNamespace("FutureManager"), mode = "function")) {
+    # Tests if the fmParallelStrategy is exported by the FutureManager
+    # in the long run the if statement should be removed and only this branch should be used.
+    # (after FutureManager CRAN release)
+    FutureManager::fmParallelStrategy()
+  } else {
+    # TODO: remove when all environments will be updated to new FutureManager version
+    # that exports fmParallelStrategy
+    FutureManager::multiprocess
+  }
+  
+  strategy <- settings$options$fm_strategy
+  if (is.null(strategy)){
+    defaultStrategy
+  } else {
+    switch(
+      EXPR = strategy,
+      auto = defaultStrategy,
+      multicore = future::multicore,
+      multisession = future::multisession,
+      stop("'strategy' should be one of 'auto', 'multicore', 'multisession'")
+    )
+  }
 }

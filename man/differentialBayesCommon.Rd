@@ -27,7 +27,7 @@ differentialBayesCommon(
 
 \item{itemLabel}{optional label for progress bar}
 
-\item{p}{}
+\item{p}{progress type, logical or shiny session object}
 }
 \description{
 Internal Function to be used differentialXXX family of functions
