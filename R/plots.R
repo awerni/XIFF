@@ -406,13 +406,13 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
     commonPlotTheme("bottom", fontSize) +
     labs(color = colorCol)
 
-  if (length(unique(data$data$class)) <= 7) {
+  if (length(unique(data$data$class)) <= 7 && (!is.numeric(data$data$class)) || is.integer(data$data$class)) {
     pl <- pl + scale_color_manual(values = plotColors)
   } else {
     #pl <- pl + viridis::scale_color_viridis(discrete = TRUE, option = "plasma")
   }
 
-  if (showLabels) {
+  if (showLabels && (!is.numeric(data$data$class)) || is.integer(data$data$class)) {
     if (nItems > 400) {
       ret$status <- "Can not display labels for more than 400 samples"
     } else {
