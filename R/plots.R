@@ -392,8 +392,12 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
     ylabel <- "PHATE-2"
     title <- paste0("PHATE plot\n", data$title)
   }
-
-  df <- data$data %>% mutate(class = factor(class))
+  
+  notNumeric <- !is.numeric(data$data$class) || is.integer(data$data$class)
+  df <- data$data
+  if(notNumeric) {
+    df <- df %>% mutate(class = factor(class))  
+  }
 
   pl <- ggplot(
     data = df,
@@ -406,13 +410,13 @@ generateDimRedPlot <- function(data, progressText, colorCol, showLabels = TRUE, 
     commonPlotTheme("bottom", fontSize) +
     labs(color = colorCol)
 
-  if (length(unique(data$data$class)) <= 7 && (!is.numeric(data$data$class)) || is.integer(data$data$class)) {
+  if (length(unique(data$data$class)) <= 7 && notNumeric) {
     pl <- pl + scale_color_manual(values = plotColors)
   } else {
     #pl <- pl + viridis::scale_color_viridis(discrete = TRUE, option = "plasma")
   }
 
-  if (showLabels && (!is.numeric(data$data$class)) || is.integer(data$data$class)) {
+  if (showLabels && notNumeric) {
     if (nItems > 400) {
       ret$status <- "Can not display labels for more than 400 samples"
     } else {
