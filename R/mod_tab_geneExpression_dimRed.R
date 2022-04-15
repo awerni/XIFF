@@ -70,7 +70,8 @@ geneExpressionDimRedTabUI_sidebar <- function(id){
 #' @export
 #' @rdname geneExpressionDimRedTab
 #' 
-geneExpressionDimRedTab <- function(input, output, session, fm, Results, TableData, classLabel, getDataGeneExpression){
+geneExpressionDimRedTab <- function(input, output, session, fm, Results,
+                                    TableData, classLabel, getDataGeneExpression){
   ns <- session$ns
   
   GeneData <- reactive({
