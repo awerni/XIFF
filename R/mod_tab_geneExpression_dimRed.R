@@ -70,7 +70,8 @@ geneExpressionDimRedTabUI_sidebar <- function(id){
 #' @export
 #' @rdname geneExpressionDimRedTab
 #' 
-geneExpressionDimRedTab <- function(input, output, session, fm, Results, TableData, getDataGeneExpression){
+geneExpressionDimRedTab <- function(input, output, session, fm, Results,
+                                    TableData, classLabel, getDataGeneExpression){
   ns <- session$ns
   
   GeneData <- reactive({
@@ -175,7 +176,12 @@ geneExpressionDimRedTab <- function(input, output, session, fm, Results, TableDa
     validate(need(d, "missing cluster data"))
     
     df <- d$clusterRes %>%
-      mutate(higher = stripHtml(higher))
+      mutate(
+        higher = factor(
+          stripHtml(higher),
+          levels = unlist(reactiveValuesToList(classLabel))
+        )
+      )
     
     labelVar <- if (useLabels) "label"
     
@@ -255,7 +261,13 @@ generatePointPlot <- function(df, xVar = "x", yVar = "y", colorVar = "color",
     ...
   ) +
     geom_point(size = size)
-   
+  
+  notNumeric <- !is.numeric(df[[colorVar]]) || is.integer(df[[colorVar]])
+  
+  if (length(unique(df[[colorVar]])) <= 7 && notNumeric) {
+    p <- p + scale_color_manual(values = plotColors)
+  }
+  
   addLabels(p, labelVar)
 }
 
@@ -263,7 +275,7 @@ generatePlotBase <- function(df, mapping, title = NULL, xlabel = NULL, ylabel = 
   p <- ggplot(
     data = df,
     mapping = mapping
-  ) + 
+  ) + commonPlotTheme() +
     theme(
       plot.title = element_text(hjust = 0.5),
       text = element_text(size = fontSize),
