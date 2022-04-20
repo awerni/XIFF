@@ -3,7 +3,7 @@
 \name{getExpressionDimRedPlot}
 \alias{getExpressionDimRedPlot}
 \alias{generateExpressionDimRedPlot}
-\title{generateExpressionDimRedPlot}
+\title{Generate Expression Dimension Reduction Plot}
 \usage{
 getExpressionDimRedPlot(
   dimRedResult,
@@ -29,5 +29,23 @@ generateExpressionDimRedPlot(
 \item{fontSize}{font size for labels}
 }
 \description{
-generateExpressionDimRedPlot
+Generate Expression Dimension Reduction Plot
+}
+\examples{
+
+# example based on the CLIFF package
+if(require("CLIFF")) {
+  
+  # note - data extraction is done by CLIFF functions
+  setDbOptions(getSettings())
+  ca <- CLIFF::exampleClassAssigment()
+  data <- CLIFF::getExpressionDimRedData(ca, p = TRUE)
+  anno <- CLIFF::getCellLineAnno("human")
+  
+  # data analysis is done by XIFF
+  dimRedData <- getExpressionDimRed(data, anno)
+  generateExpressionDimRedPlot(dimRedData)
+
+}
+
 }

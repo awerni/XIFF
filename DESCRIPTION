@@ -27,6 +27,7 @@ Imports:
       pheatmap,
       tibble,
       utils,
+      future,
       FutureManager,
       ggtips,
       shinyjs,

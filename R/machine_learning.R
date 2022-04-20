@@ -278,8 +278,6 @@ getDataForModel <- function(assignment,
 #'
 #' @return summary of MLXIFF model
 #' @export
-#'
-#' @examples
 mlGetTableData <- function(model) {
   UseMethod("mlGetTableData")
 }
