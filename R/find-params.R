@@ -1,3 +1,9 @@
+rename_recommend_columns <- function(res, fac_levels) {
+  colnames(res) <- gsub(colnames(res), pattern = "\\.x$", replacement = paste0(".", fac_levels[1]))
+  colnames(res) <- gsub(colnames(res), pattern = "\\.y$", replacement = paste0(".", fac_levels[2]))
+  res
+}
+
 #' Double Class Test
 #'
 #' @param data data.frame containing \code{byVar}, \code{x}, \code{y} columns.
@@ -25,7 +31,7 @@
 #'    )
 #' )
 #' 
-#' res <- testByDoubleClass(dt, by = "by", x = "x", y = "y")
+#' res <- testByDoubleClass(dt, byVar = "by", x = "x", y = "y")
 #' res <- res %>% arrange(by)
 #' 
 #' atest <- t.test(y~x, data = dt %>% filter(by == "A"))
@@ -39,7 +45,10 @@ testByDoubleClass <- function(data, byVar, x, y, test = matrixTests::row_t_welch
   colnames(tbl) <- byVar
   
   data[[byVar]] <- as.integer(data[[byVar]])
-  data[[x]] <- as.integer(as.factor(data[[x]]))
+  data[[x]] <- as.factor(data[[x]])
+  fac_levels <- levels(data[[x]])
+  data[[x]] <- as.integer(data[[x]])
+  
   data <- data[order(data[[byVar]], data[[x]]), ]
   
   data[[".idx"]] <- sequence(tabulate((data[[byVar]] - 1L) * 2 + data[[x]]))
@@ -59,8 +68,9 @@ testByDoubleClass <- function(data, byVar, x, y, test = matrixTests::row_t_welch
   m1 <- to_matrix(data1)
   m2 <- to_matrix(data2)
   
-  dplyr::bind_cols(tbl, test(m1, m2, ...)) %>%
-    arrange(pvalue)
+  result <- dplyr::bind_cols(tbl, test(m1, m2, ...)) %>%
+    arrange(pvalue) %>%
+    rename_recommend_columns(fac_levels)
 }
 
 #' Continuous Test
