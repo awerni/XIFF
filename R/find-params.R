@@ -90,7 +90,7 @@ testByDoubleClass <- function(data, byVar, x, y, test = matrixTests::row_t_welch
 #' set.seed(123)
 #' 
 #' # prepare some data for A and B groups
-#' #' dt <- data.frame(
+#' dt <- data.frame(
 #'   by = c(rep("A", 15), rep("B",10))
 #' )
 #' 
