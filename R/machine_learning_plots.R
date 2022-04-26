@@ -233,7 +233,7 @@ generateTablePlot <- function(df) {
 #' @export
 #' @exportS3Method 
 generateTablePlot.MLModelTestsResult <- function(df) {
-  generateTablePlot(testResult$tablePlotData)
+  generateTablePlot(df$tablePlotData)
 }
 
 #' @export
