@@ -1,4 +1,4 @@
-rename_recommend_columns <- function(res, fac_levels) {
+renameRecommendColumns <- function(res, fac_levels) {
   colnames(res) <- gsub(colnames(res), pattern = "\\.x$", replacement = paste0(".", fac_levels[1]))
   colnames(res) <- gsub(colnames(res), pattern = "\\.y$", replacement = paste0(".", fac_levels[2]))
   res
@@ -31,14 +31,14 @@ rename_recommend_columns <- function(res, fac_levels) {
 #'    )
 #' )
 #' 
-#' res <- testByDoubleClass(dt, byVar = "by", x = "x", y = "y")
+#' res <- doubleClassTestByVariable(dt, byVar = "by", x = "x", y = "y")
 #' res <- res %>% arrange(by)
 #' 
-#' atest <- t.test(y~x, data = dt %>% filter(by == "A"))
-#' btest <- t.test(y~x, data = dt %>% filter(by == "B"))
+#' atest <- t.test(y~x, data = dt %>% filter(by == "A"), var.equal = TRUE)
+#' btest <- t.test(y~x, data = dt %>% filter(by == "B"), var.equal = TRUE)
 #' all.equal(res$pvalue, c(atest$p.value, btest$p.value))
 #' 
-testByDoubleClass <- function(data, byVar, x, y, test = matrixTests::row_t_welch, ...) {
+doubleClassTestByVariable <- function(data, byVar, x, y, test = matrixTests::row_t_equalvar, ...) {
   
   data[[byVar]] <- as.factor(data[[byVar]])
   tbl <- tibble(byVar = levels(data[[byVar]]))
@@ -70,7 +70,9 @@ testByDoubleClass <- function(data, byVar, x, y, test = matrixTests::row_t_welch
   
   result <- dplyr::bind_cols(tbl, test(m1, m2, ...)) %>%
     arrange(pvalue) %>%
-    rename_recommend_columns(fac_levels)
+    renameRecommendColumns(fac_levels) %>% 
+    mutate(adj.pvalue = p.adjust(pvalue, method = "fdr")) %>%
+    relocate(adj.pvalue, .after = pvalue)
 }
 
 #' Continuous Test
@@ -101,14 +103,14 @@ testByDoubleClass <- function(data, byVar, x, y, test = matrixTests::row_t_welch
 #' colnames(mat) <- c("x", "y")
 #' dt <- cbind(dt, mat)
 #' 
-#' res <- continuousByTest(dt, by = "by", x = "x", y = "y")
+#' res <- continuousTestByVariable(dt, by = "by", x = "x", y = "y")
 #' res <- res %>% arrange(by)
 #' 
 #' atest <- cor.test(adt[,1], adt[,2])
 #' btest <- cor.test(bdt[,1], bdt[,2])
 #' all.equal(res$pvalue, c(atest$p.value, btest$p.value))
 #' 
-continuousByTest <- function(data, byVar, x, y, test = matrixTests::row_cor_pearson, ...) {
+continuousTestByVariable <- function(data, byVar, x, y, test = matrixTests::row_cor_pearson, ...) {
   
   data[[byVar]] <- as.factor(data[[byVar]])
   tbl <- tibble(byVar = levels(data[[byVar]]))
@@ -133,5 +135,7 @@ continuousByTest <- function(data, byVar, x, y, test = matrixTests::row_cor_pear
   m2 <- to_matrix(data, y)
   
   dplyr::bind_cols(tbl, test(m1, m2, ...)) %>%
-    arrange(pvalue)
+    arrange(pvalue) %>% 
+    mutate(adj.pvalue = p.adjust(pvalue, method = "fdr")) %>%
+    relocate(adj.pvalue, .after = pvalue)
 }

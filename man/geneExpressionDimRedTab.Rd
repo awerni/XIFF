@@ -17,6 +17,7 @@ geneExpressionDimRedTab(
   fm,
   Results,
   TableData,
+  classLabel,
   getDataGeneExpression
 )
 }
