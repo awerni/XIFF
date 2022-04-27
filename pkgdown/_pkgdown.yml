@@ -112,6 +112,8 @@ reference:
   - op-null-default
   - is.classAssignment
   - assertClassAssignment
+  - continuousByTest
+  - testByDoubleClass
 
 - title: Shiny Functions
   desc: Functions used by the shiny application. Not useful for API usage.

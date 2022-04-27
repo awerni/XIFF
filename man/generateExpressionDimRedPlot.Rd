@@ -45,7 +45,15 @@ if(require("CLIFF")) {
   # data analysis is done by XIFF
   dimRedData <- getExpressionDimRed(data, anno)
   generateExpressionDimRedPlot(dimRedData)
-
+  
+  geneExpr <- getCelllineDataGeneExpressionById("ENSG00000133703", ca) \%>\%
+    mutate(log2tpm = log2(tpm))
+  anno2 <- inner_join(anno, geneExpr, by = "celllinename")
+  dimRedData <- getExpressionDimRed(data, anno2)
+  generateExpressionDimRedPlot(dimRedData, colorCol = "cluster")
+  
+  # continous value
+  generateExpressionDimRedPlot(dimRedData, colorCol = "log2tpm")
 }
 
 }
