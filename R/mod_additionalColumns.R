@@ -112,12 +112,11 @@ additionalColumns <- function(id, Table, defaultCols = NULL, maxAdditionalCols =
       tab <- Table()
       validate(need(tab, "no data available"))
       vc <- VisibleCols()
-
       currentColState <- isolate(ColumnState())
 
       if (length(currentColState) > 0){
         # prepare empty state per each column
-        colState <- rep(list(NULL), nrow(tab))
+        colState <- rep(list(NULL), ncol(tab))
         names(colState) <- names(tab)
 
         colState[names(currentColState)] <- currentColState # include current state
