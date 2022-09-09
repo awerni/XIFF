@@ -6,7 +6,7 @@ mlApplyModelUI_main <- function(id){
       column_6(plotWrapperUI(ns("plot"))),
       column_6(plotWrapperUI(ns("metrics")))
     ),
-    fluidRow(containerDT(ns("table")))
+    fluidRow_12(containerDT(ns("table")))
   )
 }
 
