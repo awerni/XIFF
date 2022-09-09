@@ -35,6 +35,7 @@ isDbOnline <- function(timeout = 5){
 #' @return the command output
 #'
 runGCloudCommand <- function(args){
+  
   res <- tryCatch(
     expr = suppressWarnings(system2(
       command = "gcloud",
@@ -394,3 +395,19 @@ getGeneSymbol <- function(ensgs, species = "human"){
   res$symbol
 }
 
+
+#' Check if Google Cloud SDK is installed
+#'
+#' @return logical, TRUE if Google Cloud if available in the search path
+#' @export
+#'
+#' @examples
+#' 
+#' isGCloudAvailable()
+#' 
+isGCloudAvailable <- function() {
+  # if glcoud is available, then system2 returns 0
+  suppressWarnings(
+    system2("gcloud", "--version", stderr = FALSE, stdout = FALSE)
+  ) == 0
+}
