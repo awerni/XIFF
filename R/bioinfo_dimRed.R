@@ -65,7 +65,7 @@ calculateTSNE <- function(df, useCorrelation = TRUE, perplexity = "auto", inital
   )
 }
 
-calculatePCA <- function(df, useCorrelation = TRUE){
+calculatePCA <- function(df, useCorrelation = TRUE, ...){
   df <- sortByVariance(df)
   
   if(useCorrelation) {
