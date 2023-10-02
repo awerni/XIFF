@@ -60,7 +60,8 @@ Imports:
       caret,
       bslib (>= 0.3.1),
       DBI,
-      matrixTests
+      matrixTests,
+      logger
 RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 2.1.0),
