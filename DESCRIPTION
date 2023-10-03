@@ -65,7 +65,7 @@ Imports:
 RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 2.1.0),
-    shinytest,
+    shinytest2,
     knitr,
     rmarkdown,
     MASS
