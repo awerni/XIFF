@@ -22,7 +22,7 @@ RUN install2.r -n -1 littler remotes BiocManager \
  stringi plyr promises future testthat formatR curl RCurl matrixStats \
  lambda.r futile.options RSQLite httr futile.logger BH snow bitops caret \
  logger highr showimage debugme tinytex knitr webdriver pingr parsedate \
- assertthat rmarkdown shinytest shades backports ggfittext config broom matrixTests \
+ assertthat rmarkdown shinytest2 shades backports ggfittext config broom matrixTests \
  gggenes shinythemes \
  && rm -rf /tmp/downloaded_packages/* \
  && rm -rf /tmp/*.rds
