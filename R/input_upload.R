@@ -378,7 +378,7 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
     }
 
     if (file_data$shouldFacet){
-      g <- g + facet_grid(. ~ facet_var, scales = "free_x", space = "free")
+      g <- g + facet_wrap(. ~ facet_var, scales = "free_x", space = "free")
     }
 
     return(g)

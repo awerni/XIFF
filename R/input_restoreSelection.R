@@ -113,7 +113,7 @@ restoreSelectionInputMode <- function(input, output, session, classStack){
     }
 
     if (shouldFacet){
-      g <- g + facet_grid(. ~ facet_var, scales = "free_x", space = "free")
+      g <- g + facet_wrap(. ~ facet_var, scales = "free_x", space = "free")
     }
 
     return(g)

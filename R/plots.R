@@ -553,7 +553,7 @@ generateClassSelectionPlot <- function(sampleClasses, prop1, prop2, n_classes,
       )
     ) +
       geom_bar(stat = "identity") +
-      facet_grid(facets = . ~ class) +
+      facet_wrap(facets = . ~ class) +
       coord_polar(theta = "y") +
       xlab("") +
       ylab("") +
