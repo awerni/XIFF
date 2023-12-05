@@ -1,13 +1,19 @@
-classDetailsUI_main <- function(id, label, defaultName){
+classDetailsUI_main <- function(id, label, defaultName, allowNameChange = TRUE){
   ns <- NS(id)
   styleDetails <- "padding:4px; margin:3px; font-size:90%"
   
+  nameInput <- textInput(
+    inputId = ns("name"), 
+    label = paste(label, "name:"), 
+    value = defaultName
+  )
+  
+  if (!allowNameChange){
+    nameInput <- shinyjs::disabled(nameInput)
+  }
+  
   div(
-    textInput(
-      inputId = ns("name"), 
-      label = paste(label, "name:"), 
-      value = defaultName
-    ),
+    nameInput,
     shinyjs::hidden(
       span("Classes must have different names.",
          " class1/class2 will be used.",
@@ -154,27 +160,50 @@ classDetails <- function(input, output, session, index, classLabel, classSelecti
 #' @param classSelection class selection reactive
 #' @param Selected selected items
 #' @param onChange function called on change
+#' @param inline logical, widget orientation
+#' @param allowNameChange logical
 #'
 #' @export
 #' @rdname classDetailsWrapper
 #'
 classDetailsWrapperUI_main <- function(id,
-                                       defaults = c("sensitive", "resistant")) {
+                                       defaults = c("sensitive", "resistant"),
+                                       inline = FALSE,
+                                       allowNameChange = TRUE) {
   ns <- NS(id)
-  tagList(
-    classDetailsUI_main(
-      id = ns("class1"), 
-      label = "Class1", 
-      defaultName = defaults[1]
-    ),
-    hr(),
-    classDetailsUI_main(
-      id = ns("class2"), 
-      label = "Class 2", 
-      defaultName = defaults[2]
-    )
+  
+  submodule_1 <- classDetailsUI_main(
+    id = ns("class1"), 
+    label = "Class1", 
+    defaultName = defaults[1],
+    allowNameChange = allowNameChange
   )
   
+  submodule_2 <- classDetailsUI_main(
+    id = ns("class2"), 
+    label = "Class 2", 
+    defaultName = defaults[2],
+    allowNameChange = allowNameChange
+  )
+  
+  if (inline){
+    fluidRow(
+      column(
+        width = 6,
+        submodule_1
+      ),
+      column(
+        width = 6,
+        submodule_2
+      )
+    )
+  } else {
+    tagList(
+      submodule_1,
+      hr(),
+      submodule_2
+    )
+  }
 }
 
 #' @export

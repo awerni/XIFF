@@ -6,7 +6,12 @@
 \alias{classDetailsWrapper}
 \title{Class Details Shiny Module}
 \usage{
-classDetailsWrapperUI_main(id, defaults = c("sensitive", "resistant"))
+classDetailsWrapperUI_main(
+  id,
+  defaults = c("sensitive", "resistant"),
+  inline = FALSE,
+  allowNameChange = TRUE
+)
 
 classDetailsWrapperUI_show(id)
 
@@ -21,6 +26,10 @@ classDetailsWrapper(
 )
 }
 \arguments{
+\item{inline}{logical, widget orientation}
+
+\item{allowNameChange}{logical}
+
 \item{input}{shiny input}
 
 \item{output}{shiny output}

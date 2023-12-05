@@ -109,6 +109,7 @@ reference:
   - get_label
   - invalid
   - isDifferent
+  - isGCloudAvailable
   - op-null-default
   - is.classAssignment
   - assertClassAssignment
