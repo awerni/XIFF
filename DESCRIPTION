@@ -52,6 +52,8 @@ Imports:
       apcluster,
       xfun (>= 0.22),
       Boruta,
+      randomForest,
+      e1071,
       neuralnet,
       NeuralNetTools,
       systemfonts,
@@ -60,6 +62,7 @@ Imports:
       caret,
       bslib (>= 0.3.1),
       DBI,
+      Matrix,
       matrixTests,
       logger
 RoxygenNote: 7.2.3
