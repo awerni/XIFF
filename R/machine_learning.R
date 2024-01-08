@@ -230,10 +230,10 @@ mlSets2OriginalNames <- function(set, classColumn, classLabel) {
 #' 
 xiffSupportedModels <- function() {
   c(
-    "Random Forest" = "rf",
-    "SVM" = "svmLinear2",
+    "Random Forest" = "rf", # uses randomForest package
+    "SVM" = "svmLinear2", # uses e1071 package
     "Neural Network" = "neuralnetwork",
-    "Regularized Logistic Regression" = "glmnet",
+    "Regularized Logistic Regression" = "glmnet", # uses glmnet and Matrix packages
     "GREP" = "GREP"
   )
 }

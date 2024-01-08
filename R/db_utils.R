@@ -411,3 +411,28 @@ isGCloudAvailable <- function() {
     system2("gcloud", "--version", stderr = FALSE, stdout = FALSE)
   ) == 0
 }
+
+#' Process Mutation Information
+#'
+#' This function processes input text to ensure that it doesn't exceed a specified width
+#' and modify the semicolon in the text.
+#' 
+#' @param x a character vector or string to be processed.
+#' @param width an integer specifying the desired maximum width of the text.
+#'
+#' @return a character vector with processed text.
+#' @export
+#'
+#' @examples
+#' x <- "c.100T>C;c.787G>T;c.840C>T;"
+#' width <- 20
+#' processed_text <- processMutationInfo(x, width)
+#' 
+processMutationInfo <- function(x, width){
+  x <- ifelse(
+    test = nchar(x) > width,
+    yes = paste0(stringr::str_sub(x, end = -2L), "..."), # remove last character
+    no = x
+  )
+  gsub(";", "; ", x)
+}

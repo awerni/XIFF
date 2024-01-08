@@ -14,15 +14,15 @@ Progress bar for shiny
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{ProcessProgress$new()}}
-\item \href{#method-update}{\code{ProcessProgress$update()}}
-\item \href{#method-error}{\code{ProcessProgress$error()}}
-\item \href{#method-clone}{\code{ProcessProgress$clone()}}
+\item \href{#method-ProcessProgress-new}{\code{ProcessProgress$new()}}
+\item \href{#method-ProcessProgress-update}{\code{ProcessProgress$update()}}
+\item \href{#method-ProcessProgress-error}{\code{ProcessProgress$error()}}
+\item \href{#method-ProcessProgress-clone}{\code{ProcessProgress$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-ProcessProgress-new"></a>}}
+\if{latex}{\out{\hypertarget{method-ProcessProgress-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProcessProgress$new(label, p = FALSE)}\if{html}{\out{</div>}}
@@ -39,8 +39,8 @@ Progress bar for shiny
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-update"></a>}}
-\if{latex}{\out{\hypertarget{method-update}{}}}
+\if{html}{\out{<a id="method-ProcessProgress-update"></a>}}
+\if{latex}{\out{\hypertarget{method-ProcessProgress-update}{}}}
 \subsection{Method \code{update()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProcessProgress$update(value, msg)}\if{html}{\out{</div>}}
@@ -57,8 +57,8 @@ Progress bar for shiny
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-error"></a>}}
-\if{latex}{\out{\hypertarget{method-error}{}}}
+\if{html}{\out{<a id="method-ProcessProgress-error"></a>}}
+\if{latex}{\out{\hypertarget{method-ProcessProgress-error}{}}}
 \subsection{Method \code{error()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProcessProgress$error(msg)}\if{html}{\out{</div>}}
@@ -73,8 +73,8 @@ Progress bar for shiny
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-ProcessProgress-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-ProcessProgress-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

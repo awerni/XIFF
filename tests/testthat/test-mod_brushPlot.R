@@ -1,10 +1,13 @@
-library(shinytest)
+library(shinytest2)
 
 test_that(
   desc = "Brush plot works fine",
   code = {
-    app <- ShinyDriver$new("app_mod_brushPlot", loadTimeout = 100000)
-    appState <- app$getAllValues()
+    app <- AppDriver$new(
+      app_dir = "app_mod_brushPlot",
+      load_timeout = 10000
+    )
+    appState <- app$get_values()
 
     pd <- appState$export[["test-pd"]]
     expect_is(pd$data, "data.frame")
@@ -15,27 +18,24 @@ test_that(
     expect_null(pd$facetInfo)
     expect_equal(pd$xTrans, "identity")
     expect_equal(pd$yTrans, "sqrt")
-
-    app$findElement("#test-brush_options")$click()
+    
+    app$click(selector = "#test-brush_options")
 
     # Cutoff check
-    # app$setInputs("test-score_method_y" = "cutoff")
-    app$waitForValue(
-      name = "test-cutoff_y",
-      iotype = "input"
-    )
+    # app$set_inputs("test-score_method_y" = "cutoff")
+    app$wait_for_value(input = "test-cutoff_y")
 
-    # app$setInputs("test-cutoff_action_y" = "lt")
-    app$setInputs("test-cutoff_y" = 6)
+    # app$set_inputs("test-cutoff_action_y" = "lt")
+    app$set_inputs("test-cutoff_y" = 6)
 
-    app$findElement("#test-brush_button")$click()
-    app$waitForValue(
-      name = "test-selectionStat",
-      iotype = "output",
+    app$click(selector = "#test-brush_button")
+    app$wait_for_value(
+      output = "test-selectionStat",
       ignore = appState$output[["test-selectionStat"]]
     )
+    
+    appState <- app$get_values()
 
-    appState <- app$getAllValues()
     res <- appState$export$res
     expect_equal(res$source, "test-plot_brush")
     expect_equal(res$range_x, c(NA, NA))
@@ -47,23 +47,19 @@ test_that(
     expect_equal(label, "83 cell lines selected in  Y range: (4.3, 5.9);")
 
     # Number check
-    app$setInputs("test-score_method_y" = "number")
-    app$waitForValue(
-      name = "test-number_y",
-      iotype = "input"
-    )
+    app$set_inputs("test-score_method_y" = "number")
+    app$wait_for_value(input = "test-number_y")
 
-    app$setInputs("test-number_action_y" = "highest")
-    app$setInputs("test-number_y" = 19)
+    app$set_inputs("test-number_action_y" = "highest")
+    app$set_inputs("test-number_y" = 19)
 
-    app$findElement("#test-brush_button")$click()
-    app$waitForValue(
-      name = "test-selectionStat",
-      iotype = "output",
+    app$click(selector = "#test-brush_button")
+    app$wait_for_value(
+      output = "test-selectionStat",
       ignore = appState$output[["test-selectionStat"]]
     )
 
-    appState <- app$getAllValues()
+    appState <- app$get_values()
     res <- appState$export$res
     expect_equal(res$source, "test-plot_brush")
     expect_equal(res$range_x, c(NA, NA))
@@ -75,23 +71,19 @@ test_that(
     expect_equal(label, "19 cell lines selected in  Y range: (6.8, 7.9);")
 
     # Percentile check
-    app$setInputs("test-score_method_y" = "percentile")
-    app$waitForValue(
-      name = "test-percentile_y",
-      iotype = "input"
-    )
+    app$set_inputs("test-score_method_y" = "percentile")
+    app$wait_for_value(input = "test-percentile_y")
 
-    app$setInputs("test-percentile_action_y" = "highest")
-    app$setInputs("test-percentile_y" = 30)
+    app$set_inputs("test-percentile_action_y" = "highest")
+    app$set_inputs("test-percentile_y" = 30)
 
-    app$findElement("#test-brush_button")$click()
-    app$waitForValue(
-      name = "test-selectionStat",
-      iotype = "output",
+    app$click(selector = "#test-brush_button")
+    app$wait_for_value(
+      output = "test-selectionStat",
       ignore = appState$output[["test-selectionStat"]]
     )
 
-    appState <- app$getAllValues()
+    appState <- app$get_values()
     res <- appState$export$res
     expect_equal(res$source, "test-plot_brush")
     expect_equal(res$range_x, c(NA, NA))
