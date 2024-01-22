@@ -71,7 +71,7 @@ uploadInputMode <- function(input, output, session, AnnotationFull, translationF
     info <- input$upload
     req(info)
 
-    info[["isXlsx"]] <- grepl("xlsx$", info$datapath)
+    info[["isXlsx"]] <- grepl("(xlsx|xls)$", info$datapath)
     info[["isRds"]] <- grepl("rds$", info$datapath)
 
     Dummy_xlsx(info[["isXlsx"]])
@@ -254,7 +254,7 @@ classicUploadInputMode <- function(input, output, session, FileInfo, topErrorId,
           sheet <- rv[["sheet"]]
           validate(need(sheet, "select sheet first"))
 
-          df <- readxl::read_xlsx(
+          df <- readxl::read_excel(
             path = file_name,
             sheet = sheet,
             na = c("", "NA"),

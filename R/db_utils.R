@@ -134,48 +134,107 @@ getGCloudAccessToken <- function(){
   token
 }
 
+getPgPassword <- function(dbName, dbHost, dbPort, dbUser){
+  parsed_pgpass <- strsplit(
+    x = scan(
+      file = "~/.pgpass", 
+      what = "", 
+      quiet = TRUE
+    ), 
+    split = ":"
+  )
+      
+  compare <- function(x, y) (x == y | y == "*")
+  
+  is_valid_entry <- purrr::map_lgl(
+    .x = parsed_pgpass,
+    .f = function(x){
+      compare(dbHost, x[[1]]) && 
+        compare(as.character(dbPort), x[[2]]) &&
+        compare(dbName, x[[3]]) && 
+        compare(dbUser, x[[4]])
+    }
+  )
+  
+  valid_entry_idx <- which(is_valid_entry)
+  
+  if (length(valid_entry_idx) > 0){
+    parsed_pgpass[[valid_entry_idx[1]]][[5]]
+  } else {
+    msg <- paste0(
+      "Cannot find a valid password in ~/.pgpass for the provided connection data:",
+      "\n\tDB host: ", dbHost,
+      "\n\tDB port: ", dbPort,
+      "\n\tDB name: ", dbName,
+      "\n\tDB user: ", dbUser, "\n"
+    )
+    
+    stop(msg)
+  }
+}
+
 # DB connection ---------------------------------------------------------------
 getDBConnectionData <- function(){
-  myDB <- getOption("dbname")
-  if (is.null(myDB)) myDB <- db
-  DBhost <- getOption("dbhost")
-  DBport <- getOption("dbport")
+  dbName <- getOption("dbname")
+  if (is.null(dbName)){
+    stop("Missing connection details - did you run setDbOptions()?")
+  }
+  
+  dbHost <- getOption("dbhost")
+  dbPort <- getOption("dbport")
 
   useGCloud <- getOption("useGCloudAuth", default = FALSE)
 
-  if (useGCloud){
+  if (isTRUE(useGCloud)){
     token <- getGCloudAccessToken()
-    user <- token$user
-    password <- token$token
+    dbUser <- token$user
+    dbPassword <- token$token
   } else {
-    user <- getOption("dbuser")
-    password <- getOption("dbpass")
+    dbUser <- getOption("dbuser")
+    dbPassword <- getOption("dbpass")
 
-    compare <- function(x, y) (x == y | y == "*")
-
-    if (user == Sys.getenv("USER")) {
-      if (password == "" | is.na(password)) {
-        pgpass <- strsplit(scan("~/.pgpass", what = "", quiet = TRUE), ":")
-        n <- sapply(pgpass, function(x) {
-          compare(DBhost, x[[1]]) & compare(myDB, x[[3]]) & compare(user, x[[4]])
-        })
-        password <- pgpass[[which(n)[1]]][[5]]
-      }
+    if (dbPassword == "" || is.na(dbPassword)){
+      dbPassword <- getPgPassword(
+        dbName = dbName,
+        dbHost = dbHost,
+        dbPort = dbPort,
+        dbUser = dbUser
+      )
     }
   }
 
   list(
-    user = user,
-    password = password,
-    dbname = myDB,
-    host = DBhost,
-    port = DBport
+    user = dbUser,
+    password = dbPassword,
+    dbname = dbName,
+    host = dbHost,
+    port = dbPort
   )
 }
 
+
+#' Get PostgreSQL Connection object
+#' 
+#' This function allows to get a DB connection object, that can be used in dbplyr
+#' pipelines.
+#' 
+#' @return RPostgres connection object
+#' @export
+#' 
+#' @examples
+#' 
+#' setDbOptions()
+#' con <- getPostgresqlConnection()
+#' con %>%
+#'   dplyr::tbl("msigdb") %>%
+#'   head() %>%
+#'   dplyr::collect()
+#' RPostgres::dbDisconnect(con)
+#' 
 getPostgresqlConnection <- function() {
   info <- getDBConnectionData()
   drv <- RPostgres::Postgres()
+  
   con <- try(DBI::dbConnect(
     drv = drv,
     user = info$user,
@@ -184,8 +243,12 @@ getPostgresqlConnection <- function() {
     host = info$host,
     port = info$port
   ))
-
-  return(con)
+  
+  if (class(con) == "try-error"){
+    stop("no connection to database")
+  } else {
+    con
+  }
 }
 
 #' Get data from Postgres
@@ -222,7 +285,6 @@ setPostgresql <- function(sql){
 
 runDbQuery <- function(sql){
   con <- getPostgresqlConnection()
-  if (class(con) == "try-error") stop("no connection to database")
 
   rs <- try(RPostgres::dbSendQuery(con, sql))
   if (class(rs) == "try-error") {
@@ -230,9 +292,11 @@ runDbQuery <- function(sql){
     stop("can not exectute sql command")
   }
 
-  list(rs = rs, con = con)
+  list(
+    rs = rs, 
+    con = con
+  )
 }
-
 
 #' Create SQL Where filter
 #'
