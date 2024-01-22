@@ -64,7 +64,8 @@ Imports:
       DBI,
       Matrix,
       matrixTests,
-      logger
+      logger,
+      phateR
 RoxygenNote: 7.2.3
 Suggests: 
     testthat (>= 2.1.0),

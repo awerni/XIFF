@@ -1,6 +1,8 @@
 # XIFF 0.2.7
 
 * Added support for xls upload
+* Added ability to use the .pgpass password for an user different than the current user 
+* Added ability to use direct DB connection object (for dbplyr pipelines)
 
 # XIFF 0.2.6
 
