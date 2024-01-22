@@ -4,6 +4,7 @@
 \alias{getMetadataGeneSetTable}
 \alias{getAvailableGeneSets}
 \alias{getGeneSet}
+\alias{getGeneSetsForGene}
 \title{Get Gene Set Information}
 \usage{
 getMetadataGeneSetTable()
@@ -11,6 +12,8 @@ getMetadataGeneSetTable()
 getAvailableGeneSets()
 
 getGeneSet(geneset)
+
+getGeneSetsForGene(ensg)
 }
 \arguments{
 \item{geneset}{gene set name}
