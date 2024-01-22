@@ -3,6 +3,7 @@
 * Added support for xls upload
 * Added ability to use the .pgpass password for an user different than the current user 
 * Added ability to use direct DB connection object (for dbplyr pipelines)
+* Added getAvailableGeneSets function
 
 # XIFF 0.2.6
 

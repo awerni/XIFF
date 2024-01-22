@@ -2,10 +2,13 @@
 % Please edit documentation in R/db_bioinfo.R
 \name{getMetadataGeneSetTable}
 \alias{getMetadataGeneSetTable}
+\alias{getAvailableGeneSets}
 \alias{getGeneSet}
 \title{Get Gene Set Information}
 \usage{
 getMetadataGeneSetTable()
+
+getAvailableGeneSets()
 
 getGeneSet(geneset)
 }
