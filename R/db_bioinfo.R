@@ -145,17 +145,29 @@ getMetadataGeneSetTable <- function() {
 
 #' @rdname getGeneSet
 #' @export
+getAvailableGeneSets <- function(){
+  sql <- "SELECT DISTINCT genesetname FROM public.geneassignment"
+  getPostgresql(sql)[["genesetname"]]
+}
+
+#' @rdname getGeneSet
+#' @export
 getGeneSet <- function(geneset) {
-  
   sql <- glue::glue_sql(
-    "SELECT 
-       ensg
-     FROM
-       public.geneassignment
-     WHERE 
-       genesetname = {geneset}",
+    "SELECT ensg FROM public.geneassignment WHERE genesetname = {geneset}",
     .con = DBI::ANSI()
   )
   
   getPostgresql(sql)[["ensg"]]
+}
+
+#' @rdname getGeneSet
+#' @export
+getGeneSetsForGene <- function(ensg){
+  sql <- glue::glue_sql(
+    "SELECT genesetname FROM public.geneassignment WHERE ensg = {ensg}",
+    .con = DBI::ANSI()
+  )
+  
+  getPostgresql(sql)[["genesetname"]]
 }
