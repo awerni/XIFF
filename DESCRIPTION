@@ -3,7 +3,7 @@ Type: Package
 Title: Common Modules And Functions For xIFF Apps 
 Version: 0.2.7
 Authors@R: c(
-    person("Andreas", "Wernitznig", email = "awernitz@broadinstitute.org", role = c("aut", "rev"),
+    person("Andreas", "Wernitznig", email = "andreas@wernitznig.com", role = c("aut", "rev"),
            comment = c(ORCID = "0000-0003-1883-1470")),
     person("Michal", "Jakubczak", email = "michal.jakubczak@ardigen.com", role = c("aut", "cre", "ctr")),
     person("Zygmunt", "Zawadzki", email = "zygmunt.zawadzki@ardigen.com", role = c("aut", "ctr"))
