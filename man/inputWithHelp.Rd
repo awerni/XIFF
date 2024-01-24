@@ -2,9 +2,12 @@
 % Please edit documentation in R/shiny_utils.R
 \name{inputWithHelp}
 \alias{inputWithHelp}
+\alias{helpIcon}
 \title{Add help text to selectInput shiny object}
 \usage{
 inputWithHelp(param, helpText = "help me Obi-Wan Kenobi")
+
+helpIcon(text)
 }
 \arguments{
 \item{param}{selectInput shiny object}

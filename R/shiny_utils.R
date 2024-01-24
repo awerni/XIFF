@@ -95,6 +95,7 @@ registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, i
 #' @param param selectInput shiny object
 #' @param helpText 
 #'
+#' @rdname inputWithHelp
 #' @export
 #' 
 #' @examples 
@@ -107,17 +108,24 @@ registerExtendedInputObserver <- function(input, rv, inputId, callback = NULL, i
 #' }
 #' 
 inputWithHelp <- function(param, helpText = "help me Obi-Wan Kenobi"){
-  helpIcon <- icon("question-circle")
-  helpIcon$attribs[["data-toggle"]] <- "tooltip"
-  helpIcon$attribs[["title"]] <- helpText
+  hi <- helpIcon(helpText)
 
   param$children[[1]]$children[[1]] <- div(
     param$children[[1]]$children[[1]],
-    helpIcon
+    hi
   )
   param
 }
 
+#' @rdname inputWithHelp
+#' @export
+helpIcon <- function(text){
+  res <- icon("question-circle")
+  res$attribs[["data-toggle"]] <- "tooltip"
+  res$attribs[["title"]] <- text
+  
+  res
+}
 
 #' Convenience Shiny Column Functions
 #' 
