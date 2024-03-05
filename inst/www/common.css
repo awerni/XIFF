@@ -14,7 +14,7 @@ body:not(.modal-open) {
   margin-bottom: 10px;
 }
 
-.navbar-static-top {
+.xiff-app .navbar-static-top {
   align-items: center;
   padding: 0 !important;
   margin-bottom: 3px !important;
@@ -22,39 +22,39 @@ body:not(.modal-open) {
   border-bottom: 1px solid #dee2e6 !important;
 
 }
-.navbar-static-top .navbar-header {
+.xiff-app .navbar-static-top .navbar-header {
   display: none;
 }
-.navbar-static-top .container-fluid {
+.xiff-app .navbar-static-top .container-fluid {
   background-color: #FFFFFF;
   padding: 0;
 }
-.navbar-static-top ul {
+.xiff-app .navbar-static-top ul {
   align-items:center;
 }
-.navbar-static-top ul li:first-child {
+.xiff-app .navbar-static-top ul li:first-child {
   margin-left: 20px;
   margin-right: 20px;
 }
-.navbar-static-top .nav-item .nav-link {
+.xiff-app .navbar-static-top .nav-item .nav-link {
   padding: 0.7rem 1rem !important;
   color: #18BC9C !important;
   height: 100%;
   border-radius: 5px;
 }
-.navbar-static-top .nav-item .nav-link.active {
+.xiff-app .navbar-static-top .nav-item .nav-link.active {
   background-color: #18BC9C;
   color: #000000 !important;
 }
-.navbar-static-top .nav-item .nav-link:hover {
+.xiff-app .navbar-static-top .nav-item .nav-link:hover {
   background-color: rgba(24, 188, 156, 0.1);
   color: #000000 !important;
 }
-.navbar-static-top .nav-item-right {
+.xiff-app .navbar-static-top .nav-item-right {
   margin-left: 10px;
   color: #6c757d;
 }
-.navbar-static-top .nav-item-right a {
+.xiff-app .navbar-static-top .nav-item-right a {
   color: #18BC9C !important;
 }
 .table.dataTable tbody tr.active td {
