@@ -449,24 +449,33 @@ appUI_title <- function(id, title, logoPath) {
 #' 
 #' @param version bootstrap version to use
 #' @param font font name to use
+#' @param bootswatch bootstrap theme
+#' @param primaryColor primary color
+#' @param lineHeightBase line width
+#' @param tableCellPadding table padding
 #' @param ... arguments passed to bs_theme
 #' 
 #' @export
-appTheme <- function(version = 4, font = "Roboto", ...){
-  robotoFont <- bslib::font_collection(bslib::font_google(font), "sans-serif")
+appTheme <- function(version = 4, font = "Roboto", bootswatch = "default", 
+                     primaryColor = "#18bc9c", lineHeightBase = 1.2, 
+                     tableCellPadding = "0.3rem", ...){
+  themeFont <- bslib::font_collection(bslib::font_google(font), "sans-serif")
+  
+  primaryRgb <- unname(col2rgb(primaryColor)[, 1])
+  hoverColorRgba <- glue::glue("rgba({primaryRgb[1]},{primaryRgb[2]},{primaryRgb[3]},0.1)")
   
   bslib::bs_theme(
     # v4 is set, because v5 is not compatible with shinyWidgets yet 
     # https://github.com/dreamRs/shinyWidgets/issues/434
     version = version,
-    bootswatch = "default",
-    primary = "#18bc9c",
-    "line-height-base" = 1.2,
-    "table-cell-padding" = "0.3rem",
-    "table-hover-bg" = "rgba(24, 188, 156, 0.1)",
-    "table-active-bg" = "#18bc9c",
-    base_font = robotoFont,
-    heading_font = robotoFont,
+    bootswatch = NULL,
+    primary = primaryColor,
+    "line-height-base" = lineHeightBase,
+    "table-cell-padding" = tableCellPadding,
+    "table-hover-bg" = as.character(hoverColorRgba),
+    "table-active-bg" = primaryColor,
+    base_font = themeFont,
+    heading_font = themeFont,
     ...
   )
 }

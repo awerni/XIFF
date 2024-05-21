@@ -1,3 +1,7 @@
+# XIFF 0.2.8
+
+* Bootstrap 5 adjustments
+
 # XIFF 0.2.7
 
 * Added support for xls upload

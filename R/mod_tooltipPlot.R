@@ -6,7 +6,7 @@ tooltipPlotUI <- function(id, width = "100%", height = "400px"){
   uiOutput(
     outputId = ns("plot"),
     class = "shiny-report-size tooltip-plot-output",
-    style = sprintf("width: %s; height: %s;", width, height)
+    style = sprintf("width: %s; height: %s; display: block;", width, height)
   )
 }
 

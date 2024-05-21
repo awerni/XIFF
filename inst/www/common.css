@@ -41,6 +41,7 @@ body:not(.modal-open) {
   color: #18BC9C !important;
   height: 100%;
   border-radius: 5px;
+  border-bottom: none;
 }
 .xiff-app .navbar-static-top .nav-item .nav-link.active {
   background-color: #18BC9C;

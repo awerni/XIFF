@@ -24,7 +24,7 @@ plotWrapperUI <- function(id, width = "100%", height = "400px", center = FALSE){
     uiOutput(
       outputId = ns("container"),
       class = "shiny-report-size",
-      style = sprintf("width: %s; height: %s;%s", width, height, `if`(center, " margin: 0 auto;", ""))
+      style = sprintf("width: %s; height: %s; display: block;%s", width, height, `if`(center, " margin: 0 auto;", ""))
     ),
     actionButton(
       inputId = ns("modalButton"),

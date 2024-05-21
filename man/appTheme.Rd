@@ -4,12 +4,28 @@
 \alias{appTheme}
 \title{Default app theme}
 \usage{
-appTheme(version = 4, font = "Roboto", ...)
+appTheme(
+  version = 4,
+  font = "Roboto",
+  bootswatch = "default",
+  primaryColor = "#18bc9c",
+  lineHeightBase = 1.2,
+  tableCellPadding = "0.3rem",
+  ...
+)
 }
 \arguments{
 \item{version}{bootstrap version to use}
 
 \item{font}{font name to use}
+
+\item{bootswatch}{bootstrap theme}
+
+\item{primaryColor}{primary color}
+
+\item{lineHeightBase}{line width}
+
+\item{tableCellPadding}{table padding}
 
 \item{...}{arguments passed to bs_theme}
 }

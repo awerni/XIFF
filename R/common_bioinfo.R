@@ -788,6 +788,7 @@ createMachineLearningModel <- function(trainingSet,
   trainingOutput
 }
 
+#' @export
 print.MLXIFF <- function(x, ...) {
   
   class(x) <- class(x)[-1]
