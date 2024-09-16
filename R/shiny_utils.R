@@ -121,7 +121,7 @@ inputWithHelp <- function(param, helpText = "help me Obi-Wan Kenobi"){
 #' @export
 helpIcon <- function(text){
   res <- icon("question-circle")
-  res$attribs[["data-toggle"]] <- "tooltip"
+  res$attribs[["data-bs-toggle"]] <- "tooltip"
   res$attribs[["title"]] <- text
   
   res

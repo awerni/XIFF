@@ -1,5 +1,5 @@
 $(document).ready(function(){
-  $('[data-toggle="tooltip"]').tooltip();
+  $('[data-bs-toggle="tooltip"]').tooltip();
 });
 
 $(document).on('click', '.set-brush', function(){
@@ -109,7 +109,7 @@ function buildDropdownLinkMenu(itemDefs, label){
   });
 
   var a = '<span class="caret"></span>';
-  var l = '<a class="dropdown-toggle" type="button" id="' + id + '" data-toggle="dropdown">' + label + a + '</a>';
+  var l = '<a class="dropdown-toggle" type="button" id="' + id + '" data-bs-toggle="dropdown">' + label + a + '</a>';
   var u = '<ul class="dropdown-menu" role="menu" aria-labelledby="' + id + '">' + items.join('') + '</ul>';
 
   return '<div class="dropdown">' + l + u + '<div>';
